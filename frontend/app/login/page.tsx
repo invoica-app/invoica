@@ -1,8 +1,54 @@
-import Link from "next/link";
+"use client";
+
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading("google");
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      setIsLoading(null);
+    }
+  };
+
+  const handleMicrosoftSignIn = async () => {
+    setIsLoading("microsoft");
+    try {
+      await signIn("microsoft-entra-id", { callbackUrl: "/dashboard" });
+    } catch (error) {
+      console.error("Microsoft sign in error:", error);
+      setIsLoading(null);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsLoading("guest");
+    try {
+      const result = await signIn("guest", {
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        router.push("/dashboard");
+      } else {
+        console.error("Guest sign in failed");
+      }
+    } catch (error) {
+      console.error("Guest sign in error:", error);
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Logo */}
@@ -22,10 +68,13 @@ export default function LoginPage() {
             <div className="space-y-3">
               {/* Google Sign In */}
               <Button
-                asChild
-                className="w-full h-12 bg-primary hover:bg-primary/90"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading !== null}
+                className="w-full h-12 bg-primary hover:bg-primary/90 gap-3"
               >
-                <Link href="/dashboard" className="gap-3">
+                {isLoading === "google" ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -44,22 +93,25 @@ export default function LoginPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  Sign in with Google
-                </Link>
+                )}
+                Sign in with Google
               </Button>
 
               {/* Microsoft Sign In */}
               <Button
-                asChild
+                onClick={handleMicrosoftSignIn}
+                disabled={isLoading !== null}
                 variant="outline"
-                className="w-full h-12 bg-black text-white hover:bg-gray-900 hover:text-white border-black"
+                className="w-full h-12 bg-black text-white hover:bg-gray-900 hover:text-white border-black gap-3"
               >
-                <Link href="/dashboard" className="gap-3">
+                {isLoading === "microsoft" ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" />
                   </svg>
-                  Sign in with Microsoft
-                </Link>
+                )}
+                Sign in with Microsoft
               </Button>
 
               {/* Divider */}
@@ -74,13 +126,16 @@ export default function LoginPage() {
 
               {/* Guest Sign In */}
               <Button
-                asChild
+                onClick={handleGuestSignIn}
+                disabled={isLoading !== null}
                 variant="outline"
                 className="w-full h-12 bg-muted hover:bg-muted/80"
               >
-                <Link href="/dashboard">
-                  Continue as Guest
-                </Link>
+                {isLoading === "guest" ? (
+                  <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Continue as Guest"
+                )}
               </Button>
             </div>
           </div>

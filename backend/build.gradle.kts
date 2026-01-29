@@ -24,6 +24,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -35,6 +37,14 @@ dependencies {
 
     // AWS S3
     implementation("software.amazon.awssdk:s3:2.20.26")
+
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:0.12.3")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+
+    // Environment Variables
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     // Development
     developmentOnly("org.springframework.boot:spring-boot-devtools")

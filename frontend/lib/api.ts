@@ -10,9 +10,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 
 class ApiClient {
   private baseUrl: string;
+  private accessToken?: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  setAccessToken(token: string | undefined) {
+    this.accessToken = token;
   }
 
   private async request<T>(
@@ -21,12 +26,19 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Add auth token if available
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     };
 
     try {
@@ -85,11 +97,35 @@ class ApiClient {
 // Export singleton instance
 export const api = new ApiClient(API_BASE_URL);
 
+// Helper to create API client with auth token
+export function createAuthenticatedApi(accessToken?: string) {
+  const client = new ApiClient(API_BASE_URL);
+  if (accessToken) {
+    client.setAccessToken(accessToken);
+  }
+  return client;
+}
+
 // Export individual methods for convenience
 export const invoiceApi = {
-  create: (data: CreateInvoiceRequest) => api.createInvoice(data),
-  getAll: (status?: InvoiceStatus) => api.getAllInvoices(status),
-  getById: (id: number) => api.getInvoiceById(id),
-  update: (id: number, data: UpdateInvoiceRequest) => api.updateInvoice(id, data),
-  delete: (id: number) => api.deleteInvoice(id),
+  create: (data: CreateInvoiceRequest, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.createInvoice(data);
+  },
+  getAll: (status?: InvoiceStatus, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.getAllInvoices(status);
+  },
+  getById: (id: number, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.getInvoiceById(id);
+  },
+  update: (id: number, data: UpdateInvoiceRequest, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.updateInvoice(id, data);
+  },
+  delete: (id: number, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.deleteInvoice(id);
+  },
 };

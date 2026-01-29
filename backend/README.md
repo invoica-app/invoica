@@ -7,9 +7,12 @@ Spring Boot + Kotlin REST API for the Invoicer application.
 - **Kotlin** 1.9.22
 - **Spring Boot** 3.2.2
 - **Spring Data JPA**
-- **H2 Database** (dev) / PostgreSQL (prod)
+- **PostgreSQL** (local + production)
+- **Spring Security** + JWT
+- **OAuth2** (Google, Microsoft)
 - **Gradle** (Kotlin DSL)
 - **Bean Validation**
+- **AWS S3** (file storage)
 
 ## Features
 
@@ -107,28 +110,66 @@ DELETE /api/invoices/{id}      # Delete invoice
 ### Prerequisites
 
 - JDK 17 or higher
-- Gradle 8.x (or use included wrapper)
+- PostgreSQL 14+ (see [DATABASE_SETUP.md](../DATABASE_SETUP.md))
+- Gradle 8.x (or use IntelliJ IDEA)
 
-### Run the Application
+### 1. Set Up PostgreSQL
 
 ```bash
-# Using Gradle wrapper
-./gradlew bootRun
+# Install PostgreSQL (macOS)
+brew install postgresql@15
+brew services start postgresql@15
 
-# Or build and run
-./gradlew build
-java -jar build/libs/invoicer-backend-0.0.1-SNAPSHOT.jar
+# Create database
+createdb invoica_dev
+```
+
+See [DATABASE_SETUP.md](../DATABASE_SETUP.md) for detailed instructions.
+
+### 2. Configure Environment
+
+The `.env` file is already configured with defaults:
+
+```bash
+# backend/.env (already created)
+DB_URL=jdbc:postgresql://localhost:5432/invoica_dev
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+```
+
+**Update if needed:**
+- Change `DB_PASSWORD` if you set a different PostgreSQL password
+- All other settings have sensible defaults for local development
+
+### 3. Run the Application
+
+**Option 1: Using Gradle**
+```bash
+./gradlew bootRun
+```
+
+**Option 2: Using IntelliJ IDEA (Recommended)**
+1. Open `backend` folder in IntelliJ
+2. Wait for Gradle sync
+3. Run `InvoicerApplication.kt`
+
+**Expected output:**
+```
+Hibernate: create table users (...)
+Hibernate: create table invoices (...)
+Started InvoicerApplication in X.XXX seconds
 ```
 
 The API will start on `http://localhost:8080`
 
-### H2 Console
+### 4. Verify Setup
 
-Access the H2 database console at: `http://localhost:8080/h2-console`
+```bash
+# Check database tables were created
+psql -d invoica_dev -c "\dt"
 
-- JDBC URL: `jdbc:h2:mem:invoicer`
-- Username: `sa`
-- Password: (empty)
+# Should show: users, invoices, line_items
+```
 
 ## Example Usage
 
