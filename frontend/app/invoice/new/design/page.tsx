@@ -46,22 +46,22 @@ export default function DesignPage() {
     <>
       <WizardHeader stepLabel="Step 3 of 5" />
 
-      <div className="flex-1 p-8 bg-secondary overflow-auto">
+      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-semibold mb-2">Design & Branding</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Design & Branding</h1>
             <p className="text-gray-600">
               Customize the look and feel of your invoice.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100 space-y-8">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100 space-y-8">
             {/* Primary Color */}
             <div>
               <Label className="mb-4 block text-gray-700 text-base">
                 Primary Color
               </Label>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 {colors.map((color) => (
                   <button
                     key={color.value}
@@ -71,7 +71,7 @@ export default function DesignPage() {
                   >
                     <div
                       className={cn(
-                        "w-14 h-14 rounded-full transition-all cursor-pointer",
+                        "w-10 h-10 md:w-14 md:h-14 rounded-full transition-all cursor-pointer",
                         primaryColor === color.value
                           ? "ring-4 ring-offset-2 ring-gray-300"
                           : "hover:ring-2 hover:ring-offset-2 hover:ring-gray-200"
@@ -94,7 +94,7 @@ export default function DesignPage() {
               <Label className="mb-4 block text-gray-700 text-base">
                 Font Family
               </Label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {fonts.map((font) => (
                   <button
                     key={font.value}

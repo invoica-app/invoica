@@ -9,6 +9,7 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
     setIsLoading("google");
@@ -23,7 +24,7 @@ export default function LoginPage() {
   const handleMicrosoftSignIn = async () => {
     setIsLoading("microsoft");
     try {
-      await signIn("microsoft-entra-id", { callbackUrl: "/dashboard" });
+      await signIn("azure-ad", { callbackUrl: "/dashboard" });
     } catch (error) {
       console.error("Microsoft sign in error:", error);
       setIsLoading(null);
@@ -32,6 +33,7 @@ export default function LoginPage() {
 
   const handleGuestSignIn = async () => {
     setIsLoading("guest");
+    setError(null);
     try {
       const result = await signIn("guest", {
         redirect: false,
@@ -40,10 +42,10 @@ export default function LoginPage() {
       if (result?.ok) {
         router.push("/dashboard");
       } else {
-        console.error("Guest sign in failed");
+        setError("Sign in failed. Please try again.");
       }
-    } catch (error) {
-      console.error("Guest sign in error:", error);
+    } catch {
+      setError("Could not connect to the server. Is the backend running?");
     } finally {
       setIsLoading(null);
     }
@@ -52,18 +54,24 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Logo */}
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <h1 className="text-2xl font-bold">Inv.</h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
               <p className="text-gray-600">Sign in to your account to continue</p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
 
             <div className="space-y-3">
               {/* Google Sign In */}

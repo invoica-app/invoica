@@ -35,18 +35,18 @@ export default function InvoiceDetailsPage() {
     <>
       <WizardHeader stepLabel="Step 2 of 5" />
 
-      <div className="flex-1 p-8 bg-secondary overflow-auto">
+      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-semibold mb-2">Invoice Details</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Invoice Details</h1>
             <p className="text-gray-600">
               Set the invoice number, dates, and line items.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100">
             {/* Invoice Info */}
-            <div className="grid grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               <div>
                 <Label htmlFor="invoiceNumber" className="mb-3 block text-gray-700">
                   Invoice Number
@@ -96,7 +96,8 @@ export default function InvoiceDetailsPage() {
                 </Button>
               </div>
 
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* Desktop table */}
+              <div className="hidden md:block border border-gray-200 rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
@@ -170,11 +171,68 @@ export default function InvoiceDetailsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile stacked cards */}
+              <div className="md:hidden space-y-4">
+                {lineItems.map((item) => (
+                  <div key={item.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <Input
+                        value={item.description}
+                        onChange={(e) =>
+                          store.updateLineItem(item.id, {
+                            description: e.target.value,
+                          })
+                        }
+                        className="h-9"
+                        placeholder="Service description"
+                      />
+                      <button
+                        onClick={() => store.removeLineItem(item.id)}
+                        className="ml-2 mt-1 text-gray-400 hover:text-red-600 transition-colors shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Qty</label>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            store.updateLineItem(item.id, {
+                              quantity: parseInt(e.target.value) || 0,
+                            })
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Rate</label>
+                        <Input
+                          type="number"
+                          value={item.rate}
+                          onChange={(e) =>
+                            store.updateLineItem(item.id, {
+                              rate: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                    <div className="text-right font-medium text-sm text-gray-900">
+                      Amount: ${item.amount.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Totals */}
             <div className="flex justify-end">
-              <div className="w-80 space-y-2">
+              <div className="w-full md:w-80 space-y-2">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal:</span>
                   <span className="font-medium">${subtotal.toFixed(2)}</span>

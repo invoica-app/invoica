@@ -4,6 +4,7 @@ import {
   UpdateInvoiceRequest,
   InvoiceStatus,
   ApiError,
+  FileUploadResponse,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -26,9 +27,9 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     // Add auth token if available
@@ -92,6 +93,31 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  async uploadLogo(file: File): Promise<FileUploadResponse> {
+    const url = `${this.baseUrl}/files/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: Record<string, string> = {};
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+    // Do NOT set Content-Type — browser sets multipart boundary automatically
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || `Upload failed: HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
 }
 
 // Export singleton instance
@@ -127,5 +153,9 @@ export const invoiceApi = {
   delete: (id: number, token?: string) => {
     const client = createAuthenticatedApi(token);
     return client.deleteInvoice(id);
+  },
+  uploadLogo: (file: File, token?: string) => {
+    const client = createAuthenticatedApi(token);
+    return client.uploadLogo(file);
   },
 };

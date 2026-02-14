@@ -60,7 +60,7 @@ export interface CreateInvoiceRequest {
   clientEmail: string;
   emailSubject?: string | null;
   emailMessage?: string | null;
-  lineItems: LineItem[];
+  lineItems: LineItemRequest[];
 }
 
 export interface UpdateInvoiceRequest {
@@ -82,6 +82,17 @@ export interface UpdateInvoiceRequest {
   emailMessage?: string | null;
   lineItems?: LineItem[];
   status?: InvoiceStatus;
+}
+
+export interface LineItemRequest {
+  description: string;
+  quantity: number;
+  rate: number;
+}
+
+export interface FileUploadResponse {
+  url: string;
+  fileName: string;
 }
 
 export interface ApiError {

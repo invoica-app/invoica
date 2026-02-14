@@ -29,6 +29,14 @@ jwt:
 cors:
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
 
+# AWS S3 Configuration
+aws:
+  s3:
+    bucket-name: ${AWS_S3_BUCKET_NAME:local-dev-bucket}
+    region: ${AWS_REGION:us-east-1}
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
 logging:
   level:
     com.invoicer: DEBUG

@@ -34,10 +34,10 @@ export default function EmailDetailsPage() {
     <>
       <WizardHeader stepLabel="Step 4 of 5" />
 
-      <div className="flex-1 p-8 bg-secondary overflow-auto">
+      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-semibold mb-2">Email Details</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Email Details</h1>
             <p className="text-gray-600">
               Configure the email that will be sent to your client.
             </p>
@@ -45,7 +45,7 @@ export default function EmailDetailsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form */}
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-8 border border-gray-100 space-y-6">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100 space-y-6">
               {/* To */}
               <div>
                 <Label htmlFor="clientEmail" className="mb-3 block text-gray-700">

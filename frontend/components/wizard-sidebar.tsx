@@ -27,17 +27,57 @@ export function WizardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[260px] bg-secondary border-r border-border p-6 flex flex-col">
-      {/* Logo */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <FileText className="w-5 h-5 text-white" />
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-[260px] bg-secondary border-r border-border p-6 flex-col">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-8">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <FileText className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-lg font-semibold">Invoicer</h1>
         </div>
-        <h1 className="text-lg font-semibold">Invoicer</h1>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors relative",
+                  isActive
+                    ? "text-primary bg-primary/8"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                {isActive && (
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-r" />
+                )}
+                <Icon className="w-5 h-5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Pro Plan Badge */}
+        <div className="mt-auto pt-6 border-t border-border">
+          <div className="text-sm">
+            <p className="font-semibold text-gray-900">Pro Plan</p>
+            <p className="text-gray-500 text-xs mt-1">
+              You are using the free version.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile bottom nav */}
+      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border px-2 py-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -47,31 +87,16 @@ export function WizardSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors relative",
-                isActive
-                  ? "text-primary bg-primary/8"
-                  : "text-gray-700 hover:bg-gray-100"
+                "flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                isActive ? "text-primary" : "text-gray-500"
               )}
             >
-              {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-r" />
-              )}
               <Icon className="w-5 h-5" />
-              {item.label}
+              <span className="truncate max-w-[56px]">{item.label.split(" ")[0]}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Pro Plan Badge */}
-      <div className="mt-auto pt-6 border-t border-border">
-        <div className="text-sm">
-          <p className="font-semibold text-gray-900">Pro Plan</p>
-          <p className="text-gray-500 text-xs mt-1">
-            You are using the free version.
-          </p>
-        </div>
-      </div>
-    </aside>
+    </>
   );
 }

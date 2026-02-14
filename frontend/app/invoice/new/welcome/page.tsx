@@ -8,11 +8,11 @@ export default function WelcomePage() {
     <>
       <WizardHeader stepLabel="Start" />
 
-      <div className="flex-1 flex items-center justify-center p-8 bg-secondary">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8 bg-secondary">
         <div className="max-w-3xl w-full text-center">
           {/* Hero Image */}
           <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white p-20 relative">
+            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white p-8 md:p-20 relative">
               {/* Purple Ink Splash Placeholder */}
               <div className="relative z-10">
                 <div className="w-full h-64 flex items-center justify-center">
@@ -28,16 +28,16 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold mb-4 leading-tight">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
             Create Professional{" "}
             <span className="text-primary">Invoices</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-10">
+          <p className="text-lg md:text-xl text-gray-600 mb-10">
             Generate beautiful invoices in seconds. Customize designs, manage
             clients, and get paid faster.
           </p>
 
-          <Button asChild size="lg" className="h-14 px-10 text-base">
+          <Button asChild size="lg" className="h-12 px-6 md:h-14 md:px-10 text-base">
             <Link href="/invoice/new/company" className="gap-2">
               Create New Invoice
               <ArrowRight className="w-5 h-5" />
