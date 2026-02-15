@@ -9,21 +9,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { InvoicePreview } from "@/components/invoice-preview";
 
 export default function EmailDetailsPage() {
   const router = useRouter();
-  const store = useInvoiceStore();
 
-  const [clientEmail, setClientEmail] = useState(store.clientEmail);
+  const { storeClientEmail, storeEmailSubject, storeEmailMessage, invoiceNumber, companyName } =
+    useInvoiceStore(
+      useShallow((s) => ({
+        storeClientEmail: s.clientEmail,
+        storeEmailSubject: s.emailSubject,
+        storeEmailMessage: s.emailMessage,
+        invoiceNumber: s.invoiceNumber,
+        companyName: s.companyName,
+      }))
+    );
+  const updateEmail = useInvoiceStore((s) => s.updateEmail);
+
+  const [clientEmail, setClientEmail] = useState(storeClientEmail);
   const [emailSubject, setEmailSubject] = useState(
-    store.emailSubject ||
-      `Invoice ${store.invoiceNumber} from ${store.companyName}`
+    storeEmailSubject ||
+      `Invoice ${invoiceNumber} from ${companyName}`
   );
-  const [emailMessage, setEmailMessage] = useState(store.emailMessage);
+  const [emailMessage, setEmailMessage] = useState(storeEmailMessage);
 
   const handleNext = () => {
-    store.updateEmail({
+    updateEmail({
       clientEmail,
       emailSubject,
       emailMessage,

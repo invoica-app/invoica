@@ -8,25 +8,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Upload, Loader2, X } from "lucide-react";
 
 export default function CompanyInfoPage() {
   const router = useRouter();
-  const store = useInvoiceStore();
   const api = useAuthenticatedApi();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const {
+    companyName,
+    address,
+    city,
+    zipCode,
+    country,
+    phone,
+    companyEmail,
+    companyLogo,
+  } = useInvoiceStore(
+    useShallow((s) => ({
+      companyName: s.companyName,
+      address: s.address,
+      city: s.city,
+      zipCode: s.zipCode,
+      country: s.country,
+      phone: s.phone,
+      companyEmail: s.companyEmail,
+      companyLogo: s.companyLogo,
+    }))
+  );
+  const updateCompany = useInvoiceStore((s) => s.updateCompany);
+
   const [formData, setFormData] = useState({
-    companyName: store.companyName,
-    address: store.address,
-    city: store.city,
-    zipCode: store.zipCode,
-    country: store.country,
-    phone: store.phone,
-    companyEmail: store.companyEmail,
+    companyName,
+    address,
+    city,
+    zipCode,
+    country,
+    phone,
+    companyEmail,
   });
-  const [logoUrl, setLogoUrl] = useState<string | null>(store.companyLogo);
+  const [logoUrl, setLogoUrl] = useState<string | null>(companyLogo);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -50,7 +73,7 @@ export default function CompanyInfoPage() {
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setLogoUrl(base64);
-      store.updateCompany({ companyLogo: base64 });
+      updateCompany({ companyLogo: base64 });
     };
     reader.readAsDataURL(file);
 
@@ -59,7 +82,7 @@ export default function CompanyInfoPage() {
     try {
       const result = await api.uploadLogo(file);
       setLogoUrl(result.url);
-      store.updateCompany({ companyLogo: result.url });
+      updateCompany({ companyLogo: result.url });
     } catch {
       // base64 fallback already set above
     } finally {
@@ -70,11 +93,11 @@ export default function CompanyInfoPage() {
 
   const handleRemoveLogo = () => {
     setLogoUrl(null);
-    store.updateCompany({ companyLogo: null });
+    updateCompany({ companyLogo: null });
   };
 
   const handleNext = () => {
-    store.updateCompany(formData);
+    updateCompany(formData);
     router.push("/invoice/new/details");
   };
 
@@ -263,7 +286,7 @@ export default function CompanyInfoPage() {
           {/* Navigation */}
           <div className="flex justify-between mt-6 md:mt-8">
             <Button variant="outline" asChild>
-              <Link href="/invoice/new/welcome">Back</Link>
+              <Link href="/invoice/new/history">Back</Link>
             </Button>
             <Button onClick={handleNext}>Next Step</Button>
           </div>

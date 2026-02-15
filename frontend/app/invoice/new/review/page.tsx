@@ -7,6 +7,7 @@ import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CreateInvoiceRequest } from "@/lib/types";
 import { InvoicePreview, InvoiceFullPage } from "@/components/invoice-preview";
@@ -16,19 +17,52 @@ import { Download, Send, Loader2 } from "lucide-react";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const store = useInvoiceStore();
   const api = useAuthenticatedApi();
   const settings = useSettingsStore();
   const pdfRef = useRef<HTMLDivElement>(null);
+
+  // Select only the data fields we need for display and submission
+  const data = useInvoiceStore(
+    useShallow((s) => ({
+      companyName: s.companyName,
+      companyLogo: s.companyLogo,
+      address: s.address,
+      city: s.city,
+      zipCode: s.zipCode,
+      country: s.country,
+      phone: s.phone,
+      companyEmail: s.companyEmail,
+      invoiceNumber: s.invoiceNumber,
+      invoiceDate: s.invoiceDate,
+      dueDate: s.dueDate,
+      primaryColor: s.primaryColor,
+      fontFamily: s.fontFamily,
+      clientEmail: s.clientEmail,
+      emailSubject: s.emailSubject,
+      emailMessage: s.emailMessage,
+      clientName: s.clientName,
+      clientCompany: s.clientCompany,
+      clientAddress: s.clientAddress,
+      clientCity: s.clientCity,
+      clientZip: s.clientZip,
+      clientCountry: s.clientCountry,
+      taxRate: s.taxRate,
+      discount: s.discount,
+      notes: s.notes,
+      lineItems: s.lineItems,
+      currency: s.currency,
+    }))
+  );
+  const reset = useInvoiceStore((s) => s.reset);
 
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currency = store.currency || "USD";
-  const subtotal = store.lineItems.reduce((sum, item) => sum + item.amount, 0);
-  const discountAmount = store.discount || 0;
-  const taxAmount = ((subtotal - discountAmount) * (store.taxRate || 0)) / 100;
+  const currency = data.currency || "USD";
+  const subtotal = data.lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const discountAmount = data.discount || 0;
+  const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
   const handlePreview = async () => {
@@ -56,6 +90,8 @@ export default function ReviewPage() {
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
+      // Revoke after a short delay to allow the new tab to load
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
       console.error("PDF generation failed:", err);
       setError("Failed to generate PDF. Please try again.");
@@ -67,16 +103,16 @@ export default function ReviewPage() {
   const handleSend = async () => {
     // Client-side validation
     const missing: string[] = [];
-    if (!store.companyName.trim()) missing.push("Company name");
-    if (!store.address.trim()) missing.push("Address");
-    if (!store.city.trim()) missing.push("City");
-    if (!store.zipCode.trim()) missing.push("Zip code");
-    if (!store.country.trim()) missing.push("Country");
-    if (!store.phone.trim()) missing.push("Phone");
-    if (!store.companyEmail.trim()) missing.push("Company email");
-    if (!store.invoiceNumber.trim()) missing.push("Invoice number");
-    if (!store.clientEmail.trim()) missing.push("Client email");
-    if (store.lineItems.length === 0) missing.push("At least one line item");
+    if (!data.companyName.trim()) missing.push("Company name");
+    if (!data.address.trim()) missing.push("Address");
+    if (!data.city.trim()) missing.push("City");
+    if (!data.zipCode.trim()) missing.push("Zip code");
+    if (!data.country.trim()) missing.push("Country");
+    if (!data.phone.trim()) missing.push("Phone");
+    if (!data.companyEmail.trim()) missing.push("Company email");
+    if (!data.invoiceNumber.trim()) missing.push("Invoice number");
+    if (!data.clientEmail.trim()) missing.push("Client email");
+    if (data.lineItems.length === 0) missing.push("At least one line item");
 
     if (missing.length > 0) {
       setError(`Missing required fields: ${missing.join(", ")}`);
@@ -87,32 +123,32 @@ export default function ReviewPage() {
     setError(null);
     try {
       const request: CreateInvoiceRequest = {
-        companyName: store.companyName,
-        companyLogo: store.companyLogo,
-        address: store.address,
-        city: store.city,
-        zipCode: store.zipCode,
-        country: store.country,
-        phone: store.phone,
-        companyEmail: store.companyEmail,
-        invoiceNumber: store.invoiceNumber,
-        invoiceDate: store.invoiceDate,
-        dueDate: store.dueDate,
-        primaryColor: store.primaryColor,
-        fontFamily: store.fontFamily,
-        clientEmail: store.clientEmail,
-        emailSubject: store.emailSubject || null,
-        emailMessage: store.emailMessage || null,
-        clientName: store.clientName || null,
-        clientCompany: store.clientCompany || null,
-        clientAddress: store.clientAddress || null,
-        clientCity: store.clientCity || null,
-        clientZip: store.clientZip || null,
-        clientCountry: store.clientCountry || null,
-        taxRate: store.taxRate || null,
-        discount: store.discount || null,
-        notes: store.notes || null,
-        lineItems: store.lineItems.map(({ description, quantity, rate }) => ({
+        companyName: data.companyName,
+        companyLogo: data.companyLogo,
+        address: data.address,
+        city: data.city,
+        zipCode: data.zipCode,
+        country: data.country,
+        phone: data.phone,
+        companyEmail: data.companyEmail,
+        invoiceNumber: data.invoiceNumber,
+        invoiceDate: data.invoiceDate,
+        dueDate: data.dueDate,
+        primaryColor: data.primaryColor,
+        fontFamily: data.fontFamily,
+        clientEmail: data.clientEmail,
+        emailSubject: data.emailSubject || null,
+        emailMessage: data.emailMessage || null,
+        clientName: data.clientName || null,
+        clientCompany: data.clientCompany || null,
+        clientAddress: data.clientAddress || null,
+        clientCity: data.clientCity || null,
+        clientZip: data.clientZip || null,
+        clientCountry: data.clientCountry || null,
+        taxRate: data.taxRate || null,
+        discount: data.discount || null,
+        notes: data.notes || null,
+        lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
           description,
           quantity,
           rate,
@@ -121,7 +157,7 @@ export default function ReviewPage() {
       await api.createInvoice(request);
       // Increment the auto-number for the next invoice
       settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
-      store.reset();
+      reset();
       router.push("/invoice/new/history");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send invoice.");
@@ -157,7 +193,7 @@ export default function ReviewPage() {
                   <div className="text-right">
                     <div className="text-xs md:text-sm text-muted-foreground mb-1">Invoice Date</div>
                     <div className="text-sm font-semibold">
-                      {new Date(store.invoiceDate).toLocaleDateString()}
+                      {new Date(data.invoiceDate).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
@@ -168,16 +204,16 @@ export default function ReviewPage() {
                       BILLED TO
                     </div>
                     <div className="text-sm space-y-0.5">
-                      {store.clientName && <div className="font-medium">{store.clientName}</div>}
-                      {store.clientCompany && <div className="text-muted-foreground">{store.clientCompany}</div>}
-                      <div className="text-muted-foreground">{store.clientEmail}</div>
-                      {store.clientAddress && <div className="text-muted-foreground">{store.clientAddress}</div>}
-                      {(store.clientCity || store.clientZip) && (
+                      {data.clientName && <div className="font-medium">{data.clientName}</div>}
+                      {data.clientCompany && <div className="text-muted-foreground">{data.clientCompany}</div>}
+                      <div className="text-muted-foreground">{data.clientEmail}</div>
+                      {data.clientAddress && <div className="text-muted-foreground">{data.clientAddress}</div>}
+                      {(data.clientCity || data.clientZip) && (
                         <div className="text-muted-foreground">
-                          {[store.clientCity, store.clientZip].filter(Boolean).join(", ")}
+                          {[data.clientCity, data.clientZip].filter(Boolean).join(", ")}
                         </div>
                       )}
-                      {store.clientCountry && <div className="text-muted-foreground">{store.clientCountry}</div>}
+                      {data.clientCountry && <div className="text-muted-foreground">{data.clientCountry}</div>}
                     </div>
                   </div>
                   <div>
@@ -185,14 +221,14 @@ export default function ReviewPage() {
                       FROM
                     </div>
                     <div className="text-sm">
-                      <div className="font-medium">{store.companyName}</div>
-                      <div className="text-muted-foreground">{store.companyEmail}</div>
+                      <div className="font-medium">{data.companyName}</div>
+                      <div className="text-muted-foreground">{data.companyEmail}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Totals breakdown */}
-                {(discountAmount > 0 || (store.taxRate || 0) > 0) && (
+                {(discountAmount > 0 || (data.taxRate || 0) > 0) && (
                   <div className="bg-muted p-3 md:p-4 rounded-lg mb-4">
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
@@ -205,9 +241,9 @@ export default function ReviewPage() {
                           <span>-{formatMoney(discountAmount, currency)}</span>
                         </div>
                       )}
-                      {(store.taxRate || 0) > 0 && (
+                      {(data.taxRate || 0) > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tax ({store.taxRate}%):</span>
+                          <span className="text-muted-foreground">Tax ({data.taxRate}%):</span>
                           <span>{formatMoney(taxAmount, currency)}</span>
                         </div>
                       )}
@@ -218,7 +254,7 @@ export default function ReviewPage() {
                 <div className="bg-muted p-3 md:p-4 rounded-lg">
                   <div className="text-xs md:text-sm font-semibold mb-2">Email Preview:</div>
                   <p className="text-xs md:text-sm text-muted-foreground italic whitespace-pre-line">
-                    &quot;{store.emailMessage}&quot;
+                    &quot;{data.emailMessage}&quot;
                   </p>
                 </div>
               </div>

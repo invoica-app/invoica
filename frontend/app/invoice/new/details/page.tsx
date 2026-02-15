@@ -9,38 +9,68 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/lib/settings-store";
 import { CURRENCIES, formatMoney } from "@/lib/currency";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function InvoiceDetailsPage() {
   const router = useRouter();
-  const store = useInvoiceStore();
   const settings = useSettingsStore();
+
+  const storeData = useInvoiceStore(
+    useShallow((s) => ({
+      invoiceNumber: s.invoiceNumber,
+      invoiceDate: s.invoiceDate,
+      dueDate: s.dueDate,
+      currency: s.currency,
+      clientName: s.clientName,
+      clientCompany: s.clientCompany,
+      clientEmail: s.clientEmail,
+      clientAddress: s.clientAddress,
+      clientCity: s.clientCity,
+      clientZip: s.clientZip,
+      clientCountry: s.clientCountry,
+      taxRate: s.taxRate,
+      discount: s.discount,
+      notes: s.notes,
+      lineItems: s.lineItems,
+    }))
+  );
+  const { updateInvoice, updateClient, addLineItem, removeLineItem, updateLineItem } =
+    useInvoiceStore(
+      useShallow((s) => ({
+        updateInvoice: s.updateInvoice,
+        updateClient: s.updateClient,
+        addLineItem: s.addLineItem,
+        removeLineItem: s.removeLineItem,
+        updateLineItem: s.updateLineItem,
+      }))
+    );
 
   // Auto-generate invoice number from settings if not yet set
   const [invoiceNumber, setInvoiceNumber] = useState(
-    store.invoiceNumber || settings.getNextInvoiceNumber()
+    storeData.invoiceNumber || settings.getNextInvoiceNumber()
   );
-  const [invoiceDate, setInvoiceDate] = useState(store.invoiceDate);
-  const [dueDate, setDueDate] = useState(store.dueDate);
-  const [currency, setCurrency] = useState(store.currency || "USD");
+  const [invoiceDate, setInvoiceDate] = useState(storeData.invoiceDate);
+  const [dueDate, setDueDate] = useState(storeData.dueDate);
+  const [currency, setCurrency] = useState(storeData.currency || "USD");
 
   // Client (Bill To) local state
-  const [clientName, setClientName] = useState(store.clientName);
-  const [clientCompany, setClientCompany] = useState(store.clientCompany);
-  const [clientEmail, setClientEmail] = useState(store.clientEmail);
-  const [clientAddress, setClientAddress] = useState(store.clientAddress);
-  const [clientCity, setClientCity] = useState(store.clientCity);
-  const [clientZip, setClientZip] = useState(store.clientZip);
-  const [clientCountry, setClientCountry] = useState(store.clientCountry);
+  const [clientName, setClientName] = useState(storeData.clientName);
+  const [clientCompany, setClientCompany] = useState(storeData.clientCompany);
+  const [clientEmail, setClientEmail] = useState(storeData.clientEmail);
+  const [clientAddress, setClientAddress] = useState(storeData.clientAddress);
+  const [clientCity, setClientCity] = useState(storeData.clientCity);
+  const [clientZip, setClientZip] = useState(storeData.clientZip);
+  const [clientCountry, setClientCountry] = useState(storeData.clientCountry);
 
   // Tax, Discount, Notes
-  const [taxRate, setTaxRate] = useState(store.taxRate);
-  const [discount, setDiscount] = useState(store.discount);
-  const [notes, setNotes] = useState(store.notes);
+  const [taxRate, setTaxRate] = useState(storeData.taxRate);
+  const [discount, setDiscount] = useState(storeData.discount);
+  const [notes, setNotes] = useState(storeData.notes);
 
-  const lineItems = store.lineItems;
+  const lineItems = storeData.lineItems;
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
   const discountAmount = discount || 0;
@@ -48,13 +78,13 @@ export default function InvoiceDetailsPage() {
   const total = subtotal - discountAmount + taxAmount;
 
   const handleNext = () => {
-    store.updateInvoice({
+    updateInvoice({
       invoiceNumber,
       invoiceDate,
       dueDate,
       currency,
     });
-    store.updateClient({
+    updateClient({
       clientName,
       clientCompany,
       clientEmail,
@@ -63,7 +93,7 @@ export default function InvoiceDetailsPage() {
       clientZip,
       clientCountry,
     });
-    store.updateInvoice({
+    updateInvoice({
       taxRate,
       discount,
       notes,
@@ -231,7 +261,7 @@ export default function InvoiceDetailsPage() {
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <h3 className="text-base md:text-lg font-semibold">Line Items</h3>
                 <Button
-                  onClick={() => store.addLineItem()}
+                  onClick={() => addLineItem()}
                   size="sm"
                   className="gap-2"
                 >
@@ -267,7 +297,7 @@ export default function InvoiceDetailsPage() {
                           <Input
                             value={item.description}
                             onChange={(e) =>
-                              store.updateLineItem(item.id, {
+                              updateLineItem(item.id, {
                                 description: e.target.value,
                               })
                             }
@@ -280,7 +310,7 @@ export default function InvoiceDetailsPage() {
                             type="number"
                             value={item.quantity}
                             onChange={(e) =>
-                              store.updateLineItem(item.id, {
+                              updateLineItem(item.id, {
                                 quantity: parseInt(e.target.value) || 0,
                               })
                             }
@@ -292,7 +322,7 @@ export default function InvoiceDetailsPage() {
                             type="number"
                             value={item.rate}
                             onChange={(e) =>
-                              store.updateLineItem(item.id, {
+                              updateLineItem(item.id, {
                                 rate: parseFloat(e.target.value) || 0,
                               })
                             }
@@ -304,7 +334,7 @@ export default function InvoiceDetailsPage() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
-                            onClick={() => store.removeLineItem(item.id)}
+                            onClick={() => removeLineItem(item.id)}
                             className="text-muted-foreground hover:text-red-600 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -331,7 +361,7 @@ export default function InvoiceDetailsPage() {
                       <Input
                         value={item.description}
                         onChange={(e) =>
-                          store.updateLineItem(item.id, {
+                          updateLineItem(item.id, {
                             description: e.target.value,
                           })
                         }
@@ -339,7 +369,7 @@ export default function InvoiceDetailsPage() {
                         placeholder="Service description"
                       />
                       <button
-                        onClick={() => store.removeLineItem(item.id)}
+                        onClick={() => removeLineItem(item.id)}
                         className="ml-2 mt-1 text-muted-foreground hover:text-red-600 transition-colors shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -352,7 +382,7 @@ export default function InvoiceDetailsPage() {
                           type="number"
                           value={item.quantity}
                           onChange={(e) =>
-                            store.updateLineItem(item.id, {
+                            updateLineItem(item.id, {
                               quantity: parseInt(e.target.value) || 0,
                             })
                           }
@@ -365,7 +395,7 @@ export default function InvoiceDetailsPage() {
                           type="number"
                           value={item.rate}
                           onChange={(e) =>
-                            store.updateLineItem(item.id, {
+                            updateLineItem(item.id, {
                               rate: parseFloat(e.target.value) || 0,
                             })
                           }
@@ -397,8 +427,12 @@ export default function InvoiceDetailsPage() {
                   type="number"
                   step="0.1"
                   min="0"
+                  max="100"
                   value={taxRate}
-                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setTaxRate(Math.min(100, Math.max(0, val)));
+                  }}
                   placeholder="0"
                 />
               </div>
@@ -412,7 +446,10 @@ export default function InvoiceDetailsPage() {
                   step="0.01"
                   min="0"
                   value={discount}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setDiscount(Math.max(0, val));
+                  }}
                   placeholder="0.00"
                 />
               </div>

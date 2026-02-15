@@ -7,6 +7,7 @@ import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,17 +32,28 @@ const fonts = [
 
 export default function DesignPage() {
   const router = useRouter();
-  const store = useInvoiceStore();
 
-  const [primaryColor, setPrimaryColor] = useState(store.primaryColor);
-  const [fontFamily, setFontFamily] = useState(store.fontFamily);
+  const { storePrimaryColor, storeFontFamily, companyName, invoiceNumber, lineItems } =
+    useInvoiceStore(
+      useShallow((s) => ({
+        storePrimaryColor: s.primaryColor,
+        storeFontFamily: s.fontFamily,
+        companyName: s.companyName,
+        invoiceNumber: s.invoiceNumber,
+        lineItems: s.lineItems,
+      }))
+    );
+  const setDesign = useInvoiceStore((s) => s.setDesign);
+
+  const [primaryColor, setPrimaryColor] = useState(storePrimaryColor);
+  const [fontFamily, setFontFamily] = useState(storeFontFamily);
 
   const handleNext = () => {
-    store.setDesign(primaryColor, fontFamily);
+    setDesign(primaryColor, fontFamily);
     router.push("/invoice/new/email");
   };
 
-  const subtotal = store.lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
 
   return (
     <>
@@ -128,14 +140,14 @@ export default function DesignPage() {
                       className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-semibold text-lg"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      {store.companyName.charAt(0)}
+                      {companyName.charAt(0)}
                     </div>
                     <div style={{ fontFamily }}>
                       <div className="font-semibold text-lg">
-                        {store.companyName}
+                        {companyName}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Invoice #{store.invoiceNumber}
+                        Invoice #{invoiceNumber}
                       </div>
                     </div>
                   </div>
