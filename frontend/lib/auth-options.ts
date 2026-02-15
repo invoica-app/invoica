@@ -70,6 +70,7 @@ export const authOptions: NextAuthOptions = {
 
           const data = await response.json();
           user.accessToken = data.token;
+          user.isAdmin = data.user?.isAdmin || false;
         }
 
         return true;
@@ -83,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.provider = account?.provider || "guest";
         token.isGuest = user.isGuest || false;
+        token.isAdmin = user.isAdmin || false;
       }
       return token;
     },
@@ -91,6 +93,7 @@ export const authOptions: NextAuthOptions = {
         session.user.accessToken = token.accessToken;
         session.user.provider = token.provider;
         session.user.isGuest = token.isGuest || false;
+        session.user.isAdmin = token.isAdmin || false;
       }
       return session;
     },

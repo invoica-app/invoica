@@ -5,6 +5,7 @@ declare module "next-auth" {
   interface User {
     accessToken?: string;
     isGuest?: boolean;
+    isAdmin?: boolean;
     provider?: string;
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
       accessToken?: string;
       provider?: string;
       isGuest?: boolean;
+      isAdmin?: boolean;
     };
   }
 }
@@ -26,5 +28,6 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     provider?: string;
     isGuest?: boolean;
+    isAdmin?: boolean;
   }
 }

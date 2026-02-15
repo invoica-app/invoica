@@ -7,6 +7,7 @@ export function useAuth() {
     user: session?.user,
     accessToken: session?.user?.accessToken,
     isGuest: session?.user?.isGuest || false,
+    isAdmin: session?.user?.isAdmin || false,
     isAuthenticated: status === "authenticated",
     isLoading: status === "loading",
   };
