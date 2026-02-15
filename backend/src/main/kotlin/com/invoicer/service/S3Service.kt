@@ -14,7 +14,7 @@ class S3Service(
     private val s3Client: S3Client
 ) {
 
-    @Value("\${aws.s3.bucket-name}")
+    @Value("\${aws.s3.bucket-name:}")
     private lateinit var bucketName: String
 
     @Value("\${aws.s3.region:us-east-1}")

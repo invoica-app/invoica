@@ -95,7 +95,7 @@ class ApiClient {
   }
 
   async uploadLogo(file: File): Promise<FileUploadResponse> {
-    const url = `${this.baseUrl}/files/upload`;
+    const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
     formData.append('file', file);
 
