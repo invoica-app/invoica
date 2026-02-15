@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSettingsStore } from "@/lib/settings-store";
 import { useAuth } from "@/lib/auth";
@@ -28,6 +27,28 @@ const themeOptions = [
   { value: "system", label: "System", icon: Monitor },
 ];
 
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={htmlFor}
+        className="block text-xs font-medium text-muted-foreground mb-1.5"
+      >
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const settings = useSettingsStore();
   const { user } = useAuth();
@@ -42,7 +63,7 @@ export default function SettingsPage() {
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-5">
+          <div className="mb-6">
             <h1 className="text-lg font-semibold mb-0.5">Settings</h1>
             <p className="text-sm text-muted-foreground">
               Preferences and defaults for your invoices.
@@ -52,7 +73,7 @@ export default function SettingsPage() {
           <div className="space-y-8">
             {/* Theme */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Theme</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Theme</h2>
               {mounted && (
                 <div className="flex gap-2">
                   {themeOptions.map((option) => {
@@ -79,12 +100,12 @@ export default function SettingsPage() {
 
             {/* Currency */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Default Currency</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Default currency</h2>
               <div className="max-w-xs">
                 <select
                   value={settings.defaultCurrency}
                   onChange={(e) => settings.updateSettings({ defaultCurrency: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>
@@ -97,52 +118,43 @@ export default function SettingsPage() {
 
             {/* Company defaults */}
             <section>
-              <h2 className="text-sm font-medium mb-1">Default Company Info</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Default company info</h2>
               <p className="text-xs text-muted-foreground mb-3">Auto-fills when creating new invoices.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="defCompanyName" className="mb-2 block text-sm text-muted-foreground">Company Name</Label>
+                <Field label="Company name" htmlFor="defCompanyName">
                   <Input id="defCompanyName" value={settings.defaultCompanyName} onChange={(e) => settings.updateSettings({ defaultCompanyName: e.target.value })} placeholder="Your Company" />
-                </div>
-                <div>
-                  <Label htmlFor="defCompanyEmail" className="mb-2 block text-sm text-muted-foreground">Email</Label>
+                </Field>
+                <Field label="Email" htmlFor="defCompanyEmail">
                   <Input id="defCompanyEmail" type="email" value={settings.defaultCompanyEmail} onChange={(e) => settings.updateSettings({ defaultCompanyEmail: e.target.value })} placeholder="billing@company.com" />
-                </div>
-                <div>
-                  <Label htmlFor="defAddress" className="mb-2 block text-sm text-muted-foreground">Address</Label>
+                </Field>
+                <Field label="Address" htmlFor="defAddress">
                   <Input id="defAddress" value={settings.defaultAddress} onChange={(e) => settings.updateSettings({ defaultAddress: e.target.value })} placeholder="123 Main St" />
-                </div>
-                <div>
-                  <Label htmlFor="defCity" className="mb-2 block text-sm text-muted-foreground">City</Label>
+                </Field>
+                <Field label="City" htmlFor="defCity">
                   <Input id="defCity" value={settings.defaultCity} onChange={(e) => settings.updateSettings({ defaultCity: e.target.value })} placeholder="City" />
-                </div>
-                <div>
-                  <Label htmlFor="defZip" className="mb-2 block text-sm text-muted-foreground">Zip</Label>
+                </Field>
+                <Field label="Zip" htmlFor="defZip">
                   <Input id="defZip" value={settings.defaultZipCode} onChange={(e) => settings.updateSettings({ defaultZipCode: e.target.value })} placeholder="10001" />
-                </div>
-                <div>
-                  <Label htmlFor="defCountry" className="mb-2 block text-sm text-muted-foreground">Country</Label>
+                </Field>
+                <Field label="Country" htmlFor="defCountry">
                   <Input id="defCountry" value={settings.defaultCountry} onChange={(e) => settings.updateSettings({ defaultCountry: e.target.value })} placeholder="USA" />
-                </div>
-                <div>
-                  <Label htmlFor="defPhone" className="mb-2 block text-sm text-muted-foreground">Phone</Label>
+                </Field>
+                <Field label="Phone" htmlFor="defPhone">
                   <Input id="defPhone" value={settings.defaultPhone} onChange={(e) => settings.updateSettings({ defaultPhone: e.target.value })} placeholder="+1 (555) 000-0000" />
-                </div>
+                </Field>
               </div>
             </section>
 
             {/* Invoice numbering */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Invoice Numbering</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Invoice numbering</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="prefix" className="mb-2 block text-sm text-muted-foreground">Prefix</Label>
+                <Field label="Prefix" htmlFor="prefix">
                   <Input id="prefix" value={settings.invoicePrefix} onChange={(e) => settings.updateSettings({ invoicePrefix: e.target.value })} placeholder="INV-" />
-                </div>
-                <div>
-                  <Label htmlFor="nextNum" className="mb-2 block text-sm text-muted-foreground">Next Number</Label>
+                </Field>
+                <Field label="Next number" htmlFor="nextNum">
                   <Input id="nextNum" type="number" value={settings.nextInvoiceNumber} onChange={(e) => settings.updateSettings({ nextInvoiceNumber: parseInt(e.target.value) || 1 })} min={1} />
-                </div>
+                </Field>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Next invoice: <span className="font-medium text-foreground">{settings.getNextInvoiceNumber()}</span>
@@ -151,32 +163,30 @@ export default function SettingsPage() {
 
             {/* Email defaults */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Email Defaults</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Email defaults</h2>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="defSubject" className="mb-2 block text-sm text-muted-foreground">Default Subject</Label>
+                <Field label="Default subject" htmlFor="defSubject">
                   <Input id="defSubject" value={settings.defaultEmailSubject} onChange={(e) => settings.updateSettings({ defaultEmailSubject: e.target.value })} placeholder="Invoice {number} from {company}" />
-                </div>
-                <div>
-                  <Label htmlFor="defMessage" className="mb-2 block text-sm text-muted-foreground">Default Message</Label>
+                </Field>
+                <Field label="Default message" htmlFor="defMessage">
                   <Textarea id="defMessage" value={settings.defaultEmailMessage} onChange={(e) => settings.updateSettings({ defaultEmailMessage: e.target.value })} rows={5} placeholder="Hi,&#10;&#10;Please find attached..." />
-                </div>
+                </Field>
               </div>
             </section>
 
             {/* Theme defaults */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Invoice Theme</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Invoice theme</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="defColor" className="mb-2 block text-sm text-muted-foreground">Primary Color</Label>
+                  <label htmlFor="defColor" className="block text-xs font-medium text-muted-foreground mb-1.5">Primary color</label>
                   <div className="flex items-center gap-3">
                     <input
                       id="defColor"
                       type="color"
                       value={settings.defaultColor}
                       onChange={(e) => settings.updateSettings({ defaultColor: e.target.value })}
-                      className="w-10 h-10 rounded border border-border cursor-pointer"
+                      className="w-10 h-10 rounded-lg border border-border cursor-pointer"
                     />
                     <Input
                       value={settings.defaultColor}
@@ -185,25 +195,24 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="defFont" className="mb-2 block text-sm text-muted-foreground">Default Font</Label>
+                <Field label="Default font" htmlFor="defFont">
                   <select
                     id="defFont"
                     value={settings.defaultFont}
                     onChange={(e) => settings.updateSettings({ defaultFont: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
                   >
                     {fonts.map((f) => (
                       <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
                   </select>
-                </div>
+                </Field>
               </div>
             </section>
 
             {/* Account */}
             <section>
-              <h2 className="text-sm font-medium mb-3">Account</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Account</h2>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-xs">
                   {user?.name ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "?"}

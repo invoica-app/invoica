@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
@@ -48,7 +47,7 @@ export default function EmailDetailsPage() {
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-5">
+          <div className="mb-6">
             <h1 className="text-lg font-semibold mb-0.5">Email Details</h1>
             <p className="text-sm text-muted-foreground">
               Configure the email sent with your invoice.
@@ -59,7 +58,7 @@ export default function EmailDetailsPage() {
             {/* Form */}
             <div className="lg:col-span-2 space-y-5">
               <div>
-                <Label htmlFor="clientEmail" className="mb-2 block text-sm text-muted-foreground">To</Label>
+                <label htmlFor="clientEmail" className="block text-xs font-medium text-muted-foreground mb-1.5">To</label>
                 <Input
                   id="clientEmail"
                   type="email"
@@ -69,7 +68,7 @@ export default function EmailDetailsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="emailSubject" className="mb-2 block text-sm text-muted-foreground">Subject</Label>
+                <label htmlFor="emailSubject" className="block text-xs font-medium text-muted-foreground mb-1.5">Subject</label>
                 <Input
                   id="emailSubject"
                   value={emailSubject}
@@ -78,7 +77,7 @@ export default function EmailDetailsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="emailMessage" className="mb-2 block text-sm text-muted-foreground">Message</Label>
+                <label htmlFor="emailMessage" className="block text-xs font-medium text-muted-foreground mb-1.5">Message</label>
                 <Textarea
                   id="emailMessage"
                   value={emailMessage}
@@ -91,7 +90,7 @@ export default function EmailDetailsPage() {
 
             {/* PDF Preview */}
             <div className="border border-border rounded-lg p-4 h-fit">
-              <Label className="mb-2 block text-xs text-muted-foreground">Preview</Label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Preview</label>
               <InvoicePreview />
             </div>
           </div>

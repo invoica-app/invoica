@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
@@ -318,7 +317,7 @@ export default function ReviewPage() {
 
             {/* PDF thumbnail */}
             <div className="border border-border rounded-lg p-4 h-fit">
-              <Label className="mb-2 block text-xs text-muted-foreground">Preview</Label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Preview</label>
               <InvoicePreview />
             </div>
           </div>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Check } from "lucide-react";
@@ -71,7 +70,7 @@ export default function DesignPage() {
           <div className="space-y-8">
             {/* Primary Color */}
             <div>
-              <Label className="mb-3 block text-sm text-muted-foreground">Color</Label>
+              <label className="block text-xs font-medium text-muted-foreground mb-3">Color</label>
               <div className="flex flex-wrap gap-3">
                 {colors.map((color) => (
                   <button
@@ -102,7 +101,7 @@ export default function DesignPage() {
 
             {/* Font */}
             <div>
-              <Label className="mb-3 block text-sm text-muted-foreground">Font</Label>
+              <label className="block text-xs font-medium text-muted-foreground mb-3">Font</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {fonts.map((font) => (
                   <button
@@ -124,7 +123,7 @@ export default function DesignPage() {
 
             {/* Preview */}
             <div>
-              <Label className="mb-3 block text-sm text-muted-foreground">Preview</Label>
+              <label className="block text-xs font-medium text-muted-foreground mb-3">Preview</label>
               <div className="p-5 bg-white rounded-lg border border-gray-200 text-gray-900">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

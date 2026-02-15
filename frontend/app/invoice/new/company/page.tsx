@@ -6,11 +6,32 @@ import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Upload, Loader2, X } from "lucide-react";
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={htmlFor}
+        className="block text-xs font-medium text-muted-foreground mb-1.5"
+      >
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
 
 export default function CompanyInfoPage() {
   const router = useRouter();
@@ -105,18 +126,18 @@ export default function CompanyInfoPage() {
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-5">
+          <div className="mb-6">
             <h1 className="text-lg font-semibold mb-0.5">Company Information</h1>
             <p className="text-sm text-muted-foreground">
               Your business details for the invoice header.
             </p>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Logo */}
               <div>
-                <Label className="mb-2 block text-sm text-muted-foreground">Company Logo</Label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Company logo</label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -125,11 +146,11 @@ export default function CompanyInfoPage() {
                   onChange={handleLogoUpload}
                 />
                 {logoUrl ? (
-                  <div className="relative border border-border rounded-lg p-4 flex items-center justify-center bg-card">
+                  <div className="relative border border-border rounded-lg p-4 flex items-center justify-center bg-card h-[120px]">
                     <img
                       src={logoUrl}
                       alt="Company logo"
-                      className="object-contain max-h-32 max-w-full"
+                      className="object-contain max-h-20 max-w-full"
                     />
                     {uploading && (
                       <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
@@ -139,7 +160,7 @@ export default function CompanyInfoPage() {
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -147,28 +168,25 @@ export default function CompanyInfoPage() {
                 ) : (
                   <div
                     onClick={() => !uploading && fileInputRef.current?.click()}
-                    className="border border-dashed border-border rounded-lg p-8 text-center hover:border-muted-foreground/40 transition-colors cursor-pointer"
+                    className="border border-dashed border-border rounded-lg h-[120px] flex flex-col items-center justify-center hover:border-muted-foreground/40 transition-colors cursor-pointer"
                   >
                     {uploading ? (
-                      <Loader2 className="w-6 h-6 mx-auto mb-1.5 text-primary animate-spin" />
+                      <Loader2 className="w-5 h-5 mb-1.5 text-primary animate-spin" />
                     ) : (
-                      <Upload className="w-6 h-6 mx-auto mb-1.5 text-muted-foreground" />
+                      <Upload className="w-5 h-5 mb-1.5 text-muted-foreground" />
                     )}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {uploading ? "Uploading..." : "Upload logo"}
                     </p>
                   </div>
                 )}
                 {uploadError && (
-                  <p className="mt-2 text-sm text-destructive">{uploadError}</p>
+                  <p className="mt-1.5 text-xs text-destructive">{uploadError}</p>
                 )}
               </div>
 
               {/* Company Name */}
-              <div>
-                <Label htmlFor="companyName" className="mb-2 block text-sm text-muted-foreground">
-                  Company Name
-                </Label>
+              <Field label="Company name" htmlFor="companyName">
                 <Input
                   id="companyName"
                   value={formData.companyName}
@@ -177,62 +195,56 @@ export default function CompanyInfoPage() {
                   }
                   placeholder="Acme Corp"
                 />
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <Label htmlFor="address" className="mb-2 block text-sm text-muted-foreground">Address</Label>
+            <Field label="Address" htmlFor="address">
               <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="123 Business St"
               />
-            </div>
+            </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="city" className="mb-2 block text-sm text-muted-foreground">City</Label>
+              <Field label="City" htmlFor="city">
                 <Input
                   id="city"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder="Tech City"
                 />
-              </div>
-              <div>
-                <Label htmlFor="zipCode" className="mb-2 block text-sm text-muted-foreground">Zip / Postal Code</Label>
+              </Field>
+              <Field label="Zip / Postal code" htmlFor="zipCode">
                 <Input
                   id="zipCode"
                   value={formData.zipCode}
                   onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
                   placeholder="10001"
                 />
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <Label htmlFor="country" className="mb-2 block text-sm text-muted-foreground">Country</Label>
+            <Field label="Country" htmlFor="country">
               <Input
                 id="country"
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 placeholder="USA"
               />
-            </div>
+            </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="phone" className="mb-2 block text-sm text-muted-foreground">Phone</Label>
+              <Field label="Phone" htmlFor="phone">
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+1 (555) 123-4567"
                 />
-              </div>
-              <div>
-                <Label htmlFor="email" className="mb-2 block text-sm text-muted-foreground">Email</Label>
+              </Field>
+              <Field label="Email" htmlFor="email">
                 <Input
                   id="email"
                   type="email"
@@ -240,7 +252,7 @@ export default function CompanyInfoPage() {
                   onChange={(e) => setFormData({ ...formData, companyEmail: e.target.value })}
                   placeholder="billing@acme.com"
                 />
-              </div>
+              </Field>
             </div>
           </div>
 
