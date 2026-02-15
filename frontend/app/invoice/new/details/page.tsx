@@ -98,7 +98,7 @@ export default function InvoiceDetailsPage() {
           </div>
 
           {/* Invoice info row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div>
               <Label htmlFor="invoiceNumber" className="mb-2 block text-sm text-muted-foreground">Invoice #</Label>
               <Input id="invoiceNumber" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="INV-001" />

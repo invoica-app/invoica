@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useRef, useState, useEffect, useCallback } from "react";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { formatMoney } from "@/lib/currency";
@@ -292,13 +292,32 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
 
 export function InvoicePreview() {
   const data = useInvoiceData();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.34);
+
+  const updateScale = useCallback(() => {
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.offsetWidth;
+      setScale(containerWidth / 800);
+    }
+  }, []);
+
+  useEffect(() => {
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [updateScale]);
 
   return (
-    <div className="aspect-[8.5/11] bg-white rounded-lg border border-gray-200 overflow-hidden relative">
+    <div
+      ref={containerRef}
+      className="aspect-[8.5/11] bg-white rounded-lg border border-gray-200 overflow-hidden relative"
+    >
       <div
         className="origin-top-left w-[800px] p-10"
         style={{
-          transform: "scale(0.34)",
+          transform: `scale(${scale})`,
           fontFamily: data.fontFamily || "Inter",
           color: "#1a1a1a",
         }}
