@@ -53,6 +53,20 @@ data class Invoice(
     @Column(nullable = false)
     val fontFamily: String = "Inter",
 
+    // Client (Bill To)
+    val clientName: String? = null,
+    val clientCompany: String? = null,
+    val clientAddress: String? = null,
+    val clientCity: String? = null,
+    val clientZip: String? = null,
+    val clientCountry: String? = null,
+
+    // Tax, Discount, Notes
+    val taxRate: Double? = null,
+    val discount: Double? = null,
+    @Column(length = 2000)
+    val notes: String? = null,
+
     // Email
     @Column(nullable = false)
     val clientEmail: String,

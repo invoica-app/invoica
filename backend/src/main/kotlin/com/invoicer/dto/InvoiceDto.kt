@@ -49,6 +49,19 @@ data class CreateInvoiceRequest(
     val primaryColor: String = "#9747E6",
     val fontFamily: String = "Inter",
 
+    // Client (Bill To)
+    val clientName: String? = null,
+    val clientCompany: String? = null,
+    val clientAddress: String? = null,
+    val clientCity: String? = null,
+    val clientZip: String? = null,
+    val clientCountry: String? = null,
+
+    // Tax, Discount, Notes
+    val taxRate: Double? = null,
+    val discount: Double? = null,
+    val notes: String? = null,
+
     // Email
     @field:NotBlank(message = "Client email is required")
     @field:Email(message = "Invalid client email")
@@ -78,6 +91,17 @@ data class UpdateInvoiceRequest(
     val dueDate: LocalDate? = null,
     val primaryColor: String? = null,
     val fontFamily: String? = null,
+    // Client (Bill To)
+    val clientName: String? = null,
+    val clientCompany: String? = null,
+    val clientAddress: String? = null,
+    val clientCity: String? = null,
+    val clientZip: String? = null,
+    val clientCountry: String? = null,
+    // Tax, Discount, Notes
+    val taxRate: Double? = null,
+    val discount: Double? = null,
+    val notes: String? = null,
     @field:Email(message = "Invalid client email")
     val clientEmail: String? = null,
     val emailSubject: String? = null,
@@ -112,6 +136,17 @@ data class InvoiceResponse(
     val dueDate: LocalDate,
     val primaryColor: String,
     val fontFamily: String,
+    // Client (Bill To)
+    val clientName: String?,
+    val clientCompany: String?,
+    val clientAddress: String?,
+    val clientCity: String?,
+    val clientZip: String?,
+    val clientCountry: String?,
+    // Tax, Discount, Notes
+    val taxRate: Double?,
+    val discount: Double?,
+    val notes: String?,
     val clientEmail: String,
     val emailSubject: String?,
     val emailMessage: String?,
