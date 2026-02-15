@@ -2,9 +2,7 @@ package com.invoicer.dto
 
 import com.invoicer.entity.InvoiceStatus
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -58,8 +56,13 @@ data class CreateInvoiceRequest(
     val clientCountry: String? = null,
 
     // Tax, Discount, Notes
+    @field:Min(value = 0, message = "Tax rate cannot be negative")
+    @field:Max(value = 100, message = "Tax rate cannot exceed 100%")
     val taxRate: Double? = null,
+
+    @field:DecimalMin(value = "0.0", message = "Discount cannot be negative")
     val discount: Double? = null,
+
     val notes: String? = null,
 
     // Email
@@ -99,8 +102,13 @@ data class UpdateInvoiceRequest(
     val clientZip: String? = null,
     val clientCountry: String? = null,
     // Tax, Discount, Notes
+    @field:Min(value = 0, message = "Tax rate cannot be negative")
+    @field:Max(value = 100, message = "Tax rate cannot exceed 100%")
     val taxRate: Double? = null,
+
+    @field:DecimalMin(value = "0.0", message = "Discount cannot be negative")
     val discount: Double? = null,
+
     val notes: String? = null,
     @field:Email(message = "Invalid client email")
     val clientEmail: String? = null,
@@ -115,9 +123,11 @@ data class LineItemRequest(
     val description: String,
 
     @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
     val quantity: Int,
 
     @field:NotNull(message = "Rate is required")
+    @field:DecimalMin(value = "0.0", inclusive = true, message = "Rate cannot be negative")
     val rate: BigDecimal
 )
 

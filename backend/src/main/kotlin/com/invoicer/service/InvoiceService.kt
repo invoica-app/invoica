@@ -11,6 +11,7 @@ import com.invoicer.repository.InvoiceRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 
 @Service
@@ -20,12 +21,10 @@ class InvoiceService(
 ) {
 
     fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
-        // Check for duplicate invoice number
         if (invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }
 
-        // Create invoice entity
         val invoice = Invoice(
             companyName = request.companyName,
             companyLogo = request.companyLogo,
@@ -55,7 +54,6 @@ class InvoiceService(
             userId = userId
         )
 
-        // Add line items and calculate total
         var subtotal = BigDecimal.ZERO
         request.lineItems.forEach { itemRequest ->
             val amount = itemRequest.rate.multiply(BigDecimal(itemRequest.quantity))
@@ -70,20 +68,13 @@ class InvoiceService(
             subtotal = subtotal.add(amount)
         }
 
-        // Apply discount and tax to get the real total
-        val discountAmount = request.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
-        val taxableAmount = subtotal.subtract(discountAmount)
-        val taxAmount = request.taxRate?.let { taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100)) } ?: BigDecimal.ZERO
-        val total = subtotal.subtract(discountAmount).add(taxAmount)
+        invoice.totalAmount = calculateTotal(subtotal, request.discount, request.taxRate)
 
-        // Save with calculated total
-        val savedInvoice = invoiceRepository.save(
-            invoice.copy(totalAmount = total)
-        )
-
+        val savedInvoice = invoiceRepository.save(invoice)
         return savedInvoice.toResponse()
     }
 
+    @Transactional(readOnly = true)
     fun getInvoice(id: Long, userId: Long): InvoiceResponse {
         val invoice = invoiceRepository.findById(id)
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
@@ -91,6 +82,7 @@ class InvoiceService(
         return invoice.toResponse()
     }
 
+    @Transactional(readOnly = true)
     fun getAllInvoices(userId: Long): List<InvoiceResponse> {
         return invoiceRepository.findByUserId(userId).map { it.toResponse() }
     }
@@ -100,7 +92,6 @@ class InvoiceService(
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
         verifyOwnership(invoice, userId)
 
-        // Check for duplicate invoice number if changed
         if (request.invoiceNumber != null &&
             request.invoiceNumber != invoice.invoiceNumber &&
             invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)
@@ -108,15 +99,38 @@ class InvoiceService(
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }
 
-        // Update fields — compute subtotal from existing line items
-        var subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
-        val updatedLineItems = invoice.lineItems.toMutableList()
+        // Update mutable fields
+        request.companyName?.let { invoice.companyName = it }
+        request.companyLogo?.let { invoice.companyLogo = it }
+        request.address?.let { invoice.address = it }
+        request.city?.let { invoice.city = it }
+        request.zipCode?.let { invoice.zipCode = it }
+        request.country?.let { invoice.country = it }
+        request.phone?.let { invoice.phone = it }
+        request.companyEmail?.let { invoice.companyEmail = it }
+        request.invoiceNumber?.let { invoice.invoiceNumber = it }
+        request.invoiceDate?.let { invoice.invoiceDate = it }
+        request.dueDate?.let { invoice.dueDate = it }
+        request.primaryColor?.let { invoice.primaryColor = it }
+        request.fontFamily?.let { invoice.fontFamily = it }
+        request.clientName?.let { invoice.clientName = it }
+        request.clientCompany?.let { invoice.clientCompany = it }
+        request.clientAddress?.let { invoice.clientAddress = it }
+        request.clientCity?.let { invoice.clientCity = it }
+        request.clientZip?.let { invoice.clientZip = it }
+        request.clientCountry?.let { invoice.clientCountry = it }
+        request.taxRate?.let { invoice.taxRate = it }
+        request.discount?.let { invoice.discount = it }
+        request.notes?.let { invoice.notes = it }
+        request.clientEmail?.let { invoice.clientEmail = it }
+        request.emailSubject?.let { invoice.emailSubject = it }
+        request.emailMessage?.let { invoice.emailMessage = it }
+        request.status?.let { invoice.status = it }
+        invoice.updatedAt = LocalDateTime.now()
 
         // Update line items if provided
         if (request.lineItems != null) {
-            updatedLineItems.clear()
-            subtotal = BigDecimal.ZERO
-
+            invoice.lineItems.clear()
             request.lineItems.forEach { itemRequest ->
                 val amount = itemRequest.rate.multiply(BigDecimal(itemRequest.quantity))
                 val lineItem = LineItem(
@@ -126,49 +140,15 @@ class InvoiceService(
                     amount = amount,
                     invoice = invoice
                 )
-                updatedLineItems.add(lineItem)
-                subtotal = subtotal.add(amount)
+                invoice.lineItems.add(lineItem)
             }
         }
 
-        val updatedInvoice = invoice.copy(
-            companyName = request.companyName ?: invoice.companyName,
-            companyLogo = request.companyLogo ?: invoice.companyLogo,
-            address = request.address ?: invoice.address,
-            city = request.city ?: invoice.city,
-            zipCode = request.zipCode ?: invoice.zipCode,
-            country = request.country ?: invoice.country,
-            phone = request.phone ?: invoice.phone,
-            companyEmail = request.companyEmail ?: invoice.companyEmail,
-            invoiceNumber = request.invoiceNumber ?: invoice.invoiceNumber,
-            invoiceDate = request.invoiceDate ?: invoice.invoiceDate,
-            dueDate = request.dueDate ?: invoice.dueDate,
-            primaryColor = request.primaryColor ?: invoice.primaryColor,
-            fontFamily = request.fontFamily ?: invoice.fontFamily,
-            clientName = request.clientName ?: invoice.clientName,
-            clientCompany = request.clientCompany ?: invoice.clientCompany,
-            clientAddress = request.clientAddress ?: invoice.clientAddress,
-            clientCity = request.clientCity ?: invoice.clientCity,
-            clientZip = request.clientZip ?: invoice.clientZip,
-            clientCountry = request.clientCountry ?: invoice.clientCountry,
-            taxRate = request.taxRate ?: invoice.taxRate,
-            discount = request.discount ?: invoice.discount,
-            notes = request.notes ?: invoice.notes,
-            clientEmail = request.clientEmail ?: invoice.clientEmail,
-            emailSubject = request.emailSubject ?: invoice.emailSubject,
-            emailMessage = request.emailMessage ?: invoice.emailMessage,
-            status = request.status ?: invoice.status,
-            lineItems = updatedLineItems,
-            updatedAt = LocalDateTime.now()
-        )
+        // Recalculate total from current line items
+        val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
+        invoice.totalAmount = calculateTotal(subtotal, invoice.discount, invoice.taxRate)
 
-        // Recalculate total with discount and tax
-        val resolvedDiscount = updatedInvoice.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
-        val taxableAmount = subtotal.subtract(resolvedDiscount)
-        val resolvedTax = updatedInvoice.taxRate?.let { taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100)) } ?: BigDecimal.ZERO
-        val totalAmount = subtotal.subtract(resolvedDiscount).add(resolvedTax)
-
-        return invoiceRepository.save(updatedInvoice.copy(totalAmount = totalAmount)).toResponse()
+        return invoiceRepository.save(invoice).toResponse()
     }
 
     fun deleteInvoice(id: Long, userId: Long) {
@@ -178,17 +158,26 @@ class InvoiceService(
         invoiceRepository.deleteById(id)
     }
 
+    @Transactional(readOnly = true)
     fun getInvoicesByStatus(status: InvoiceStatus, userId: Long): List<InvoiceResponse> {
         return invoiceRepository.findByUserIdAndStatus(userId, status).map { it.toResponse() }
     }
 
     private fun verifyOwnership(invoice: Invoice, userId: Long) {
-        if (invoice.userId != null && invoice.userId != userId) {
+        if (invoice.userId != userId) {
             throw InvoiceAccessDeniedException("You do not have access to this invoice")
         }
     }
 
-    // Extension function to convert entity to response
+    private fun calculateTotal(subtotal: BigDecimal, discount: Double?, taxRate: Double?): BigDecimal {
+        val discountAmount = discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
+        val taxableAmount = subtotal.subtract(discountAmount)
+        val taxAmount = taxRate?.let {
+            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+        } ?: BigDecimal.ZERO
+        return subtotal.subtract(discountAmount).add(taxAmount)
+    }
+
     private fun Invoice.toResponse() = InvoiceResponse(
         id = id!!,
         companyName = companyName,

@@ -6,10 +6,12 @@ import com.invoicer.entity.User
 import com.invoicer.repository.UserRepository
 import com.invoicer.security.JwtUtil
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
+@Transactional
 class AuthService(
     private val userRepository: UserRepository,
     private val jwtUtil: JwtUtil
@@ -18,7 +20,6 @@ class AuthService(
     fun loginWithOAuth(request: OAuthLoginRequest): AuthResponse {
         val user = userRepository.findByEmail(request.email)
             .orElseGet {
-                // Create new user if not exists
                 val newUser = User(
                     email = request.email,
                     name = request.name,
@@ -31,11 +32,9 @@ class AuthService(
 
         // Update user info if changed
         if (user.name != request.name) {
-            val updatedUser = user.copy(
-                name = request.name,
-                updatedAt = LocalDateTime.now()
-            )
-            userRepository.save(updatedUser)
+            user.name = request.name
+            user.updatedAt = LocalDateTime.now()
+            userRepository.save(user)
         }
 
         val token = jwtUtil.generateToken(user.email, user.id, user.isGuest)
@@ -47,7 +46,6 @@ class AuthService(
     }
 
     fun loginAsGuest(): AuthResponse {
-        // Generate unique guest email
         val guestEmail = "guest-${UUID.randomUUID()}@invoica.app"
 
         val guestUser = User(
@@ -66,6 +64,7 @@ class AuthService(
         )
     }
 
+    @Transactional(readOnly = true)
     fun getCurrentUser(email: String): UserDto {
         val user = userRepository.findByEmail(email)
             .orElseThrow { RuntimeException("User not found") }

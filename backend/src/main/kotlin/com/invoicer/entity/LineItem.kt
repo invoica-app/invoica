@@ -6,25 +6,33 @@ import java.math.BigDecimal
 
 @Entity
 @Table(name = "line_items")
-data class LineItem(
+class LineItem(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
     @Column(nullable = false)
-    val description: String,
+    var description: String = "",
 
     @Column(nullable = false)
-    val quantity: Int,
+    var quantity: Int = 0,
 
     @Column(nullable = false)
-    val rate: BigDecimal,
+    var rate: BigDecimal = BigDecimal.ZERO,
 
     @Column(nullable = false)
-    val amount: BigDecimal,
+    var amount: BigDecimal = BigDecimal.ZERO,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id", nullable = false)
     @JsonIgnore
-    val invoice: Invoice? = null
-)
+    var invoice: Invoice? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LineItem) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode(): Int = javaClass.hashCode()
+}

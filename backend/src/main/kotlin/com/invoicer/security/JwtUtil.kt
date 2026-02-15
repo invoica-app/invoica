@@ -3,6 +3,7 @@ package com.invoicer.security
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.Date
@@ -16,6 +17,13 @@ class JwtUtil {
 
     @Value("\${jwt.expiration:86400000}") // 24 hours in milliseconds
     private var expiration: Long = 86400000
+
+    @PostConstruct
+    fun validateSecret() {
+        require(secret.toByteArray().size >= 32) {
+            "JWT secret must be at least 32 bytes (256 bits) for HMAC-SHA256. Current: ${secret.toByteArray().size} bytes."
+        }
+    }
 
     private fun getSigningKey(): SecretKey {
         return Keys.hmacShaKeyFor(secret.toByteArray())

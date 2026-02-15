@@ -7,74 +7,74 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "invoices")
-data class Invoice(
+class Invoice(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
     // Company Info
     @Column(nullable = false)
-    val companyName: String,
+    var companyName: String = "",
 
-    val companyLogo: String? = null,
-
-    @Column(nullable = false)
-    val address: String,
+    var companyLogo: String? = null,
 
     @Column(nullable = false)
-    val city: String,
+    var address: String = "",
 
     @Column(nullable = false)
-    val zipCode: String,
+    var city: String = "",
 
     @Column(nullable = false)
-    val country: String,
+    var zipCode: String = "",
 
     @Column(nullable = false)
-    val phone: String,
+    var country: String = "",
 
     @Column(nullable = false)
-    val companyEmail: String,
+    var phone: String = "",
+
+    @Column(nullable = false)
+    var companyEmail: String = "",
 
     // Invoice Details
     @Column(unique = true, nullable = false)
-    val invoiceNumber: String,
+    var invoiceNumber: String = "",
 
     @Column(nullable = false)
-    val invoiceDate: LocalDate,
+    var invoiceDate: LocalDate = LocalDate.now(),
 
     @Column(nullable = false)
-    val dueDate: LocalDate,
+    var dueDate: LocalDate = LocalDate.now(),
 
     // Design
     @Column(nullable = false)
-    val primaryColor: String = "#9747E6",
+    var primaryColor: String = "#9747E6",
 
     @Column(nullable = false)
-    val fontFamily: String = "Inter",
+    var fontFamily: String = "Inter",
 
     // Client (Bill To)
-    val clientName: String? = null,
-    val clientCompany: String? = null,
-    val clientAddress: String? = null,
-    val clientCity: String? = null,
-    val clientZip: String? = null,
-    val clientCountry: String? = null,
+    var clientName: String? = null,
+    var clientCompany: String? = null,
+    var clientAddress: String? = null,
+    var clientCity: String? = null,
+    var clientZip: String? = null,
+    var clientCountry: String? = null,
 
     // Tax, Discount, Notes
-    val taxRate: Double? = null,
-    val discount: Double? = null,
+    var taxRate: Double? = null,
+    var discount: Double? = null,
     @Column(length = 2000)
-    val notes: String? = null,
+    var notes: String? = null,
 
     // Email
     @Column(nullable = false)
-    val clientEmail: String,
+    var clientEmail: String = "",
 
-    val emailSubject: String? = null,
+    var emailSubject: String? = null,
 
     @Column(length = 2000)
-    val emailMessage: String? = null,
+    var emailMessage: String? = null,
 
     // Line Items
     @OneToMany(
@@ -87,12 +87,12 @@ data class Invoice(
 
     // Calculated
     @Column(nullable = false)
-    val totalAmount: BigDecimal = BigDecimal.ZERO,
+    var totalAmount: BigDecimal = BigDecimal.ZERO,
 
     // Status
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val status: InvoiceStatus = InvoiceStatus.DRAFT,
+    var status: InvoiceStatus = InvoiceStatus.DRAFT,
 
     // Owner
     val userId: Long? = null,
@@ -102,8 +102,16 @@ data class Invoice(
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
-    val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+    var updatedAt: LocalDateTime = LocalDateTime.now()
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Invoice) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode(): Int = javaClass.hashCode()
+}
 
 enum class InvoiceStatus {
     DRAFT,
