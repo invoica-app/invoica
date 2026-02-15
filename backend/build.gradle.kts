@@ -35,8 +35,6 @@ dependencies {
     runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
 
-    // AWS S3
-    implementation("software.amazon.awssdk:s3:2.20.26")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
