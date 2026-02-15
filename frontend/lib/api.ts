@@ -42,7 +42,11 @@ class ApiClient {
 
       if (!response.ok) {
         const error: ApiError = await response.json();
-        throw new Error(error.message || `HTTP ${response.status}: ${response.statusText}`);
+        // Include validation details if present (e.g. "invoiceNumber: Invoice number is required")
+        const message = error.details?.length
+          ? `${error.message}: ${error.details.join(", ")}`
+          : error.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
       }
 
       // Handle 204 No Content

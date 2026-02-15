@@ -11,12 +11,14 @@ import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CreateInvoiceRequest } from "@/lib/types";
 import { InvoicePreview, InvoiceFullPage } from "@/components/invoice-preview";
 import { formatMoney } from "@/lib/currency";
+import { useSettingsStore } from "@/lib/settings-store";
 import { Download, Send, Loader2 } from "lucide-react";
 
 export default function ReviewPage() {
   const router = useRouter();
   const store = useInvoiceStore();
   const api = useAuthenticatedApi();
+  const settings = useSettingsStore();
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const [sending, setSending] = useState(false);
@@ -63,6 +65,24 @@ export default function ReviewPage() {
   };
 
   const handleSend = async () => {
+    // Client-side validation
+    const missing: string[] = [];
+    if (!store.companyName.trim()) missing.push("Company name");
+    if (!store.address.trim()) missing.push("Address");
+    if (!store.city.trim()) missing.push("City");
+    if (!store.zipCode.trim()) missing.push("Zip code");
+    if (!store.country.trim()) missing.push("Country");
+    if (!store.phone.trim()) missing.push("Phone");
+    if (!store.companyEmail.trim()) missing.push("Company email");
+    if (!store.invoiceNumber.trim()) missing.push("Invoice number");
+    if (!store.clientEmail.trim()) missing.push("Client email");
+    if (store.lineItems.length === 0) missing.push("At least one line item");
+
+    if (missing.length > 0) {
+      setError(`Missing required fields: ${missing.join(", ")}`);
+      return;
+    }
+
     setSending(true);
     setError(null);
     try {
@@ -99,6 +119,8 @@ export default function ReviewPage() {
         })),
       };
       await api.createInvoice(request);
+      // Increment the auto-number for the next invoice
+      settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
       store.reset();
       router.push("/invoice/new/history");
     } catch (err) {

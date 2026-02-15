@@ -9,14 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
+import { useSettingsStore } from "@/lib/settings-store";
 import { CURRENCIES, formatMoney } from "@/lib/currency";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function InvoiceDetailsPage() {
   const router = useRouter();
   const store = useInvoiceStore();
+  const settings = useSettingsStore();
 
-  const [invoiceNumber, setInvoiceNumber] = useState(store.invoiceNumber);
+  // Auto-generate invoice number from settings if not yet set
+  const [invoiceNumber, setInvoiceNumber] = useState(
+    store.invoiceNumber || settings.getNextInvoiceNumber()
+  );
   const [invoiceDate, setInvoiceDate] = useState(store.invoiceDate);
   const [dueDate, setDueDate] = useState(store.dueDate);
   const [currency, setCurrency] = useState(store.currency || "USD");
