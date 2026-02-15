@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { NothingDey } from "@/components/nothing-dey";
 import { DemoInvoice } from "@/components/demo-invoice";
 import { WaveBackground } from "@/components/ui/wave-background";
+import { useAuth } from "@/lib/auth";
 
 const ROTATING_WORDS = ["hours", "days", "weeks", "months"];
 const WORD_INTERVAL = 2500;
@@ -119,9 +120,12 @@ const FEATURES = [
 
 export default function LandingPage() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { user, isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  const appHref = "/invoice/new/company";
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -148,15 +152,26 @@ export default function LandingPage() {
                 <Moon className="w-4 h-4" />
               )}
             </button>
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block px-2"
-            >
-              Sign in
-            </Link>
-            <Button asChild size="sm">
-              <Link href="/login">Get started</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild size="sm">
+                <Link href={appHref}>
+                  {user?.name ? `Hi, ${user.name.split(" ")[0]}` : "Dashboard"}
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block px-2"
+                >
+                  Sign in
+                </Link>
+                <Button asChild size="sm">
+                  <Link href="/login">Get started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -174,14 +189,16 @@ export default function LandingPage() {
           </p>
           <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3 sm:gap-4 animate-fade-in-up-delay-2">
             <Button asChild>
-              <Link href="/login">
-                Create an invoice
+              <Link href={isAuthenticated ? appHref : "/login"}>
+                {isAuthenticated ? "Go to dashboard" : "Create an invoice"}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
-            <span className="text-sm text-muted-foreground">
-              Free &middot; No account needed
-            </span>
+            {!isAuthenticated && (
+              <span className="text-sm text-muted-foreground">
+                Free &middot; No account needed
+              </span>
+            )}
           </div>
         </div>
       </section>
@@ -248,8 +265,8 @@ export default function LandingPage() {
                 Your invoice history is empty &mdash; go create your first one.
               </p>
               <Button asChild size="sm">
-                <Link href="/login">
-                  Create your first invoice
+                <Link href={isAuthenticated ? appHref : "/login"}>
+                  {isAuthenticated ? "Go to dashboard" : "Create your first invoice"}
                   <ArrowRight className="w-3.5 h-3.5 ml-1" />
                 </Link>
               </Button>
@@ -270,15 +287,23 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign in
-            </Link>
-            <Button asChild size="sm">
-              <Link href="/login">Get started</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild size="sm">
+                <Link href={appHref}>Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Button asChild size="sm">
+                  <Link href="/login">Get started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <div className="max-w-5xl mx-auto px-5 pb-6">

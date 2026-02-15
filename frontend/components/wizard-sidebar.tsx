@@ -20,6 +20,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -63,7 +64,7 @@ function hasDraftData(state: ReturnType<typeof useInvoiceStore.getState>): boole
 export function WizardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, isAdmin } = useAuth();
   const reset = useInvoiceStore((state) => state.reset);
   const [showPopover, setShowPopover] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
@@ -133,7 +134,7 @@ export function WizardSidebar() {
         {/* Top row: logo + collapse toggle */}
         <div className={cn("flex items-center mb-5", expanded ? "justify-between px-2" : "justify-center")}>
           {expanded && (
-            <Link href="/" className="text-lg font-semibold tracking-tight">
+            <Link href="/invoice/new/history" className="text-lg font-semibold tracking-tight">
               invoica
             </Link>
           )}
@@ -196,6 +197,19 @@ export function WizardSidebar() {
             active={pathname === "/invoice/new/settings"}
             collapsed={collapsed}
           />
+
+          {isAdmin && (
+            <>
+              <div className={cn("my-2.5 border-t border-border/60", expanded ? "mx-2.5" : "mx-1")} />
+              <SidebarLink
+                href="/admin"
+                icon={Shield}
+                label="Admin"
+                active={false}
+                collapsed={collapsed}
+              />
+            </>
+          )}
         </nav>
 
         {/* Theme Toggle */}
