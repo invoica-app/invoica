@@ -21,7 +21,6 @@ export default function ReviewPage() {
   const settings = useSettingsStore();
   const pdfRef = useRef<HTMLDivElement>(null);
 
-  // Select only the data fields we need for display and submission
   const data = useInvoiceStore(
     useShallow((s) => ({
       companyName: s.companyName,
@@ -90,7 +89,6 @@ export default function ReviewPage() {
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
-      // Revoke after a short delay to allow the new tab to load
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -101,7 +99,6 @@ export default function ReviewPage() {
   };
 
   const handleSend = async () => {
-    // Client-side validation
     const missing: string[] = [];
     if (!data.companyName.trim()) missing.push("Company name");
     if (!data.address.trim()) missing.push("Address");
@@ -155,7 +152,6 @@ export default function ReviewPage() {
         })),
       };
       await api.createInvoice(request);
-      // Increment the auto-number for the next invoice
       settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
       reset();
       router.push("/invoice/new/history");
@@ -170,137 +166,132 @@ export default function ReviewPage() {
     <>
       <WizardHeader stepLabel="Step 5 of 5" />
 
-      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Review & Send</h1>
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold mb-0.5">Review & Send</h1>
             <p className="text-sm text-muted-foreground">
-              Review your details and send the invoice.
+              Double-check everything before sending.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Summary Card */}
-            <div className="lg:col-span-2 bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
-              <div className="mb-6 md:mb-8">
-                <div className="flex justify-between items-start mb-6 md:mb-8">
-                  <div>
-                    <div className="text-xs md:text-sm text-muted-foreground mb-1">Total Amount</div>
-                    <div className="text-xl md:text-3xl font-bold">
-                      {formatMoney(total, currency)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs md:text-sm text-muted-foreground mb-1">Invoice Date</div>
-                    <div className="text-sm font-semibold">
-                      {new Date(data.invoiceDate).toLocaleDateString()}
-                    </div>
-                  </div>
+            {/* Summary */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Amount + date */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Total</p>
+                  <p className="text-2xl font-semibold tabular-nums">
+                    {formatMoney(total, currency)}
+                  </p>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 mb-6">
-                  <div>
-                    <div className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
-                      BILLED TO
-                    </div>
-                    <div className="text-sm space-y-0.5">
-                      {data.clientName && <div className="font-medium">{data.clientName}</div>}
-                      {data.clientCompany && <div className="text-muted-foreground">{data.clientCompany}</div>}
-                      <div className="text-muted-foreground">{data.clientEmail}</div>
-                      {data.clientAddress && <div className="text-muted-foreground">{data.clientAddress}</div>}
-                      {(data.clientCity || data.clientZip) && (
-                        <div className="text-muted-foreground">
-                          {[data.clientCity, data.clientZip].filter(Boolean).join(", ")}
-                        </div>
-                      )}
-                      {data.clientCountry && <div className="text-muted-foreground">{data.clientCountry}</div>}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
-                      FROM
-                    </div>
-                    <div className="text-sm">
-                      <div className="font-medium">{data.companyName}</div>
-                      <div className="text-muted-foreground">{data.companyEmail}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Line Items */}
-                {data.lineItems.length > 0 && (
-                  <div className="mb-6">
-                    <div className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
-                      LINE ITEMS
-                    </div>
-                    <div className="border border-border rounded-lg overflow-hidden">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-muted">
-                            <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Description</th>
-                            <th className="text-center px-3 py-2 text-xs font-medium text-muted-foreground w-16">Qty</th>
-                            <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Rate</th>
-                            <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {data.lineItems.map((item) => (
-                            <tr key={item.id}>
-                              <td className="px-3 py-2">{item.description || "\u2014"}</td>
-                              <td className="px-3 py-2 text-center text-muted-foreground">{item.quantity}</td>
-                              <td className="px-3 py-2 text-right text-muted-foreground">{formatMoney(item.rate, currency)}</td>
-                              <td className="px-3 py-2 text-right font-medium">{formatMoney(item.amount, currency)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Totals breakdown */}
-                <div className="bg-muted p-3 md:p-4 rounded-lg mb-4">
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal:</span>
-                      <span>{formatMoney(subtotal, currency)}</span>
-                    </div>
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-red-600 dark:text-red-400">
-                        <span>Discount:</span>
-                        <span>-{formatMoney(discountAmount, currency)}</span>
-                      </div>
-                    )}
-                    {(data.taxRate || 0) > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax ({data.taxRate}%):</span>
-                        <span>{formatMoney(taxAmount, currency)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-semibold pt-1 border-t border-border mt-1">
-                      <span>Total:</span>
-                      <span>{formatMoney(total, currency)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted p-3 md:p-4 rounded-lg">
-                  <div className="text-xs md:text-sm font-semibold mb-2">Email Preview:</div>
-                  <p className="text-xs md:text-sm text-muted-foreground italic whitespace-pre-line">
-                    &quot;{data.emailMessage}&quot;
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground mb-0.5">Date</p>
+                  <p className="text-sm font-medium">
+                    {new Date(data.invoiceDate).toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
-              {/* Error Banner */}
+              {/* Parties */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground tracking-wider uppercase mb-1.5">Billed to</p>
+                  <div className="text-sm space-y-0.5">
+                    {data.clientName && <p className="font-medium">{data.clientName}</p>}
+                    {data.clientCompany && <p className="text-muted-foreground">{data.clientCompany}</p>}
+                    <p className="text-muted-foreground">{data.clientEmail}</p>
+                    {data.clientAddress && <p className="text-muted-foreground">{data.clientAddress}</p>}
+                    {(data.clientCity || data.clientZip) && (
+                      <p className="text-muted-foreground">
+                        {[data.clientCity, data.clientZip].filter(Boolean).join(", ")}
+                      </p>
+                    )}
+                    {data.clientCountry && <p className="text-muted-foreground">{data.clientCountry}</p>}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground tracking-wider uppercase mb-1.5">From</p>
+                  <div className="text-sm">
+                    <p className="font-medium">{data.companyName}</p>
+                    <p className="text-muted-foreground">{data.companyEmail}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Line items */}
+              {data.lineItems.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground tracking-wider uppercase mb-2">Line items</p>
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Description</th>
+                          <th className="text-center px-3 py-2 text-xs font-medium text-muted-foreground w-14">Qty</th>
+                          <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Rate</th>
+                          <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {data.lineItems.map((item) => (
+                          <tr key={item.id}>
+                            <td className="px-3 py-2">{item.description || "\u2014"}</td>
+                            <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{item.quantity}</td>
+                            <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">{formatMoney(item.rate, currency)}</td>
+                            <td className="px-3 py-2 text-right font-medium tabular-nums">{formatMoney(item.amount, currency)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Totals */}
+              <div className="bg-muted/50 rounded-lg p-3.5">
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-destructive">
+                      <span>Discount</span>
+                      <span className="tabular-nums">-{formatMoney(discountAmount, currency)}</span>
+                    </div>
+                  )}
+                  {(data.taxRate || 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tax ({data.taxRate}%)</span>
+                      <span className="tabular-nums">{formatMoney(taxAmount, currency)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-semibold pt-1.5 border-t border-border mt-1">
+                    <span>Total</span>
+                    <span className="tabular-nums">{formatMoney(total, currency)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email preview */}
+              <div className="bg-muted/50 rounded-lg p-3.5">
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">Email message</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {data.emailMessage}
+                </p>
+              </div>
+
+              {/* Error */}
               {error && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                <div className="px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                   {error}
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 md:gap-4 justify-end">
+              {/* Actions */}
+              <div className="flex gap-3 justify-end">
                 <Button
                   variant="outline"
                   onClick={handlePreview}
@@ -320,23 +311,20 @@ export default function ReviewPage() {
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                  {sending ? "Sending..." : "Send Invoice"}
+                  {sending ? "Sending..." : "Send invoice"}
                 </Button>
               </div>
             </div>
 
-            {/* PDF Preview Thumbnail */}
-            <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-              <Label className="mb-3 block text-muted-foreground text-sm font-medium">
-                PDF Preview
-              </Label>
+            {/* PDF thumbnail */}
+            <div className="border border-border rounded-lg p-4 h-fit">
+              <Label className="mb-2 block text-xs text-muted-foreground">Preview</Label>
               <InvoicePreview />
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 md:mt-8">
-            <Button variant="outline" asChild>
+          <div className="flex justify-start mt-6 pt-6 border-t border-border/50">
+            <Button variant="ghost" asChild>
               <Link href="/invoice/new/email">Back</Link>
             </Button>
           </div>

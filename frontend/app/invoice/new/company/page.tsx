@@ -68,7 +68,6 @@ export default function CompanyInfoPage() {
 
     setUploadError(null);
 
-    // Show local preview immediately via base64
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
@@ -77,14 +76,13 @@ export default function CompanyInfoPage() {
     };
     reader.readAsDataURL(file);
 
-    // Also try API upload for a clean remote URL
     setUploading(true);
     try {
       const result = await api.uploadLogo(file);
       setLogoUrl(result.url);
       updateCompany({ companyLogo: result.url });
     } catch {
-      // base64 fallback already set above
+      // base64 fallback already set
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -105,20 +103,20 @@ export default function CompanyInfoPage() {
     <>
       <WizardHeader stepLabel="Step 1 of 5" />
 
-      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Company Information</h1>
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold mb-0.5">Company Information</h1>
             <p className="text-sm text-muted-foreground">
-              Enter your business details that will appear on the invoice.
+              Your business details for the invoice header.
             </p>
           </div>
 
-          <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
-              {/* Company Logo */}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Logo */}
               <div>
-                <Label className="mb-2 md:mb-3 block text-sm text-muted-foreground">Company Logo</Label>
+                <Label className="mb-2 block text-sm text-muted-foreground">Company Logo</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -127,48 +125,48 @@ export default function CompanyInfoPage() {
                   onChange={handleLogoUpload}
                 />
                 {logoUrl ? (
-                  <div className="relative border-2 border-border rounded-lg p-4 flex items-center justify-center">
+                  <div className="relative border border-border rounded-lg p-4 flex items-center justify-center bg-card">
                     <img
                       src={logoUrl}
                       alt="Company logo"
-                      className="object-contain max-h-40 max-w-full"
+                      className="object-contain max-h-32 max-w-full"
                     />
                     {uploading && (
-                      <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
-                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
                       </div>
                     )}
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-500/20"
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ) : (
                   <div
                     onClick={() => !uploading && fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-lg p-6 md:p-10 text-center hover:border-primary transition-colors cursor-pointer group"
+                    className="border border-dashed border-border rounded-lg p-8 text-center hover:border-muted-foreground/40 transition-colors cursor-pointer"
                   >
                     {uploading ? (
-                      <Loader2 className="w-8 h-8 mx-auto mb-2 text-primary animate-spin" />
+                      <Loader2 className="w-6 h-6 mx-auto mb-1.5 text-primary animate-spin" />
                     ) : (
-                      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <Upload className="w-6 h-6 mx-auto mb-1.5 text-muted-foreground" />
                     )}
                     <p className="text-sm text-muted-foreground">
-                      {uploading ? "Uploading..." : "Upload Logo"}
+                      {uploading ? "Uploading..." : "Upload logo"}
                     </p>
                   </div>
                 )}
                 {uploadError && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">{uploadError}</p>
+                  <p className="mt-2 text-sm text-destructive">{uploadError}</p>
                 )}
               </div>
 
               {/* Company Name */}
               <div>
-                <Label htmlFor="companyName" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
+                <Label htmlFor="companyName" className="mb-2 block text-sm text-muted-foreground">
                   Company Name
                 </Label>
                 <Input
@@ -177,118 +175,80 @@ export default function CompanyInfoPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, companyName: e.target.value })
                   }
-                  className="w-full"
                   placeholder="Acme Corp"
                 />
               </div>
             </div>
 
-            <div className="space-y-4 md:space-y-6">
-              {/* Address */}
+            <div>
+              <Label htmlFor="address" className="mb-2 block text-sm text-muted-foreground">Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="123 Business St"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="address" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                  Address
-                </Label>
+                <Label htmlFor="city" className="mb-2 block text-sm text-muted-foreground">City</Label>
                 <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  className="w-full"
-                  placeholder="123 Business St"
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  placeholder="Tech City"
                 />
               </div>
-
-              {/* City and Zip */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <Label htmlFor="city" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                    City
-                  </Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    className="w-full"
-                    placeholder="Tech City"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="zipCode" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                    Zip / Postal Code
-                  </Label>
-                  <Input
-                    id="zipCode"
-                    value={formData.zipCode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, zipCode: e.target.value })
-                    }
-                    className="w-full"
-                    placeholder="10001"
-                  />
-                </div>
-              </div>
-
-              {/* Country */}
               <div>
-                <Label htmlFor="country" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                  Country
-                </Label>
+                <Label htmlFor="zipCode" className="mb-2 block text-sm text-muted-foreground">Zip / Postal Code</Label>
                 <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) =>
-                    setFormData({ ...formData, country: e.target.value })
-                  }
-                  className="w-full"
-                  placeholder="USA"
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                  placeholder="10001"
                 />
               </div>
+            </div>
 
-              {/* Phone and Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <Label htmlFor="phone" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    className="w-full"
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.companyEmail}
-                    onChange={(e) =>
-                      setFormData({ ...formData, companyEmail: e.target.value })
-                    }
-                    className="w-full"
-                    placeholder="billing@acme.com"
-                  />
-                </div>
+            <div>
+              <Label htmlFor="country" className="mb-2 block text-sm text-muted-foreground">Country</Label>
+              <Input
+                id="country"
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                placeholder="USA"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone" className="mb-2 block text-sm text-muted-foreground">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" className="mb-2 block text-sm text-muted-foreground">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.companyEmail}
+                  onChange={(e) => setFormData({ ...formData, companyEmail: e.target.value })}
+                  placeholder="billing@acme.com"
+                />
               </div>
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 md:mt-8">
-            <Button variant="outline" asChild>
+          <div className="flex justify-between mt-6 pt-6 border-t border-border/50">
+            <Button variant="ghost" asChild>
               <Link href="/invoice/new/history">Back</Link>
             </Button>
-            <Button onClick={handleNext}>Next Step</Button>
+            <Button onClick={handleNext}>Continue</Button>
           </div>
         </div>
       </div>

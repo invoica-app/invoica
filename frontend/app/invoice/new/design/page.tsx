@@ -59,41 +59,39 @@ export default function DesignPage() {
     <>
       <WizardHeader stepLabel="Step 3 of 5" />
 
-      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Design & Branding</h1>
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold mb-0.5">Design & Branding</h1>
             <p className="text-sm text-muted-foreground">
-              Customize the look and feel of your invoice.
+              Customize how your invoice looks.
             </p>
           </div>
 
-          <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border space-y-8">
+          <div className="space-y-8">
             {/* Primary Color */}
             <div>
-              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
-                Primary Color
-              </Label>
-              <div className="flex flex-wrap gap-4">
+              <Label className="mb-3 block text-sm text-muted-foreground">Color</Label>
+              <div className="flex flex-wrap gap-3">
                 {colors.map((color) => (
                   <button
                     key={color.value}
                     onClick={() => setPrimaryColor(color.value)}
-                    className="relative group"
+                    className="relative"
                     title={color.name}
                   >
                     <div
                       className={cn(
-                        "w-10 h-10 md:w-14 md:h-14 rounded-full transition-all cursor-pointer",
+                        "w-9 h-9 md:w-11 md:h-11 rounded-full transition-all",
                         primaryColor === color.value
-                          ? "ring-4 ring-offset-2 ring-border ring-offset-card"
-                          : "hover:ring-2 hover:ring-offset-2 hover:ring-border hover:ring-offset-card"
+                          ? "ring-2 ring-offset-2 ring-foreground/20 ring-offset-background"
+                          : "hover:ring-2 hover:ring-offset-2 hover:ring-foreground/10 hover:ring-offset-background"
                       )}
                       style={{ backgroundColor: color.value }}
                     >
                       {primaryColor === color.value && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Check className="w-6 h-6 text-white" strokeWidth={3} />
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
                         </div>
                       )}
                     </div>
@@ -102,61 +100,48 @@ export default function DesignPage() {
               </div>
             </div>
 
-            {/* Font Family */}
+            {/* Font */}
             <div>
-              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
-                Font Family
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Label className="mb-3 block text-sm text-muted-foreground">Font</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {fonts.map((font) => (
                   <button
                     key={font.value}
                     onClick={() => setFontFamily(font.value)}
                     className={cn(
-                      "p-6 rounded-lg border-2 transition-all text-left hover:border-muted-foreground/30",
+                      "px-4 py-3 rounded-lg border text-left text-sm transition-colors",
                       fontFamily === font.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
+                        ? "border-primary bg-primary/5 font-medium"
+                        : "border-border hover:border-muted-foreground/30"
                     )}
-                    style={{
-                      fontFamily: font.style || font.value,
-                    }}
+                    style={{ fontFamily: font.style || font.value }}
                   >
-                    <span className="text-lg font-medium">{font.name}</span>
+                    {font.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Preview Header — stays light since it previews the printed invoice */}
+            {/* Preview */}
             <div>
-              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
-                Preview Header
-              </Label>
-              <div className="p-6 bg-white rounded-lg border border-gray-200 text-gray-900">
+              <Label className="mb-3 block text-sm text-muted-foreground">Preview</Label>
+              <div className="p-5 bg-white rounded-lg border border-gray-200 text-gray-900">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-semibold text-lg"
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      {companyName.charAt(0)}
+                      {companyName.charAt(0) || "A"}
                     </div>
                     <div style={{ fontFamily }}>
-                      <div className="font-semibold text-lg">
-                        {companyName}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Invoice #{invoiceNumber}
-                      </div>
+                      <div className="font-semibold">{companyName || "Your Company"}</div>
+                      <div className="text-xs text-gray-500">Invoice #{invoiceNumber || "001"}</div>
                     </div>
                   </div>
                   <div className="text-right" style={{ fontFamily }}>
-                    <div className="text-sm text-gray-600">Total Due</div>
-                    <div
-                      className="text-2xl font-bold"
-                      style={{ color: primaryColor }}
-                    >
+                    <div className="text-xs text-gray-500">Total</div>
+                    <div className="text-xl font-bold" style={{ color: primaryColor }}>
                       ${subtotal.toFixed(2)}
                     </div>
                   </div>
@@ -165,12 +150,11 @@ export default function DesignPage() {
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 md:mt-8">
-            <Button variant="outline" asChild>
+          <div className="flex justify-between mt-6 pt-6 border-t border-border/50">
+            <Button variant="ghost" asChild>
               <Link href="/invoice/new/details">Back</Link>
             </Button>
-            <Button onClick={handleNext}>Next Step</Button>
+            <Button onClick={handleNext}>Continue</Button>
           </div>
         </div>
       </div>

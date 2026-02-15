@@ -38,11 +38,7 @@ export default function EmailDetailsPage() {
   );
 
   const handleNext = () => {
-    updateEmail({
-      clientEmail,
-      emailSubject,
-      emailMessage,
-    });
+    updateEmail({ clientEmail, emailSubject, emailMessage });
     router.push("/invoice/new/review");
   };
 
@@ -50,23 +46,20 @@ export default function EmailDetailsPage() {
     <>
       <WizardHeader stepLabel="Step 4 of 5" />
 
-      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Email Details</h1>
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold mb-0.5">Email Details</h1>
             <p className="text-sm text-muted-foreground">
-              Configure the email that will be sent to your client.
+              Configure the email sent with your invoice.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form */}
-            <div className="lg:col-span-2 bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border space-y-6">
-              {/* To */}
+            <div className="lg:col-span-2 space-y-5">
               <div>
-                <Label htmlFor="clientEmail" className="mb-3 block text-muted-foreground">
-                  To (Client Email)
-                </Label>
+                <Label htmlFor="clientEmail" className="mb-2 block text-sm text-muted-foreground">To</Label>
                 <Input
                   id="clientEmail"
                   type="email"
@@ -75,12 +68,8 @@ export default function EmailDetailsPage() {
                   placeholder="client@example.com"
                 />
               </div>
-
-              {/* Subject */}
               <div>
-                <Label htmlFor="emailSubject" className="mb-3 block text-muted-foreground">
-                  Subject
-                </Label>
+                <Label htmlFor="emailSubject" className="mb-2 block text-sm text-muted-foreground">Subject</Label>
                 <Input
                   id="emailSubject"
                   value={emailSubject}
@@ -88,12 +77,8 @@ export default function EmailDetailsPage() {
                   placeholder="Invoice INV-001 from Your Company"
                 />
               </div>
-
-              {/* Message */}
               <div>
-                <Label htmlFor="emailMessage" className="mb-3 block text-muted-foreground">
-                  Message
-                </Label>
+                <Label htmlFor="emailMessage" className="mb-2 block text-sm text-muted-foreground">Message</Label>
                 <Textarea
                   id="emailMessage"
                   value={emailMessage}
@@ -104,21 +89,18 @@ export default function EmailDetailsPage() {
               </div>
             </div>
 
-            {/* PDF Preview Thumbnail */}
-            <div className="bg-card rounded-xl shadow-sm p-6 border border-border h-fit">
-              <Label className="mb-3 block text-muted-foreground text-sm">
-                PDF Preview
-              </Label>
+            {/* PDF Preview */}
+            <div className="border border-border rounded-lg p-4 h-fit">
+              <Label className="mb-2 block text-xs text-muted-foreground">Preview</Label>
               <InvoicePreview />
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 md:mt-8">
-            <Button variant="outline" asChild>
+          <div className="flex justify-between mt-6 pt-6 border-t border-border/50">
+            <Button variant="ghost" asChild>
               <Link href="/invoice/new/design">Back</Link>
             </Button>
-            <Button onClick={handleNext}>Next Step</Button>
+            <Button onClick={handleNext}>Continue</Button>
           </div>
         </div>
       </div>

@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Plus } from "lucide-react";
 import { NothingDey } from "@/components/nothing-dey";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/lib/auth";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Invoice } from "@/lib/types";
@@ -10,10 +13,10 @@ import { WizardHeader } from "@/components/wizard-header";
 import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
 
-const statusColors: Record<string, string> = {
+const statusStyles: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",
   SENT: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  PAID: "bg-green-500/10 text-green-600 dark:text-green-400",
+  PAID: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   CANCELLED: "bg-red-500/10 text-red-600 dark:text-red-400",
 };
 
@@ -26,6 +29,7 @@ export default function InvoiceHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -46,8 +50,6 @@ export default function InvoiceHistoryPage() {
     }
   }, [isAuthenticated, fetchInvoices]);
 
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-
   const handleDelete = async (id: number) => {
     setDeletingId(id);
     setConfirmDeleteId(null);
@@ -61,120 +63,123 @@ export default function InvoiceHistoryPage() {
     }
   };
 
+  const invoiceToDelete = invoices.find((inv) => inv.id === confirmDeleteId);
+
   return (
     <>
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        title="Delete this invoice?"
+        description={`${invoiceToDelete?.invoiceNumber || "This invoice"} will be permanently removed. This can't be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Keep it"
+        variant="destructive"
+      />
+
       <WizardHeader stepLabel="Invoice History" />
 
-      <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Invoice History</h1>
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-lg font-semibold mb-0.5">Invoices</h1>
             <p className="text-sm text-muted-foreground">
-              View and manage your sent invoices.
+              Your sent and drafted invoices.
             </p>
           </div>
 
-          {/* Error State */}
+          {/* Error */}
           {error && (
-            <div className="mb-6 md:mb-8 p-3 md:p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
+            <div className="mb-6 px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center justify-between">
               <span>{error}</span>
               <button
                 onClick={fetchInvoices}
-                className="ml-4 flex items-center gap-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+                className="ml-4 flex items-center gap-1.5 text-destructive hover:text-destructive/80 text-sm font-medium"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 Retry
               </button>
             </div>
           )}
 
-          {/* Loading State */}
+          {/* Loading */}
           {(loading || authLoading) && (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
             </div>
           )}
 
-          {/* Invoice List */}
+          {/* Invoice list */}
           {!loading && !authLoading && invoices.length > 0 && (
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-2">
               {invoices.map((invoice) => (
                 <div
                   key={invoice.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow gap-2 sm:gap-3"
+                  className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border hover:border-border/80 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 md:gap-3 mb-1">
-                      <span className="text-sm md:text-base font-semibold">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-medium">
                         {invoice.invoiceNumber}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium ${
-                          statusColors[invoice.status || "DRAFT"]
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          statusStyles[invoice.status || "DRAFT"]
                         }`}
                       >
                         {invoice.status || "DRAFT"}
                       </span>
                     </div>
-                    <div className="text-xs md:text-sm text-muted-foreground truncate">
-                      {invoice.clientEmail} &middot; {invoice.companyName}
-                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {invoice.clientEmail}
+                      {invoice.companyName && (
+                        <>
+                          <span className="mx-1.5 opacity-40">/</span>
+                          {invoice.companyName}
+                        </>
+                      )}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-4 md:gap-6">
-                    <span className="text-base md:text-lg font-bold">
+                  <div className="flex items-center gap-3 sm:gap-4 ml-3">
+                    <span className="text-sm font-semibold tabular-nums">
                       {formatMoney(invoice.totalAmount ?? 0, defaultCurrency)}
                     </span>
-                    {confirmDeleteId === invoice.id ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => invoice.id && handleDelete(invoice.id)}
-                          disabled={deletingId === invoice.id}
-                          className="px-2.5 py-1 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-                        >
-                          {deletingId === invoice.id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            "Delete"
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setConfirmDeleteId(null)}
-                          className="px-2.5 py-1 text-xs font-medium rounded-md text-muted-foreground hover:bg-accent transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
-                        disabled={deletingId === invoice.id}
-                        className="p-2 text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
+                      disabled={deletingId === invoice.id}
+                      className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all disabled:opacity-50"
+                    >
+                      {deletingId === invoice.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Empty State */}
+          {/* Empty state */}
           {!loading && !authLoading && invoices.length === 0 && !error && (
-            <div className="text-center py-12">
-              <h2
-                className="text-2xl md:text-5xl mb-8 md:mb-12 text-primary font-bold font-script"
-              >
-                Nothing Dey
-              </h2>
-
-              <div className="mb-8 flex justify-center">
-                <NothingDey className="w-[200px] h-[226px] md:w-[248px] md:h-[280px]" />
+            <div className="text-center py-16">
+              <div className="mb-6 flex justify-center">
+                <NothingDey className="w-[140px] h-[158px]" />
               </div>
-
-              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                You haven&apos;t created any invoices yet. Click &quot;+ New Invoice&quot; to get started.
+              <p className="font-[family-name:var(--font-amatica)] text-2xl font-bold text-foreground mb-2">
+                Nothing Dey
               </p>
+              <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+                No invoices yet. Create your first one and it&apos;ll show up here.
+              </p>
+              <Button asChild size="sm">
+                <Link href="/invoice/new/company">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  New invoice
+                </Link>
+              </Button>
             </div>
           )}
         </div>
