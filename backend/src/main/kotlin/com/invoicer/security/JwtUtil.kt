@@ -29,11 +29,12 @@ class JwtUtil {
         return Keys.hmacShaKeyFor(secret.toByteArray())
     }
 
-    fun generateToken(email: String, userId: Long, isGuest: Boolean = false): String {
+    fun generateToken(email: String, userId: Long, isGuest: Boolean = false, isAdmin: Boolean = false): String {
         val claims = mapOf(
             "userId" to userId,
             "email" to email,
-            "isGuest" to isGuest
+            "isGuest" to isGuest,
+            "isAdmin" to isAdmin
         )
 
         return Jwts.builder()
@@ -67,6 +68,10 @@ class JwtUtil {
 
     fun isGuestToken(token: String): Boolean {
         return getClaims(token)["isGuest"] as? Boolean ?: false
+    }
+
+    fun isAdminToken(token: String): Boolean {
+        return getClaims(token)["isAdmin"] as? Boolean ?: false
     }
 
     private fun getClaims(token: String): Claims {

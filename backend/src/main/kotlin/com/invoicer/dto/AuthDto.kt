@@ -23,5 +23,6 @@ data class UserDto(
     val email: String,
     val name: String,
     val provider: AuthProvider,
-    val isGuest: Boolean
+    val isGuest: Boolean,
+    val isAdmin: Boolean = false
 )

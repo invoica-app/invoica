@@ -26,6 +26,9 @@ class User(
     @Column(name = "is_guest")
     var isGuest: Boolean = false,
 
+    @Column(name = "is_disabled")
+    var isDisabled: Boolean = false,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 

@@ -4,6 +4,7 @@ import com.invoicer.dto.*
 import com.invoicer.entity.AuthProvider
 import com.invoicer.entity.User
 import com.invoicer.repository.UserRepository
+import com.invoicer.security.AdminService
 import com.invoicer.security.JwtUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,7 +15,8 @@ import java.util.UUID
 @Transactional
 class AuthService(
     private val userRepository: UserRepository,
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: JwtUtil,
+    private val adminService: AdminService
 ) {
 
     fun loginWithOAuth(request: OAuthLoginRequest): AuthResponse {
@@ -37,11 +39,12 @@ class AuthService(
             userRepository.save(user)
         }
 
-        val token = jwtUtil.generateToken(user.email, user.id, user.isGuest)
+        val isAdmin = adminService.isAdmin(user.email)
+        val token = jwtUtil.generateToken(user.email, user.id, user.isGuest, isAdmin = isAdmin)
 
         return AuthResponse(
             token = token,
-            user = user.toDto()
+            user = user.toDto(isAdmin = isAdmin)
         )
     }
 
@@ -68,14 +71,15 @@ class AuthService(
     fun getCurrentUser(email: String): UserDto {
         val user = userRepository.findByEmail(email)
             .orElseThrow { RuntimeException("User not found") }
-        return user.toDto()
+        return user.toDto(isAdmin = adminService.isAdmin(user.email))
     }
 
-    private fun User.toDto() = UserDto(
+    private fun User.toDto(isAdmin: Boolean = false) = UserDto(
         id = id,
         email = email,
         name = name,
         provider = provider,
-        isGuest = isGuest
+        isGuest = isGuest,
+        isAdmin = isAdmin
     )
 }

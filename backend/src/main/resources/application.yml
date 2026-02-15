@@ -25,6 +25,10 @@ jwt:
   secret: ${JWT_SECRET:dev-secret-key-change-in-production-at-least-256-bits-long}
   expiration: ${JWT_EXPIRATION:86400000}
 
+# Admin Configuration
+admin:
+  emails: ${ADMIN_EMAILS:}
+
 # CORS Configuration
 cors:
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000}

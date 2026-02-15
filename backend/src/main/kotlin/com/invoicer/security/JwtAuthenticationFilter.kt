@@ -28,10 +28,16 @@ class JwtAuthenticationFilter(
                 val userId = jwtUtil.getUserIdFromToken(token)
                 val isGuest = jwtUtil.isGuestToken(token)
 
-                val authorities = if (isGuest) {
-                    listOf(SimpleGrantedAuthority("ROLE_GUEST"))
+                val isAdmin = jwtUtil.isAdminToken(token)
+
+                val authorities = mutableListOf<SimpleGrantedAuthority>()
+                if (isGuest) {
+                    authorities.add(SimpleGrantedAuthority("ROLE_GUEST"))
                 } else {
-                    listOf(SimpleGrantedAuthority("ROLE_USER"))
+                    authorities.add(SimpleGrantedAuthority("ROLE_USER"))
+                }
+                if (isAdmin) {
+                    authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
                 }
 
                 val authentication = UsernamePasswordAuthenticationToken(

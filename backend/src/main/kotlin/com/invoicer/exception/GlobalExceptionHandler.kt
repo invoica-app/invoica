@@ -52,6 +52,16 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error)
     }
 
+    @ExceptionHandler(AdminAccessDeniedException::class)
+    fun handleAdminAccessDenied(ex: AdminAccessDeniedException): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.FORBIDDEN.value(),
+            error = "Forbidden",
+            message = ex.message ?: "Admin access required"
+        )
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
+    }
+
     @ExceptionHandler(InvoiceAccessDeniedException::class)
     fun handleInvoiceAccessDenied(ex: InvoiceAccessDeniedException): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(
