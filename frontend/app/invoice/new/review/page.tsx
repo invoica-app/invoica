@@ -227,29 +227,62 @@ export default function ReviewPage() {
                   </div>
                 </div>
 
-                {/* Totals breakdown */}
-                {(discountAmount > 0 || (data.taxRate || 0) > 0) && (
-                  <div className="bg-muted p-3 md:p-4 rounded-lg mb-4">
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal:</span>
-                        <span>{formatMoney(subtotal, currency)}</span>
-                      </div>
-                      {discountAmount > 0 && (
-                        <div className="flex justify-between text-red-600 dark:text-red-400">
-                          <span>Discount:</span>
-                          <span>-{formatMoney(discountAmount, currency)}</span>
-                        </div>
-                      )}
-                      {(data.taxRate || 0) > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tax ({data.taxRate}%):</span>
-                          <span>{formatMoney(taxAmount, currency)}</span>
-                        </div>
-                      )}
+                {/* Line Items */}
+                {data.lineItems.length > 0 && (
+                  <div className="mb-6">
+                    <div className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
+                      LINE ITEMS
+                    </div>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Description</th>
+                            <th className="text-center px-3 py-2 text-xs font-medium text-muted-foreground w-16">Qty</th>
+                            <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Rate</th>
+                            <th className="text-right px-3 py-2 text-xs font-medium text-muted-foreground w-24">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {data.lineItems.map((item) => (
+                            <tr key={item.id}>
+                              <td className="px-3 py-2">{item.description || "\u2014"}</td>
+                              <td className="px-3 py-2 text-center text-muted-foreground">{item.quantity}</td>
+                              <td className="px-3 py-2 text-right text-muted-foreground">{formatMoney(item.rate, currency)}</td>
+                              <td className="px-3 py-2 text-right font-medium">{formatMoney(item.amount, currency)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
+
+                {/* Totals breakdown */}
+                <div className="bg-muted p-3 md:p-4 rounded-lg mb-4">
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal:</span>
+                      <span>{formatMoney(subtotal, currency)}</span>
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-red-600 dark:text-red-400">
+                        <span>Discount:</span>
+                        <span>-{formatMoney(discountAmount, currency)}</span>
+                      </div>
+                    )}
+                    {(data.taxRate || 0) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tax ({data.taxRate}%):</span>
+                        <span>{formatMoney(taxAmount, currency)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold pt-1 border-t border-border mt-1">
+                      <span>Total:</span>
+                      <span>{formatMoney(total, currency)}</span>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="bg-muted p-3 md:p-4 rounded-lg">
                   <div className="text-xs md:text-sm font-semibold mb-2">Email Preview:</div>

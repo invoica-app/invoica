@@ -46,8 +46,11 @@ export default function InvoiceHistoryPage() {
     }
   }, [isAuthenticated, fetchInvoices]);
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
   const handleDelete = async (id: number) => {
     setDeletingId(id);
+    setConfirmDeleteId(null);
     try {
       await api.deleteInvoice(id);
       setInvoices((prev) => prev.filter((inv) => inv.id !== id));
@@ -121,17 +124,35 @@ export default function InvoiceHistoryPage() {
                     <span className="text-base md:text-lg font-bold">
                       {formatMoney(invoice.totalAmount ?? 0, defaultCurrency)}
                     </span>
-                    <button
-                      onClick={() => invoice.id && handleDelete(invoice.id)}
-                      disabled={deletingId === invoice.id}
-                      className="p-2 text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-50"
-                    >
-                      {deletingId === invoice.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
+                    {confirmDeleteId === invoice.id ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => invoice.id && handleDelete(invoice.id)}
+                          disabled={deletingId === invoice.id}
+                          className="px-2.5 py-1 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === invoice.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            "Delete"
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2.5 py-1 text-xs font-medium rounded-md text-muted-foreground hover:bg-accent transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
+                        disabled={deletingId === invoice.id}
+                        className="p-2 text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-50"
+                      >
                         <Trash2 className="w-4 h-4" />
-                      )}
-                    </button>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

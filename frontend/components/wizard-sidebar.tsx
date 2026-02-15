@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
@@ -32,12 +32,10 @@ const wizardSteps = [
   { href: "/invoice/new/settings", label: "Settings", icon: Settings },
 ];
 
+// Mobile: 5 items max for comfortable tap targets
 const mobileNavItems = [
   { href: "/invoice/new/history", label: "History", icon: ClipboardList },
-  { href: "/invoice/new/company", label: "Company", icon: Building2 },
-  { href: "/invoice/new/details", label: "Details", icon: FileText },
-  { href: "/invoice/new/design", label: "Design", icon: Palette },
-  { href: "/invoice/new/email", label: "Email", icon: Mail },
+  { href: "/invoice/new/company", label: "Create", icon: Plus },
   { href: "/invoice/new/review", label: "Send", icon: Send },
   { href: "/invoice/new/settings", label: "Settings", icon: Settings },
 ];
@@ -52,8 +50,18 @@ function getInitials(name?: string | null): string {
     .slice(0, 2);
 }
 
+function hasDraftData(state: ReturnType<typeof useInvoiceStore.getState>): boolean {
+  return !!(
+    state.companyName ||
+    state.clientEmail ||
+    state.lineItems.length > 0 ||
+    state.invoiceNumber
+  );
+}
+
 export function WizardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isGuest } = useAuth();
   const reset = useInvoiceStore((state) => state.reset);
   const [showPopover, setShowPopover] = useState(false);
@@ -77,7 +85,17 @@ export function WizardSidebar() {
     }
   }, [showPopover]);
 
-  const handleNewInvoice = () => {
+  const handleNewInvoice = (e: React.MouseEvent) => {
+    const state = useInvoiceStore.getState();
+    if (hasDraftData(state)) {
+      const confirmed = window.confirm(
+        "You have an invoice draft in progress. Starting a new invoice will discard it. Continue?"
+      );
+      if (!confirmed) {
+        e.preventDefault();
+        return;
+      }
+    }
     reset();
   };
 
@@ -216,23 +234,25 @@ export function WizardSidebar() {
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — 4 items for comfortable tap targets */}
       <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-2 py-1">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href ||
+            (item.href === "/invoice/new/company" &&
+              ["/invoice/new/company", "/invoice/new/details", "/invoice/new/design", "/invoice/new/email"].includes(pathname));
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                "flex-1 flex flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
               <Icon className="w-5 h-5" />
-              <span className="truncate max-w-[56px]">{item.label}</span>
+              <span>{item.label}</span>
             </Link>
           );
         })}

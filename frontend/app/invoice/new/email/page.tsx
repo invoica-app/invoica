@@ -32,7 +32,10 @@ export default function EmailDetailsPage() {
     storeEmailSubject ||
       `Invoice ${invoiceNumber} from ${companyName}`
   );
-  const [emailMessage, setEmailMessage] = useState(storeEmailMessage);
+  const [emailMessage, setEmailMessage] = useState(
+    storeEmailMessage ||
+      `Hi,\n\nPlease find attached invoice ${invoiceNumber} for our recent services.\n\nIf you have any questions, feel free to reach out.\n\nThank you,\n${companyName}`
+  );
 
   const handleNext = () => {
     updateEmail({

@@ -17,7 +17,21 @@ const amaticSC = Amatic_SC({
 
 export const metadata: Metadata = {
   title: "Invoica - Create Professional Invoices",
-  description: "Generate beautiful invoices in seconds",
+  description:
+    "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device. Free to use, no account required.",
+  openGraph: {
+    title: "Invoica - Invoice clients in minutes, not hours",
+    description:
+      "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device.",
+    siteName: "Invoica",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Invoica - Invoice clients in minutes, not hours",
+    description:
+      "Create and send professional invoices in minutes. Free, no account required.",
+  },
 };
 
 export default function RootLayout({

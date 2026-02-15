@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { CURRENCIES } from "@/lib/currency";
-import { Save, LogOut, Sun, Moon, Monitor } from "lucide-react";
+import { LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fonts = [
@@ -31,16 +31,10 @@ const themeOptions = [
 export default function SettingsPage() {
   const settings = useSettingsStore();
   const { user } = useAuth();
-  const [saved, setSaved] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
 
   return (
     <>
@@ -289,12 +283,10 @@ export default function SettingsPage() {
             </Button>
           </div>
 
-          {/* Save button */}
-          <div className="flex justify-end pb-8">
-            <Button onClick={handleSave} className="gap-2">
-              <Save className="w-4 h-4" />
-              {saved ? "Saved!" : "Save Settings"}
-            </Button>
+          {/* Auto-save indicator */}
+          <div className="flex items-center justify-center gap-2 pb-8 text-sm text-muted-foreground">
+            <Check className="w-4 h-4" />
+            Settings are saved automatically
           </div>
         </div>
       </div>
