@@ -38,12 +38,24 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.status = 'PAID'")
     fun sumPaidRevenue(): BigDecimal
 
+    fun findByStatus(status: InvoiceStatus, pageable: Pageable): Page<Invoice>
+
     @Query(
         "SELECT i FROM Invoice i WHERE " +
-        "(:status IS NULL OR i.status = :status) AND " +
-        "(:search IS NULL OR LOWER(i.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(i.clientEmail) LIKE LOWER(CONCAT('%', :search, '%')))"
+        "LOWER(i.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+        "LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+        "LOWER(i.clientEmail) LIKE LOWER(CONCAT('%', :search, '%'))"
     )
-    fun searchInvoicesAdmin(status: InvoiceStatus?, search: String?, pageable: Pageable): Page<Invoice>
+    fun searchByText(search: String, pageable: Pageable): Page<Invoice>
+
+    @Query(
+        "SELECT i FROM Invoice i WHERE " +
+        "i.status = :status AND (" +
+        "LOWER(i.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+        "LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+        "LOWER(i.clientEmail) LIKE LOWER(CONCAT('%', :search, '%')))"
+    )
+    fun searchByStatusAndText(status: InvoiceStatus, search: String, pageable: Pageable): Page<Invoice>
 
     @Query("SELECT FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM') AS month, COUNT(i) FROM Invoice i WHERE i.createdAt >= :since GROUP BY FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM') ORDER BY month")
     fun countInvoicesByMonth(since: LocalDateTime): List<Array<Any>>

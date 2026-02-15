@@ -137,7 +137,13 @@ class AdminDashboardService(
         requireAdmin(email)
 
         val pageable = PageRequest.of(page, pageSize)
-        val invoicesPage = invoiceRepository.searchInvoicesAdmin(status, search, pageable)
+        val hasSearch = !search.isNullOrBlank()
+        val invoicesPage = when {
+            status != null && hasSearch -> invoiceRepository.searchByStatusAndText(status, search!!, pageable)
+            status != null -> invoiceRepository.findByStatus(status, pageable)
+            hasSearch -> invoiceRepository.searchByText(search!!, pageable)
+            else -> invoiceRepository.findAll(pageable)
+        }
 
         val invoices = invoicesPage.content.map { invoice ->
             val owner = invoice.userId?.let { userRepository.findById(it).orElse(null) }
