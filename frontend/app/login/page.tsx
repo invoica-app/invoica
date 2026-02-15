@@ -2,19 +2,24 @@
 
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Sun, Moon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const handleGoogleSignIn = async () => {
     setIsLoading("google");
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl: "/invoice/new" });
     } catch (error) {
       console.error("Google sign in error:", error);
       setIsLoading(null);
@@ -24,7 +29,7 @@ export default function LoginPage() {
   const handleMicrosoftSignIn = async () => {
     setIsLoading("microsoft");
     try {
-      await signIn("azure-ad", { callbackUrl: "/dashboard" });
+      await signIn("azure-ad", { callbackUrl: "/invoice/new" });
     } catch (error) {
       console.error("Microsoft sign in error:", error);
       setIsLoading(null);
@@ -40,7 +45,7 @@ export default function LoginPage() {
       });
 
       if (result?.ok) {
-        router.push("/dashboard");
+        router.push("/invoice/new");
       } else {
         setError("Sign in failed. Please try again.");
       }
@@ -51,24 +56,40 @@ export default function LoginPage() {
     }
   };
 
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Logo */}
-      <div className="p-4 md:p-8">
-        <h1 className="text-2xl font-bold">Inv.</h1>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Logo + Theme Toggle */}
+      <div className="p-4 md:p-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Invoica</h1>
+        {mounted && (
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+          <div className="bg-card rounded-2xl shadow-lg p-6 md:p-8 border border-border">
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold mb-2">Welcome back</h2>
-              <p className="text-gray-600">Sign in to your account to continue</p>
+              <p className="text-muted-foreground">Sign in to your account to continue</p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -110,10 +131,10 @@ export default function LoginPage() {
                 onClick={handleMicrosoftSignIn}
                 disabled={isLoading !== null}
                 variant="outline"
-                className="w-full h-12 bg-black text-white hover:bg-gray-900 hover:text-white border-black gap-3"
+                className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 hover:text-background border-foreground gap-3"
               >
                 {isLoading === "microsoft" ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" />
@@ -125,10 +146,10 @@ export default function LoginPage() {
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-border"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">OR CONTINUE WITH</span>
+                  <span className="px-4 bg-card text-muted-foreground">OR CONTINUE WITH</span>
                 </div>
               </div>
 
@@ -140,7 +161,7 @@ export default function LoginPage() {
                 className="w-full h-12 bg-muted hover:bg-muted/80"
               >
                 {isLoading === "guest" ? (
-                  <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
                 ) : (
                   "Continue as Guest"
                 )}
@@ -151,7 +172,7 @@ export default function LoginPage() {
       </div>
 
       {/* Help Icon */}
-      <button className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 transition-colors shadow-lg">
+      <button className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center hover:bg-foreground/90 transition-colors shadow-lg">
         <HelpCircle className="w-6 h-6" />
       </button>
     </div>

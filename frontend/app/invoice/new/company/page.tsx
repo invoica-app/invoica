@@ -76,16 +76,16 @@ export default function CompanyInfoPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-semibold mb-2">Company Information</h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Enter your business details that will appear on the invoice.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100">
+          <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               {/* Company Logo */}
               <div>
-                <Label className="mb-3 block text-gray-700">Company Logo</Label>
+                <Label className="mb-3 block text-muted-foreground">Company Logo</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -94,7 +94,7 @@ export default function CompanyInfoPage() {
                   onChange={handleLogoUpload}
                 />
                 {logoUrl ? (
-                  <div className="relative border-2 border-gray-200 rounded-lg p-4 flex items-center justify-center">
+                  <div className="relative border-2 border-border rounded-lg p-4 flex items-center justify-center">
                     <Image
                       src={logoUrl}
                       alt="Company logo"
@@ -105,7 +105,7 @@ export default function CompanyInfoPage() {
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200"
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-500/20"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -113,26 +113,26 @@ export default function CompanyInfoPage() {
                 ) : (
                   <div
                     onClick={() => !uploading && fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 md:p-10 text-center hover:border-primary transition-colors cursor-pointer group"
+                    className="border-2 border-dashed border-border rounded-lg p-6 md:p-10 text-center hover:border-primary transition-colors cursor-pointer group"
                   >
                     {uploading ? (
                       <Loader2 className="w-8 h-8 mx-auto mb-2 text-primary animate-spin" />
                     ) : (
-                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400 group-hover:text-primary transition-colors" />
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
                     )}
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {uploading ? "Uploading..." : "Upload Logo"}
                     </p>
                   </div>
                 )}
                 {uploadError && (
-                  <p className="mt-2 text-sm text-red-600">{uploadError}</p>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">{uploadError}</p>
                 )}
               </div>
 
               {/* Company Name */}
               <div>
-                <Label htmlFor="companyName" className="mb-3 block text-gray-700">
+                <Label htmlFor="companyName" className="mb-3 block text-muted-foreground">
                   Company Name
                 </Label>
                 <Input
@@ -150,7 +150,7 @@ export default function CompanyInfoPage() {
             <div className="space-y-6">
               {/* Address */}
               <div>
-                <Label htmlFor="address" className="mb-3 block text-gray-700">
+                <Label htmlFor="address" className="mb-3 block text-muted-foreground">
                   Address
                 </Label>
                 <Input
@@ -167,7 +167,7 @@ export default function CompanyInfoPage() {
               {/* City and Zip */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="city" className="mb-3 block text-gray-700">
+                  <Label htmlFor="city" className="mb-3 block text-muted-foreground">
                     City
                   </Label>
                   <Input
@@ -181,7 +181,7 @@ export default function CompanyInfoPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="zipCode" className="mb-3 block text-gray-700">
+                  <Label htmlFor="zipCode" className="mb-3 block text-muted-foreground">
                     Zip / Postal Code
                   </Label>
                   <Input
@@ -198,7 +198,7 @@ export default function CompanyInfoPage() {
 
               {/* Country */}
               <div>
-                <Label htmlFor="country" className="mb-3 block text-gray-700">
+                <Label htmlFor="country" className="mb-3 block text-muted-foreground">
                   Country
                 </Label>
                 <Input
@@ -215,7 +215,7 @@ export default function CompanyInfoPage() {
               {/* Phone and Email */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="phone" className="mb-3 block text-gray-700">
+                  <Label htmlFor="phone" className="mb-3 block text-muted-foreground">
                     Phone
                   </Label>
                   <Input
@@ -229,7 +229,7 @@ export default function CompanyInfoPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email" className="mb-3 block text-gray-700">
+                  <Label htmlFor="email" className="mb-3 block text-muted-foreground">
                     Email
                   </Label>
                   <Input

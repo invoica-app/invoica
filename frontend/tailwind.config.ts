@@ -11,38 +11,38 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#9747E6",
-          foreground: "#FFFFFF",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
-        background: "#FFFFFF",
-        foreground: "#111827",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#111827",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         secondary: {
-          DEFAULT: "#F9FAFB",
-          foreground: "#111827",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         muted: {
-          DEFAULT: "#F3F4F6",
-          foreground: "#6B7280",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#F3F4F6",
-          foreground: "#111827",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
-        border: "#E5E7EB",
-        input: "#D1D5DB",
-        ring: "#9747E6",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
         destructive: {
-          DEFAULT: "#DC2626",
-          foreground: "#FFFFFF",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        script: ["Amatica SC", "cursive"],
+        script: ["var(--font-amatica)", "cursive"],
       },
       borderRadius: {
         lg: "12px",

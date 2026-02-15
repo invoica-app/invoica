@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useInvoiceStore } from "@/lib/store";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CreateInvoiceRequest } from "@/lib/types";
+import { InvoicePreview } from "@/components/invoice-preview";
 import { Download, Send, Loader2 } from "lucide-react";
 
 export default function ReviewPage() {
@@ -20,6 +21,9 @@ export default function ReviewPage() {
   const [error, setError] = useState<string | null>(null);
 
   const subtotal = store.lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const discountAmount = store.discount || 0;
+  const taxAmount = ((subtotal - discountAmount) * (store.taxRate || 0)) / 100;
+  const total = subtotal - discountAmount + taxAmount;
 
   const handlePreview = () => {
     alert("Opening PDF preview...");
@@ -46,6 +50,15 @@ export default function ReviewPage() {
         clientEmail: store.clientEmail,
         emailSubject: store.emailSubject || null,
         emailMessage: store.emailMessage || null,
+        clientName: store.clientName || null,
+        clientCompany: store.clientCompany || null,
+        clientAddress: store.clientAddress || null,
+        clientCity: store.clientCity || null,
+        clientZip: store.clientZip || null,
+        clientCountry: store.clientCountry || null,
+        taxRate: store.taxRate || null,
+        discount: store.discount || null,
+        notes: store.notes || null,
         lineItems: store.lineItems.map(({ description, quantity, rate }) => ({
           description,
           quantity,
@@ -54,7 +67,7 @@ export default function ReviewPage() {
       };
       await api.createInvoice(request);
       store.reset();
-      router.push("/dashboard");
+      router.push("/invoice/new/history");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send invoice.");
     } finally {
@@ -70,24 +83,24 @@ export default function ReviewPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-semibold mb-2">Review & Send</h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Review your details and send the invoice.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Summary Card */}
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100">
+            <div className="lg:col-span-2 bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
               <div className="mb-8">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Total Amount</div>
+                    <div className="text-sm text-muted-foreground mb-1">Total Amount</div>
                     <div className="text-2xl md:text-4xl font-bold">
-                      ${subtotal.toFixed(2)}
+                      ${total.toFixed(2)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-gray-600 mb-1">Invoice Date</div>
+                    <div className="text-sm text-muted-foreground mb-1">Invoice Date</div>
                     <div className="font-semibold">
                       {new Date(store.invoiceDate).toLocaleDateString()}
                     </div>
@@ -96,35 +109,68 @@ export default function ReviewPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
                   <div>
-                    <div className="text-xs font-semibold text-gray-600 mb-2 tracking-wider">
+                    <div className="text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
                       BILLED TO
                     </div>
-                    <div className="text-sm">
-                      <div className="font-medium">{store.clientEmail}</div>
+                    <div className="text-sm space-y-0.5">
+                      {store.clientName && <div className="font-medium">{store.clientName}</div>}
+                      {store.clientCompany && <div className="text-muted-foreground">{store.clientCompany}</div>}
+                      <div className="text-muted-foreground">{store.clientEmail}</div>
+                      {store.clientAddress && <div className="text-muted-foreground">{store.clientAddress}</div>}
+                      {(store.clientCity || store.clientZip) && (
+                        <div className="text-muted-foreground">
+                          {[store.clientCity, store.clientZip].filter(Boolean).join(", ")}
+                        </div>
+                      )}
+                      {store.clientCountry && <div className="text-muted-foreground">{store.clientCountry}</div>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-gray-600 mb-2 tracking-wider">
+                    <div className="text-xs font-semibold text-muted-foreground mb-2 tracking-wider">
                       FROM
                     </div>
                     <div className="text-sm">
                       <div className="font-medium">{store.companyName}</div>
-                      <div className="text-gray-600">{store.companyEmail}</div>
+                      <div className="text-muted-foreground">{store.companyEmail}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
+                {/* Totals breakdown */}
+                {(discountAmount > 0 || (store.taxRate || 0) > 0) && (
+                  <div className="bg-muted p-4 rounded-lg mb-4">
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal:</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-red-600 dark:text-red-400">
+                          <span>Discount:</span>
+                          <span>-${discountAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {(store.taxRate || 0) > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Tax ({store.taxRate}%):</span>
+                          <span>${taxAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-muted p-4 rounded-lg">
                   <div className="text-sm font-semibold mb-2">Email Preview:</div>
-                  <p className="text-sm text-gray-600 italic">
-                    &quot;{store.emailMessage.split("\n").slice(0, 2).join(" ")}&quot;
+                  <p className="text-sm text-muted-foreground italic whitespace-pre-line">
+                    &quot;{store.emailMessage}&quot;
                   </p>
                 </div>
               </div>
 
               {/* Error Banner */}
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
                   {error}
                 </div>
               )}
@@ -152,20 +198,11 @@ export default function ReviewPage() {
             </div>
 
             {/* PDF Preview Thumbnail */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <Label className="mb-3 block text-gray-700 text-sm font-medium">
+            <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
+              <Label className="mb-3 block text-muted-foreground text-sm font-medium">
                 PDF Preview
               </Label>
-              <div className="aspect-[8.5/11] bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg border-2 border-gray-200 flex items-center justify-center mb-4">
-                <div className="text-center text-gray-400 text-sm p-4">
-                  <div className="mb-2 text-3xl">📄</div>
-                  <div className="font-medium">{store.companyName}</div>
-                  <div className="text-xs mt-1">Invoice #{store.invoiceNumber}</div>
-                  <div className="text-xs mt-3 font-semibold">
-                    ${subtotal.toFixed(2)}
-                  </div>
-                </div>
-              </div>
+              <InvoicePreview />
             </div>
           </div>
 

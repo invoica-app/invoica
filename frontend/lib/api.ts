@@ -11,19 +11,15 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 
 class ApiClient {
   private baseUrl: string;
-  private accessToken?: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  setAccessToken(token: string | undefined) {
-    this.accessToken = token;
-  }
-
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    token?: string
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
@@ -32,9 +28,8 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    // Add auth token if available
-    if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const config: RequestInit = {
@@ -65,45 +60,44 @@ class ApiClient {
   }
 
   // Invoice API methods
-  async createInvoice(data: CreateInvoiceRequest): Promise<Invoice> {
+  async createInvoice(data: CreateInvoiceRequest, token?: string): Promise<Invoice> {
     return this.request<Invoice>('/invoices', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 
-  async getAllInvoices(status?: InvoiceStatus): Promise<Invoice[]> {
+  async getAllInvoices(status?: InvoiceStatus, token?: string): Promise<Invoice[]> {
     const query = status ? `?status=${status}` : '';
-    return this.request<Invoice[]>(`/invoices${query}`);
+    return this.request<Invoice[]>(`/invoices${query}`, {}, token);
   }
 
-  async getInvoiceById(id: number): Promise<Invoice> {
-    return this.request<Invoice>(`/invoices/${id}`);
+  async getInvoiceById(id: number, token?: string): Promise<Invoice> {
+    return this.request<Invoice>(`/invoices/${id}`, {}, token);
   }
 
-  async updateInvoice(id: number, data: UpdateInvoiceRequest): Promise<Invoice> {
+  async updateInvoice(id: number, data: UpdateInvoiceRequest, token?: string): Promise<Invoice> {
     return this.request<Invoice>(`/invoices/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 
-  async deleteInvoice(id: number): Promise<void> {
+  async deleteInvoice(id: number, token?: string): Promise<void> {
     return this.request<void>(`/invoices/${id}`, {
       method: 'DELETE',
-    });
+    }, token);
   }
 
-  async uploadLogo(file: File): Promise<FileUploadResponse> {
+  async uploadLogo(file: File, token?: string): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
     formData.append('file', file);
 
     const headers: Record<string, string> = {};
-    if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    // Do NOT set Content-Type — browser sets multipart boundary automatically
 
     const response = await fetch(url, {
       method: 'POST',
@@ -120,42 +114,20 @@ class ApiClient {
   }
 }
 
-// Export singleton instance
-export const api = new ApiClient(API_BASE_URL);
+// Single reusable instance — token passed per-request, no allocation per call
+const api = new ApiClient(API_BASE_URL);
 
-// Helper to create API client with auth token
-export function createAuthenticatedApi(accessToken?: string) {
-  const client = new ApiClient(API_BASE_URL);
-  if (accessToken) {
-    client.setAccessToken(accessToken);
-  }
-  return client;
-}
-
-// Export individual methods for convenience
 export const invoiceApi = {
-  create: (data: CreateInvoiceRequest, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.createInvoice(data);
-  },
-  getAll: (status?: InvoiceStatus, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.getAllInvoices(status);
-  },
-  getById: (id: number, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.getInvoiceById(id);
-  },
-  update: (id: number, data: UpdateInvoiceRequest, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.updateInvoice(id, data);
-  },
-  delete: (id: number, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.deleteInvoice(id);
-  },
-  uploadLogo: (file: File, token?: string) => {
-    const client = createAuthenticatedApi(token);
-    return client.uploadLogo(file);
-  },
+  create: (data: CreateInvoiceRequest, token?: string) =>
+    api.createInvoice(data, token),
+  getAll: (status?: InvoiceStatus, token?: string) =>
+    api.getAllInvoices(status, token),
+  getById: (id: number, token?: string) =>
+    api.getInvoiceById(id, token),
+  update: (id: number, data: UpdateInvoiceRequest, token?: string) =>
+    api.updateInvoice(id, data, token),
+  delete: (id: number, token?: string) =>
+    api.deleteInvoice(id, token),
+  uploadLogo: (file: File, token?: string) =>
+    api.uploadLogo(file, token),
 };

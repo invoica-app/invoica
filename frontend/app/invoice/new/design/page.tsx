@@ -23,6 +23,7 @@ const colors = [
 
 const fonts = [
   { name: "Inter", value: "Inter" },
+  { name: "Satoshi", value: "Satoshi" },
   { name: "Helvetica", value: "Helvetica" },
   { name: "Times New Roman", value: "Times New Roman", style: "serif" },
   { name: "Courier New", value: "Courier New", style: "monospace" },
@@ -50,15 +51,15 @@ export default function DesignPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-semibold mb-2">Design & Branding</h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Customize the look and feel of your invoice.
             </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 border border-gray-100 space-y-8">
+          <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border space-y-8">
             {/* Primary Color */}
             <div>
-              <Label className="mb-4 block text-gray-700 text-base">
+              <Label className="mb-4 block text-muted-foreground text-base">
                 Primary Color
               </Label>
               <div className="flex flex-wrap gap-4">
@@ -73,8 +74,8 @@ export default function DesignPage() {
                       className={cn(
                         "w-10 h-10 md:w-14 md:h-14 rounded-full transition-all cursor-pointer",
                         primaryColor === color.value
-                          ? "ring-4 ring-offset-2 ring-gray-300"
-                          : "hover:ring-2 hover:ring-offset-2 hover:ring-gray-200"
+                          ? "ring-4 ring-offset-2 ring-border ring-offset-card"
+                          : "hover:ring-2 hover:ring-offset-2 hover:ring-border hover:ring-offset-card"
                       )}
                       style={{ backgroundColor: color.value }}
                     >
@@ -91,7 +92,7 @@ export default function DesignPage() {
 
             {/* Font Family */}
             <div>
-              <Label className="mb-4 block text-gray-700 text-base">
+              <Label className="mb-4 block text-muted-foreground text-base">
                 Font Family
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -100,10 +101,10 @@ export default function DesignPage() {
                     key={font.value}
                     onClick={() => setFontFamily(font.value)}
                     className={cn(
-                      "p-6 rounded-lg border-2 transition-all text-left hover:border-gray-300",
+                      "p-6 rounded-lg border-2 transition-all text-left hover:border-muted-foreground/30",
                       fontFamily === font.value
                         ? "border-primary bg-primary/5"
-                        : "border-gray-200"
+                        : "border-border"
                     )}
                     style={{
                       fontFamily: font.style || font.value,
@@ -115,12 +116,12 @@ export default function DesignPage() {
               </div>
             </div>
 
-            {/* Preview Header */}
+            {/* Preview Header — stays light since it previews the printed invoice */}
             <div>
-              <Label className="mb-4 block text-gray-700 text-base">
+              <Label className="mb-4 block text-muted-foreground text-base">
                 Preview Header
               </Label>
-              <div className="p-6 bg-white rounded-lg border border-gray-200">
+              <div className="p-6 bg-white rounded-lg border border-gray-200 text-gray-900">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div

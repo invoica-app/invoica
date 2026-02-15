@@ -26,6 +26,19 @@ interface InvoiceStore {
   dueDate: string;
   lineItems: LineItem[];
 
+  // Client (Bill To)
+  clientName: string;
+  clientCompany: string;
+  clientAddress: string;
+  clientCity: string;
+  clientZip: string;
+  clientCountry: string;
+
+  // Tax, Discount, Notes
+  taxRate: number;
+  discount: number;
+  notes: string;
+
   // Design
   primaryColor: string;
   fontFamily: string;
@@ -41,6 +54,7 @@ interface InvoiceStore {
   // Actions
   updateCompany: (data: Partial<InvoiceStore>) => void;
   updateInvoice: (data: Partial<InvoiceStore>) => void;
+  updateClient: (data: Partial<InvoiceStore>) => void;
   addLineItem: () => void;
   removeLineItem: (id: string) => void;
   updateLineItem: (id: string, data: Partial<LineItem>) => void;
@@ -53,40 +67,35 @@ const generateId = () => Math.random().toString(36).substring(2, 11);
 
 const initialState = {
   companyLogo: null,
-  companyName: "Acme Corp",
-  address: "123 Business St",
-  city: "Tech City",
-  zipCode: "10001",
-  country: "USA",
-  phone: "+1 (555) 123-4567",
-  companyEmail: "billing@acme.com",
-  invoiceNumber: "INV-001",
+  companyName: "",
+  address: "",
+  city: "",
+  zipCode: "",
+  country: "",
+  phone: "",
+  companyEmail: "",
+  invoiceNumber: "",
   invoiceDate: new Date().toISOString().split("T")[0],
   dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0],
-  lineItems: [
-    {
-      id: generateId(),
-      description: "Web Design Services",
-      quantity: 10,
-      rate: 150,
-      amount: 1500,
-    },
-    {
-      id: generateId(),
-      description: "Hosting (Annual)",
-      quantity: 1,
-      rate: 200,
-      amount: 200,
-    },
-  ],
+  lineItems: [] as { id: string; description: string; quantity: number; rate: number; amount: number }[],
   primaryColor: "#9747E6",
   fontFamily: "Inter",
-  clientEmail: "client@example.com",
+  clientEmail: "",
   emailSubject: "",
-  emailMessage:
-    "Hi,\n\nPlease find attached the invoice for our recent services.\n\nThanks,\nAcme Corp",
+  emailMessage: "",
+  // Client (Bill To) fields
+  clientName: "",
+  clientCompany: "",
+  clientAddress: "",
+  clientCity: "",
+  clientZip: "",
+  clientCountry: "",
+  // Tax, Discount, Notes
+  taxRate: 0,
+  discount: 0,
+  notes: "",
   lastSaved: new Date().toISOString(),
 };
 
@@ -102,6 +111,12 @@ export const useInvoiceStore = create<InvoiceStore>()(
         }),
 
       updateInvoice: (data) =>
+        set({
+          ...data,
+          lastSaved: new Date().toISOString(),
+        }),
+
+      updateClient: (data) =>
         set({
           ...data,
           lastSaved: new Date().toISOString(),

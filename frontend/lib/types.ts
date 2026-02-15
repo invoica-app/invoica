@@ -25,6 +25,17 @@ export interface Invoice {
   invoiceNumber: string;
   invoiceDate: string;  // ISO date format
   dueDate: string;      // ISO date format
+  // Client (Bill To)
+  clientName?: string | null;
+  clientCompany?: string | null;
+  clientAddress?: string | null;
+  clientCity?: string | null;
+  clientZip?: string | null;
+  clientCountry?: string | null;
+  // Tax, Discount, Notes
+  taxRate?: number | null;
+  discount?: number | null;
+  notes?: string | null;
   // Design
   primaryColor: string;
   fontFamily: string;
@@ -60,6 +71,17 @@ export interface CreateInvoiceRequest {
   clientEmail: string;
   emailSubject?: string | null;
   emailMessage?: string | null;
+  // Client (Bill To)
+  clientName?: string | null;
+  clientCompany?: string | null;
+  clientAddress?: string | null;
+  clientCity?: string | null;
+  clientZip?: string | null;
+  clientCountry?: string | null;
+  // Tax, Discount, Notes
+  taxRate?: number | null;
+  discount?: number | null;
+  notes?: string | null;
   lineItems: LineItemRequest[];
 }
 
@@ -80,6 +102,17 @@ export interface UpdateInvoiceRequest {
   clientEmail?: string;
   emailSubject?: string | null;
   emailMessage?: string | null;
+  // Client (Bill To)
+  clientName?: string | null;
+  clientCompany?: string | null;
+  clientAddress?: string | null;
+  clientCity?: string | null;
+  clientZip?: string | null;
+  clientCountry?: string | null;
+  // Tax, Discount, Notes
+  taxRate?: number | null;
+  discount?: number | null;
+  notes?: string | null;
   lineItems?: LineItem[];
   status?: InvoiceStatus;
 }
