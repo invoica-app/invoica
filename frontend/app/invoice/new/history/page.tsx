@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { FileText, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { NothingDey } from "@/components/nothing-dey";
 import { useAuth } from "@/lib/auth";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Invoice } from "@/lib/types";
 import { WizardHeader } from "@/components/wizard-header";
+import { useSettingsStore } from "@/lib/settings-store";
+import { formatMoney } from "@/lib/currency";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",
@@ -18,6 +20,7 @@ const statusColors: Record<string, string> = {
 export default function InvoiceHistoryPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const api = useAuthenticatedApi();
+  const defaultCurrency = useSettingsStore((s) => s.defaultCurrency);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,16 +64,16 @@ export default function InvoiceHistoryPage() {
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Invoice History</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Invoice History</h1>
+            <p className="text-sm text-muted-foreground">
               View and manage your sent invoices.
             </p>
           </div>
 
           {/* Error State */}
           {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
+            <div className="mb-6 md:mb-8 p-3 md:p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
               <span>{error}</span>
               <button
                 onClick={fetchInvoices}
@@ -91,32 +94,32 @@ export default function InvoiceHistoryPage() {
 
           {/* Invoice List */}
           {!loading && !authLoading && invoices.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {invoices.map((invoice) => (
                 <div
                   key={invoice.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow gap-2 sm:gap-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-semibold">
+                    <div className="flex items-center gap-2 md:gap-3 mb-1">
+                      <span className="text-sm md:text-base font-semibold">
                         {invoice.invoiceNumber}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium ${
                           statusColors[invoice.status || "DRAFT"]
                         }`}
                       >
                         {invoice.status || "DRAFT"}
                       </span>
                     </div>
-                    <div className="text-sm text-muted-foreground truncate">
+                    <div className="text-xs md:text-sm text-muted-foreground truncate">
                       {invoice.clientEmail} &middot; {invoice.companyName}
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-lg font-bold">
-                      ${(invoice.totalAmount ?? 0).toFixed(2)}
+                  <div className="flex items-center gap-4 md:gap-6">
+                    <span className="text-base md:text-lg font-bold">
+                      {formatMoney(invoice.totalAmount ?? 0, defaultCurrency)}
                     </span>
                     <button
                       onClick={() => invoice.id && handleDelete(invoice.id)}
@@ -139,13 +142,13 @@ export default function InvoiceHistoryPage() {
           {!loading && !authLoading && invoices.length === 0 && !error && (
             <div className="text-center py-12">
               <h2
-                className="text-3xl md:text-5xl mb-12 text-primary font-bold font-script"
+                className="text-2xl md:text-5xl mb-8 md:mb-12 text-primary font-bold font-script"
               >
                 Nothing Dey
               </h2>
 
               <div className="mb-8 flex justify-center">
-                <NothingDey className="w-[248px] h-[280px]" />
+                <NothingDey className="w-[200px] h-[226px] md:w-[248px] md:h-[280px]" />
               </div>
 
               <p className="text-muted-foreground text-sm max-w-sm mx-auto">

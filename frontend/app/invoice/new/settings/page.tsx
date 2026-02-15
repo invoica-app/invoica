@@ -10,15 +10,9 @@ import { useSettingsStore } from "@/lib/settings-store";
 import { useAuth } from "@/lib/auth";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { CURRENCIES } from "@/lib/currency";
 import { Save, LogOut, Sun, Moon, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const currencies = [
-  { value: "USD", label: "USD ($)" },
-  { value: "EUR", label: "EUR (\u20AC)" },
-  { value: "GBP", label: "GBP (\u00A3)" },
-  { value: "GHS", label: "GHS (\u20B5)" },
-];
 
 const fonts = [
   { value: "Inter", label: "Inter" },
@@ -36,7 +30,7 @@ const themeOptions = [
 
 export default function SettingsPage() {
   const settings = useSettingsStore();
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
   const [saved, setSaved] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -53,20 +47,20 @@ export default function SettingsPage() {
       <WizardHeader stepLabel="Settings" />
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Settings</h1>
-            <p className="text-muted-foreground">
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Settings</h1>
+            <p className="text-sm text-muted-foreground">
               Manage your account and application preferences.
             </p>
           </div>
 
           {/* Theme */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Theme</h2>
-            <p className="text-sm text-muted-foreground mb-4">Choose your preferred appearance.</p>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Theme</h2>
+            <p className="text-sm text-muted-foreground mb-3 md:mb-4">Choose your preferred appearance.</p>
             {mounted && (
-              <div className="flex gap-3">
+              <div className="flex gap-2 md:gap-3">
                 {themeOptions.map((option) => {
                   const Icon = option.icon;
                   return (
@@ -74,7 +68,7 @@ export default function SettingsPage() {
                       key={option.value}
                       onClick={() => setTheme(option.value)}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors",
+                        "flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg border-2 text-sm font-medium transition-colors",
                         theme === option.value
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border text-muted-foreground hover:bg-accent"
@@ -91,17 +85,19 @@ export default function SettingsPage() {
 
           {/* Default Currency */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Default Currency</h2>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Default Currency</h2>
             <div className="max-w-xs">
-              <Label htmlFor="currency" className="mb-2 block text-muted-foreground">Currency</Label>
+              <Label htmlFor="currency" className="mb-2 block text-sm text-muted-foreground">Currency</Label>
               <select
                 id="currency"
                 value={settings.defaultCurrency}
                 onChange={(e) => settings.updateSettings({ defaultCurrency: e.target.value })}
                 className="w-full h-10 px-3 rounded-md border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {currencies.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} ({c.symbol}) — {c.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -109,11 +105,11 @@ export default function SettingsPage() {
 
           {/* Default Company Info */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Default Company Info</h2>
-            <p className="text-sm text-muted-foreground mb-4">These will auto-fill when creating new invoices.</p>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Default Company Info</h2>
+            <p className="text-sm text-muted-foreground mb-3 md:mb-4">These will auto-fill when creating new invoices.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="defCompanyName" className="mb-2 block text-muted-foreground">Company Name</Label>
+                <Label htmlFor="defCompanyName" className="mb-2 block text-sm text-muted-foreground">Company Name</Label>
                 <Input
                   id="defCompanyName"
                   value={settings.defaultCompanyName}
@@ -122,7 +118,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defCompanyEmail" className="mb-2 block text-muted-foreground">Email</Label>
+                <Label htmlFor="defCompanyEmail" className="mb-2 block text-sm text-muted-foreground">Email</Label>
                 <Input
                   id="defCompanyEmail"
                   type="email"
@@ -132,7 +128,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defAddress" className="mb-2 block text-muted-foreground">Address</Label>
+                <Label htmlFor="defAddress" className="mb-2 block text-sm text-muted-foreground">Address</Label>
                 <Input
                   id="defAddress"
                   value={settings.defaultAddress}
@@ -141,7 +137,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defCity" className="mb-2 block text-muted-foreground">City</Label>
+                <Label htmlFor="defCity" className="mb-2 block text-sm text-muted-foreground">City</Label>
                 <Input
                   id="defCity"
                   value={settings.defaultCity}
@@ -150,7 +146,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defZip" className="mb-2 block text-muted-foreground">Zip Code</Label>
+                <Label htmlFor="defZip" className="mb-2 block text-sm text-muted-foreground">Zip Code</Label>
                 <Input
                   id="defZip"
                   value={settings.defaultZipCode}
@@ -159,7 +155,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defCountry" className="mb-2 block text-muted-foreground">Country</Label>
+                <Label htmlFor="defCountry" className="mb-2 block text-sm text-muted-foreground">Country</Label>
                 <Input
                   id="defCountry"
                   value={settings.defaultCountry}
@@ -168,7 +164,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defPhone" className="mb-2 block text-muted-foreground">Phone</Label>
+                <Label htmlFor="defPhone" className="mb-2 block text-sm text-muted-foreground">Phone</Label>
                 <Input
                   id="defPhone"
                   value={settings.defaultPhone}
@@ -181,10 +177,10 @@ export default function SettingsPage() {
 
           {/* Invoice Numbering */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Invoice Numbering</h2>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Invoice Numbering</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="prefix" className="mb-2 block text-muted-foreground">Prefix</Label>
+                <Label htmlFor="prefix" className="mb-2 block text-sm text-muted-foreground">Prefix</Label>
                 <Input
                   id="prefix"
                   value={settings.invoicePrefix}
@@ -193,7 +189,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="nextNum" className="mb-2 block text-muted-foreground">Next Number</Label>
+                <Label htmlFor="nextNum" className="mb-2 block text-sm text-muted-foreground">Next Number</Label>
                 <Input
                   id="nextNum"
                   type="number"
@@ -210,10 +206,10 @@ export default function SettingsPage() {
 
           {/* Email Defaults */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Email Defaults</h2>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Email Defaults</h2>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="defSubject" className="mb-2 block text-muted-foreground">Default Subject</Label>
+                <Label htmlFor="defSubject" className="mb-2 block text-sm text-muted-foreground">Default Subject</Label>
                 <Input
                   id="defSubject"
                   value={settings.defaultEmailSubject}
@@ -222,7 +218,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="defMessage" className="mb-2 block text-muted-foreground">Default Message</Label>
+                <Label htmlFor="defMessage" className="mb-2 block text-sm text-muted-foreground">Default Message</Label>
                 <Textarea
                   id="defMessage"
                   value={settings.defaultEmailMessage}
@@ -236,10 +232,10 @@ export default function SettingsPage() {
 
           {/* Theme Defaults */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Theme Defaults</h2>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Theme Defaults</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="defColor" className="mb-2 block text-muted-foreground">Primary Color</Label>
+                <Label htmlFor="defColor" className="mb-2 block text-sm text-muted-foreground">Primary Color</Label>
                 <div className="flex items-center gap-3">
                   <input
                     id="defColor"
@@ -256,7 +252,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="defFont" className="mb-2 block text-muted-foreground">Default Font</Label>
+                <Label htmlFor="defFont" className="mb-2 block text-sm text-muted-foreground">Default Font</Label>
                 <select
                   id="defFont"
                   value={settings.defaultFont}
@@ -273,14 +269,14 @@ export default function SettingsPage() {
 
           {/* Account */}
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Account</h2>
+            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Account</h2>
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
                 {user?.name ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "?"}
               </div>
               <div>
-                <p className="font-medium">{user?.name || "Guest User"}</p>
-                <p className="text-sm text-muted-foreground">{user?.email || "guest@invoica.app"}</p>
+                <p className="text-sm font-medium">{user?.name || "Guest User"}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">{user?.email || "guest@invoica.app"}</p>
               </div>
             </div>
             <Button

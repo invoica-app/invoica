@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
+import { CURRENCIES, formatMoney } from "@/lib/currency";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function InvoiceDetailsPage() {
@@ -18,6 +19,7 @@ export default function InvoiceDetailsPage() {
   const [invoiceNumber, setInvoiceNumber] = useState(store.invoiceNumber);
   const [invoiceDate, setInvoiceDate] = useState(store.invoiceDate);
   const [dueDate, setDueDate] = useState(store.dueDate);
+  const [currency, setCurrency] = useState(store.currency || "USD");
 
   // Client (Bill To) local state
   const [clientName, setClientName] = useState(store.clientName);
@@ -45,6 +47,7 @@ export default function InvoiceDetailsPage() {
       invoiceNumber,
       invoiceDate,
       dueDate,
+      currency,
     });
     store.updateClient({
       clientName,
@@ -69,18 +72,18 @@ export default function InvoiceDetailsPage() {
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Invoice Details</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Invoice Details</h1>
+            <p className="text-sm text-muted-foreground">
               Set the invoice number, dates, client info, and line items.
             </p>
           </div>
 
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
             {/* Invoice Info */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
               <div>
-                <Label htmlFor="invoiceNumber" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="invoiceNumber" className="mb-2 block text-sm text-muted-foreground">
                   Invoice Number
                 </Label>
                 <Input
@@ -91,7 +94,7 @@ export default function InvoiceDetailsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="invoiceDate" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="invoiceDate" className="mb-2 block text-sm text-muted-foreground">
                   Date
                 </Label>
                 <Input
@@ -102,7 +105,7 @@ export default function InvoiceDetailsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="dueDate" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="dueDate" className="mb-2 block text-sm text-muted-foreground">
                   Due Date
                 </Label>
                 <Input
@@ -112,14 +115,31 @@ export default function InvoiceDetailsPage() {
                   onChange={(e) => setDueDate(e.target.value)}
                 />
               </div>
+              <div>
+                <Label htmlFor="currency" className="mb-2 block text-sm text-muted-foreground">
+                  Currency
+                </Label>
+                <select
+                  id="currency"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Bill To Section */}
-            <div className="mb-10">
-              <h3 className="text-lg font-semibold mb-4">Bill To</h3>
+            <div className="mb-8 md:mb-10">
+              <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Bill To</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="clientName" className="mb-2 block text-muted-foreground">
+                  <Label htmlFor="clientName" className="mb-2 block text-sm text-muted-foreground">
                     Client Name
                   </Label>
                   <Input
@@ -130,7 +150,7 @@ export default function InvoiceDetailsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="clientCompany" className="mb-2 block text-muted-foreground">
+                  <Label htmlFor="clientCompany" className="mb-2 block text-sm text-muted-foreground">
                     Company <span className="text-muted-foreground text-xs">(optional)</span>
                   </Label>
                   <Input
@@ -141,7 +161,7 @@ export default function InvoiceDetailsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="clientEmail" className="mb-2 block text-muted-foreground">
+                  <Label htmlFor="clientEmail" className="mb-2 block text-sm text-muted-foreground">
                     Client Email
                   </Label>
                   <Input
@@ -153,7 +173,7 @@ export default function InvoiceDetailsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="clientAddress" className="mb-2 block text-muted-foreground">
+                  <Label htmlFor="clientAddress" className="mb-2 block text-sm text-muted-foreground">
                     Address
                   </Label>
                   <Input
@@ -164,7 +184,7 @@ export default function InvoiceDetailsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="clientCity" className="mb-2 block text-muted-foreground">
+                  <Label htmlFor="clientCity" className="mb-2 block text-sm text-muted-foreground">
                     City
                   </Label>
                   <Input
@@ -176,7 +196,7 @@ export default function InvoiceDetailsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="clientZip" className="mb-2 block text-muted-foreground">
+                    <Label htmlFor="clientZip" className="mb-2 block text-sm text-muted-foreground">
                       Zip Code
                     </Label>
                     <Input
@@ -187,7 +207,7 @@ export default function InvoiceDetailsPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="clientCountry" className="mb-2 block text-muted-foreground">
+                    <Label htmlFor="clientCountry" className="mb-2 block text-sm text-muted-foreground">
                       Country
                     </Label>
                     <Input
@@ -203,8 +223,8 @@ export default function InvoiceDetailsPage() {
 
             {/* Line Items */}
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Line Items</h3>
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <h3 className="text-base md:text-lg font-semibold">Line Items</h3>
                 <Button
                   onClick={() => store.addLineItem()}
                   size="sm"
@@ -274,8 +294,8 @@ export default function InvoiceDetailsPage() {
                             className="border-0 shadow-none h-9 px-2"
                           />
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">
-                          ${item.amount.toFixed(2)}
+                        <td className="px-4 py-3 text-right font-medium text-sm">
+                          {formatMoney(item.amount, currency)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
@@ -289,7 +309,7 @@ export default function InvoiceDetailsPage() {
                     ))}
                     {lineItems.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-sm">
                           No items yet. Click &quot;Add Item&quot; to add a line item.
                         </td>
                       </tr>
@@ -299,9 +319,9 @@ export default function InvoiceDetailsPage() {
               </div>
 
               {/* Mobile stacked cards */}
-              <div className="md:hidden space-y-4">
+              <div className="md:hidden space-y-3">
                 {lineItems.map((item) => (
-                  <div key={item.id} className="border border-border rounded-lg p-4 space-y-3">
+                  <div key={item.id} className="border border-border rounded-lg p-3 space-y-2">
                     <div className="flex items-start justify-between">
                       <Input
                         value={item.description}
@@ -349,12 +369,12 @@ export default function InvoiceDetailsPage() {
                       </div>
                     </div>
                     <div className="text-right font-medium text-sm">
-                      Amount: ${item.amount.toFixed(2)}
+                      Amount: {formatMoney(item.amount, currency)}
                     </div>
                   </div>
                 ))}
                 {lineItems.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-muted-foreground text-sm">
                     No items yet. Click &quot;Add Item&quot; to add a line item.
                   </div>
                 )}
@@ -362,9 +382,9 @@ export default function InvoiceDetailsPage() {
             </div>
 
             {/* Tax, Discount, Notes */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
               <div>
-                <Label htmlFor="taxRate" className="mb-2 block text-muted-foreground">
+                <Label htmlFor="taxRate" className="mb-2 block text-sm text-muted-foreground">
                   Tax Rate (%)
                 </Label>
                 <Input
@@ -378,8 +398,8 @@ export default function InvoiceDetailsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="discount" className="mb-2 block text-muted-foreground">
-                  Discount ($)
+                <Label htmlFor="discount" className="mb-2 block text-sm text-muted-foreground">
+                  Discount
                 </Label>
                 <Input
                   id="discount"
@@ -392,7 +412,7 @@ export default function InvoiceDetailsPage() {
                 />
               </div>
               <div className="md:col-span-1">
-                <Label htmlFor="notes" className="mb-2 block text-muted-foreground">
+                <Label htmlFor="notes" className="mb-2 block text-sm text-muted-foreground">
                   Notes / Terms
                 </Label>
                 <Textarea
@@ -407,33 +427,33 @@ export default function InvoiceDetailsPage() {
 
             {/* Totals */}
             <div className="flex justify-end">
-              <div className="w-full md:w-80 space-y-2">
+              <div className="w-full md:w-80 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal:</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatMoney(subtotal, currency)}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-red-600 dark:text-red-400">
                     <span>Discount:</span>
-                    <span className="font-medium">-${discountAmount.toFixed(2)}</span>
+                    <span className="font-medium">-{formatMoney(discountAmount, currency)}</span>
                   </div>
                 )}
                 {taxRate > 0 && (
                   <div className="flex justify-between text-muted-foreground">
                     <span>Tax ({taxRate}%):</span>
-                    <span className="font-medium">${taxAmount.toFixed(2)}</span>
+                    <span className="font-medium">{formatMoney(taxAmount, currency)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-xl font-bold pt-2 border-t border-border">
+                <div className="flex justify-between text-lg md:text-xl font-bold pt-2 border-t border-border">
                   <span>Total:</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatMoney(total, currency)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-6 md:mt-8">
             <Button variant="outline" asChild>
               <Link href="/invoice/new/company">Back</Link>
             </Button>

@@ -49,9 +49,9 @@ export default function DesignPage() {
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Design & Branding</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Design & Branding</h1>
+            <p className="text-sm text-muted-foreground">
               Customize the look and feel of your invoice.
             </p>
           </div>
@@ -59,7 +59,7 @@ export default function DesignPage() {
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border space-y-8">
             {/* Primary Color */}
             <div>
-              <Label className="mb-4 block text-muted-foreground text-base">
+              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
                 Primary Color
               </Label>
               <div className="flex flex-wrap gap-4">
@@ -92,7 +92,7 @@ export default function DesignPage() {
 
             {/* Font Family */}
             <div>
-              <Label className="mb-4 block text-muted-foreground text-base">
+              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
                 Font Family
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -118,7 +118,7 @@ export default function DesignPage() {
 
             {/* Preview Header — stays light since it previews the printed invoice */}
             <div>
-              <Label className="mb-4 block text-muted-foreground text-base">
+              <Label className="mb-3 md:mb-4 block text-muted-foreground text-sm md:text-base">
                 Preview Header
               </Label>
               <div className="p-6 bg-white rounded-lg border border-gray-200 text-gray-900">
@@ -154,7 +154,7 @@ export default function DesignPage() {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-6 md:mt-8">
             <Button variant="outline" asChild>
               <Link href="/invoice/new/details">Back</Link>
             </Button>

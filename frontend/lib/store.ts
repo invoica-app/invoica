@@ -43,6 +43,9 @@ interface InvoiceStore {
   primaryColor: string;
   fontFamily: string;
 
+  // Currency
+  currency: string;
+
   // Email
   clientEmail: string;
   emailSubject: string;
@@ -82,6 +85,7 @@ const initialState = {
   lineItems: [] as { id: string; description: string; quantity: number; rate: number; amount: number }[],
   primaryColor: "#9747E6",
   fontFamily: "Inter",
+  currency: "USD",
   clientEmail: "",
   emailSubject: "",
   emailMessage: "",

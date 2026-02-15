@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
@@ -44,14 +43,25 @@ export default function CompanyInfoPage() {
       return;
     }
 
-    setUploading(true);
     setUploadError(null);
+
+    // Show local preview immediately via base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setLogoUrl(base64);
+      store.updateCompany({ companyLogo: base64 });
+    };
+    reader.readAsDataURL(file);
+
+    // Also try API upload for a clean remote URL
+    setUploading(true);
     try {
       const result = await api.uploadLogo(file);
       setLogoUrl(result.url);
       store.updateCompany({ companyLogo: result.url });
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+    } catch {
+      // base64 fallback already set above
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -74,18 +84,18 @@ export default function CompanyInfoPage() {
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Company Information</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Company Information</h1>
+            <p className="text-sm text-muted-foreground">
               Enter your business details that will appear on the invoice.
             </p>
           </div>
 
           <div className="bg-card rounded-xl shadow-sm p-4 md:p-8 border border-border">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
               {/* Company Logo */}
               <div>
-                <Label className="mb-3 block text-muted-foreground">Company Logo</Label>
+                <Label className="mb-2 md:mb-3 block text-sm text-muted-foreground">Company Logo</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -95,13 +105,16 @@ export default function CompanyInfoPage() {
                 />
                 {logoUrl ? (
                   <div className="relative border-2 border-border rounded-lg p-4 flex items-center justify-center">
-                    <Image
+                    <img
                       src={logoUrl}
                       alt="Company logo"
-                      width={160}
-                      height={160}
-                      className="object-contain max-h-40"
+                      className="object-contain max-h-40 max-w-full"
                     />
+                    {uploading && (
+                      <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
@@ -132,7 +145,7 @@ export default function CompanyInfoPage() {
 
               {/* Company Name */}
               <div>
-                <Label htmlFor="companyName" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="companyName" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                   Company Name
                 </Label>
                 <Input
@@ -147,10 +160,10 @@ export default function CompanyInfoPage() {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Address */}
               <div>
-                <Label htmlFor="address" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="address" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                   Address
                 </Label>
                 <Input
@@ -165,9 +178,9 @@ export default function CompanyInfoPage() {
               </div>
 
               {/* City and Zip */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <Label htmlFor="city" className="mb-3 block text-muted-foreground">
+                  <Label htmlFor="city" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                     City
                   </Label>
                   <Input
@@ -181,7 +194,7 @@ export default function CompanyInfoPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="zipCode" className="mb-3 block text-muted-foreground">
+                  <Label htmlFor="zipCode" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                     Zip / Postal Code
                   </Label>
                   <Input
@@ -198,7 +211,7 @@ export default function CompanyInfoPage() {
 
               {/* Country */}
               <div>
-                <Label htmlFor="country" className="mb-3 block text-muted-foreground">
+                <Label htmlFor="country" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                   Country
                 </Label>
                 <Input
@@ -213,9 +226,9 @@ export default function CompanyInfoPage() {
               </div>
 
               {/* Phone and Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <Label htmlFor="phone" className="mb-3 block text-muted-foreground">
+                  <Label htmlFor="phone" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                     Phone
                   </Label>
                   <Input
@@ -229,7 +242,7 @@ export default function CompanyInfoPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email" className="mb-3 block text-muted-foreground">
+                  <Label htmlFor="email" className="mb-2 md:mb-3 block text-sm text-muted-foreground">
                     Email
                   </Label>
                   <Input
@@ -248,7 +261,7 @@ export default function CompanyInfoPage() {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-6 md:mt-8">
             <Button variant="outline" asChild>
               <Link href="/invoice/new/welcome">Back</Link>
             </Button>

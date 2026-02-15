@@ -37,9 +37,9 @@ export default function EmailDetailsPage() {
 
       <div className="flex-1 p-4 md:p-8 bg-secondary overflow-auto">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2">Email Details</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-3xl font-semibold mb-1 md:mb-2">Email Details</h1>
+            <p className="text-sm text-muted-foreground">
               Configure the email that will be sent to your client.
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function EmailDetailsPage() {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-6 md:mt-8">
             <Button variant="outline" asChild>
               <Link href="/invoice/new/design">Back</Link>
             </Button>
