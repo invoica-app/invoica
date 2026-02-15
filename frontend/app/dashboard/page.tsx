@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { FileText, Loader2, LogOut, RefreshCw, Trash2 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useAuth } from "@/lib/auth";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Invoice } from "@/lib/types";
@@ -72,15 +73,24 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="border-b border-border px-4 py-3 md:px-8 md:py-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Inv.</h1>
-        {isGuest ? (
-          <div className="px-3 py-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-            Guest
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-            {initials}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {isGuest ? (
+            <div className="px-3 py-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
+              Guest
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+              {initials}
+            </div>
+          )}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
