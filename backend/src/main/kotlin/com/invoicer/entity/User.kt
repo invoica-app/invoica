@@ -26,7 +26,7 @@ class User(
     @Column(name = "is_guest")
     var isGuest: Boolean = false,
 
-    @Column(name = "is_disabled")
+    @Column(name = "is_disabled", nullable = false, columnDefinition = "boolean not null default false")
     var isDisabled: Boolean = false,
 
     @Column(name = "created_at", nullable = false, updatable = false)
