@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "Invoica - Create Professional Invoices",
   description:
     "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device. Free to use, no account required.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://invoica-livid.vercel.app"
+  ),
+  icons: {
+    icon: "/icon.svg",
+  },
   openGraph: {
     title: "Invoica - Invoice clients in minutes, not hours",
     description:
