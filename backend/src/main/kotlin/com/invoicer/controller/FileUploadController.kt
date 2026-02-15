@@ -12,7 +12,6 @@ data class FileUploadResponse(
 
 @RestController
 @RequestMapping("/api/upload")
-@CrossOrigin(origins = ["http://localhost:3000"])
 class FileUploadController(
     private val s3Service: S3Service
 ) {

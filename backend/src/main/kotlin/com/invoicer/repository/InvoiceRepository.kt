@@ -19,4 +19,8 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
     fun findOverdueInvoices(date: LocalDate = LocalDate.now()): List<Invoice>
 
     fun existsByInvoiceNumber(invoiceNumber: String): Boolean
+
+    fun findByUserId(userId: Long): List<Invoice>
+
+    fun findByUserIdAndStatus(userId: Long, status: InvoiceStatus): List<Invoice>
 }

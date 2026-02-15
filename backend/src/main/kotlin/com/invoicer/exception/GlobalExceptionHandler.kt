@@ -52,6 +52,26 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error)
     }
 
+    @ExceptionHandler(InvoiceAccessDeniedException::class)
+    fun handleInvoiceAccessDenied(ex: InvoiceAccessDeniedException): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.FORBIDDEN.value(),
+            error = "Forbidden",
+            message = ex.message ?: "Access denied"
+        )
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
+    }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = "Bad Request",
+            message = ex.message ?: "Invalid argument"
+        )
+        return ResponseEntity.badRequest().body(error)
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(

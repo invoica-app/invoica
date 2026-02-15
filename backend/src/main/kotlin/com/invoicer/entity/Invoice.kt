@@ -80,6 +80,9 @@ data class Invoice(
     @Column(nullable = false)
     val status: InvoiceStatus = InvoiceStatus.DRAFT,
 
+    // Owner
+    val userId: Long? = null,
+
     // Audit
     @Column(nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),

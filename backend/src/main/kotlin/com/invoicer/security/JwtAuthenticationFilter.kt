@@ -36,7 +36,7 @@ class JwtAuthenticationFilter(
 
                 val authentication = UsernamePasswordAuthenticationToken(
                     email,
-                    null,
+                    userId,
                     authorities
                 )
                 authentication.details = WebAuthenticationDetailsSource().buildDetails(request)

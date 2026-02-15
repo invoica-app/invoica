@@ -5,7 +5,7 @@ spring:
     name: invoicer-api
 
   datasource:
-    url: ${DATABASE_URL}  # Supabase connection string
+    url: ${DB_URL}  # Supabase connection string
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5

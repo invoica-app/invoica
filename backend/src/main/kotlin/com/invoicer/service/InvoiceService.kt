@@ -4,6 +4,7 @@ import com.invoicer.dto.*
 import com.invoicer.entity.Invoice
 import com.invoicer.entity.InvoiceStatus
 import com.invoicer.entity.LineItem
+import com.invoicer.exception.InvoiceAccessDeniedException
 import com.invoicer.exception.InvoiceNotFoundException
 import com.invoicer.exception.DuplicateInvoiceNumberException
 import com.invoicer.repository.InvoiceRepository
@@ -18,7 +19,7 @@ class InvoiceService(
     private val invoiceRepository: InvoiceRepository
 ) {
 
-    fun createInvoice(request: CreateInvoiceRequest): InvoiceResponse {
+    fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
         // Check for duplicate invoice number
         if (invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
@@ -41,7 +42,8 @@ class InvoiceService(
             fontFamily = request.fontFamily,
             clientEmail = request.clientEmail,
             emailSubject = request.emailSubject,
-            emailMessage = request.emailMessage
+            emailMessage = request.emailMessage,
+            userId = userId
         )
 
         // Add line items and calculate total
@@ -67,19 +69,21 @@ class InvoiceService(
         return savedInvoice.toResponse()
     }
 
-    fun getInvoice(id: Long): InvoiceResponse {
+    fun getInvoice(id: Long, userId: Long): InvoiceResponse {
         val invoice = invoiceRepository.findById(id)
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        verifyOwnership(invoice, userId)
         return invoice.toResponse()
     }
 
-    fun getAllInvoices(): List<InvoiceResponse> {
-        return invoiceRepository.findAll().map { it.toResponse() }
+    fun getAllInvoices(userId: Long): List<InvoiceResponse> {
+        return invoiceRepository.findByUserId(userId).map { it.toResponse() }
     }
 
-    fun updateInvoice(id: Long, request: UpdateInvoiceRequest): InvoiceResponse {
+    fun updateInvoice(id: Long, request: UpdateInvoiceRequest, userId: Long): InvoiceResponse {
         val invoice = invoiceRepository.findById(id)
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        verifyOwnership(invoice, userId)
 
         // Check for duplicate invoice number if changed
         if (request.invoiceNumber != null &&
@@ -138,15 +142,21 @@ class InvoiceService(
         return invoiceRepository.save(updatedInvoice).toResponse()
     }
 
-    fun deleteInvoice(id: Long) {
-        if (!invoiceRepository.existsById(id)) {
-            throw InvoiceNotFoundException("Invoice not found with id: $id")
-        }
+    fun deleteInvoice(id: Long, userId: Long) {
+        val invoice = invoiceRepository.findById(id)
+            .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        verifyOwnership(invoice, userId)
         invoiceRepository.deleteById(id)
     }
 
-    fun getInvoicesByStatus(status: InvoiceStatus): List<InvoiceResponse> {
-        return invoiceRepository.findByStatus(status).map { it.toResponse() }
+    fun getInvoicesByStatus(status: InvoiceStatus, userId: Long): List<InvoiceResponse> {
+        return invoiceRepository.findByUserIdAndStatus(userId, status).map { it.toResponse() }
+    }
+
+    private fun verifyOwnership(invoice: Invoice, userId: Long) {
+        if (invoice.userId != null && invoice.userId != userId) {
+            throw InvoiceAccessDeniedException("You do not have access to this invoice")
+        }
     }
 
     // Extension function to convert entity to response
