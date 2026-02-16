@@ -7,21 +7,25 @@ import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CountrySelect } from "@/components/ui/country-select";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/lib/settings-store";
 import { CURRENCIES, formatMoney } from "@/lib/currency";
 import { Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function Field({
   label,
   htmlFor,
   optional,
+  error,
   children,
 }: {
   label: string;
   htmlFor?: string;
   optional?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -34,8 +38,13 @@ function Field({
         {optional && <span className="ml-1 opacity-50">optional</span>}
       </label>
       {children}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export default function InvoiceDetailsPage() {
@@ -91,6 +100,8 @@ export default function InvoiceDetailsPage() {
   const [discount, setDiscount] = useState(storeData.discount);
   const [notes, setNotes] = useState(storeData.notes);
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const lineItems = storeData.lineItems;
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
@@ -98,7 +109,25 @@ export default function InvoiceDetailsPage() {
   const taxAmount = ((subtotal - discountAmount) * (taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!invoiceNumber.trim()) e.invoiceNumber = "Required";
+    if (!invoiceDate) e.invoiceDate = "Required";
+    if (!dueDate) e.dueDate = "Required";
+    if (dueDate && invoiceDate && dueDate < invoiceDate) e.dueDate = "Must be after invoice date";
+    if (!clientName.trim()) e.clientName = "Required";
+    if (!clientEmail.trim()) {
+      e.clientEmail = "Required";
+    } else if (!isValidEmail(clientEmail)) {
+      e.clientEmail = "Enter a valid email";
+    }
+    if (lineItems.length === 0) e.lineItems = "Add at least one item";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validate()) return;
     updateInvoice({ invoiceNumber, invoiceDate, dueDate, currency });
     updateClient({
       clientName, clientCompany, clientEmail,
@@ -124,14 +153,32 @@ export default function InvoiceDetailsPage() {
           {/* Invoice info */}
           <section className="mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <Field label="Invoice #" htmlFor="invoiceNumber">
-                <Input id="invoiceNumber" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="INV-001" />
+              <Field label="Invoice #" htmlFor="invoiceNumber" error={errors.invoiceNumber}>
+                <Input
+                  id="invoiceNumber"
+                  value={invoiceNumber}
+                  onChange={(e) => { setInvoiceNumber(e.target.value); setErrors((p) => ({ ...p, invoiceNumber: "" })); }}
+                  placeholder="INV-001"
+                  className={cn(errors.invoiceNumber && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                />
               </Field>
-              <Field label="Date" htmlFor="invoiceDate">
-                <Input id="invoiceDate" type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+              <Field label="Date" htmlFor="invoiceDate" error={errors.invoiceDate}>
+                <Input
+                  id="invoiceDate"
+                  type="date"
+                  value={invoiceDate}
+                  onChange={(e) => { setInvoiceDate(e.target.value); setErrors((p) => ({ ...p, invoiceDate: "" })); }}
+                  className={cn(errors.invoiceDate && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                />
               </Field>
-              <Field label="Due date" htmlFor="dueDate">
-                <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Field label="Due date" htmlFor="dueDate" error={errors.dueDate}>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => { setDueDate(e.target.value); setErrors((p) => ({ ...p, dueDate: "" })); }}
+                  className={cn(errors.dueDate && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                />
               </Field>
               <Field label="Currency" htmlFor="currency">
                 <select
@@ -152,14 +199,27 @@ export default function InvoiceDetailsPage() {
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Bill to</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
-              <Field label="Name" htmlFor="clientName">
-                <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="John Doe" />
+              <Field label="Name" htmlFor="clientName" error={errors.clientName}>
+                <Input
+                  id="clientName"
+                  value={clientName}
+                  onChange={(e) => { setClientName(e.target.value); setErrors((p) => ({ ...p, clientName: "" })); }}
+                  placeholder="John Doe"
+                  className={cn(errors.clientName && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                />
               </Field>
               <Field label="Company" htmlFor="clientCompany" optional>
                 <Input id="clientCompany" value={clientCompany} onChange={(e) => setClientCompany(e.target.value)} placeholder="Client Co" />
               </Field>
-              <Field label="Email" htmlFor="clientEmail">
-                <Input id="clientEmail" type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder="client@example.com" />
+              <Field label="Email" htmlFor="clientEmail" error={errors.clientEmail}>
+                <Input
+                  id="clientEmail"
+                  type="email"
+                  value={clientEmail}
+                  onChange={(e) => { setClientEmail(e.target.value); setErrors((p) => ({ ...p, clientEmail: "" })); }}
+                  placeholder="client@example.com"
+                  className={cn(errors.clientEmail && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                />
               </Field>
               <Field label="Address" htmlFor="clientAddress">
                 <Input id="clientAddress" value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} placeholder="123 Client St" />
@@ -171,8 +231,12 @@ export default function InvoiceDetailsPage() {
                 <Field label="Zip" htmlFor="clientZip">
                   <Input id="clientZip" value={clientZip} onChange={(e) => setClientZip(e.target.value)} placeholder="10001" />
                 </Field>
-                <Field label="Country" htmlFor="clientCountry">
-                  <Input id="clientCountry" value={clientCountry} onChange={(e) => setClientCountry(e.target.value)} placeholder="USA" />
+                <Field label="Country">
+                  <CountrySelect
+                    value={clientCountry}
+                    onChange={setClientCountry}
+                    placeholder="Select"
+                  />
                 </Field>
               </div>
             </div>
@@ -183,13 +247,17 @@ export default function InvoiceDetailsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Line items</h2>
               <button
-                onClick={() => addLineItem()}
+                onClick={() => { addLineItem(); setErrors((p) => ({ ...p, lineItems: "" })); }}
                 className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add item
               </button>
             </div>
+
+            {errors.lineItems && (
+              <p className="mb-2 text-xs text-destructive">{errors.lineItems}</p>
+            )}
 
             {/* Desktop table */}
             <div className="hidden md:block border border-border rounded-lg overflow-hidden">

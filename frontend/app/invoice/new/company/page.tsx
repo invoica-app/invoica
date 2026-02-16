@@ -6,18 +6,22 @@ import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CountrySelect } from "@/components/ui/country-select";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Upload, Loader2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function Field({
   label,
   htmlFor,
+  error,
   children,
 }: {
   label: string;
   htmlFor?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -29,8 +33,13 @@ function Field({
         {label}
       </label>
       {children}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export default function CompanyInfoPage() {
@@ -73,6 +82,11 @@ export default function CompanyInfoPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(companyLogo);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const clearError = (field: string) => {
+    setErrors((p) => ({ ...p, [field]: "" }));
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,7 +129,25 @@ export default function CompanyInfoPage() {
     updateCompany({ companyLogo: null });
   };
 
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!formData.companyName.trim()) e.companyName = "Required";
+    if (!formData.address.trim()) e.address = "Required";
+    if (!formData.city.trim()) e.city = "Required";
+    if (!formData.zipCode.trim()) e.zipCode = "Required";
+    if (!formData.country.trim()) e.country = "Required";
+    if (!formData.phone.trim()) e.phone = "Required";
+    if (!formData.companyEmail.trim()) {
+      e.companyEmail = "Required";
+    } else if (!isValidEmail(formData.companyEmail)) {
+      e.companyEmail = "Enter a valid email";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validate()) return;
     updateCompany(formData);
     router.push("/invoice/new/details");
   };
@@ -186,71 +218,77 @@ export default function CompanyInfoPage() {
               </div>
 
               {/* Company Name */}
-              <Field label="Company name" htmlFor="companyName">
+              <Field label="Company name" htmlFor="companyName" error={errors.companyName}>
                 <Input
                   id="companyName"
                   value={formData.companyName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, companyName: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, companyName: e.target.value });
+                    clearError("companyName");
+                  }}
                   placeholder="Acme Corp"
+                  className={cn(errors.companyName && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
                 />
               </Field>
             </div>
 
-            <Field label="Address" htmlFor="address">
+            <Field label="Address" htmlFor="address" error={errors.address}>
               <Input
                 id="address"
                 value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, address: e.target.value }); clearError("address"); }}
                 placeholder="123 Business St"
+                className={cn(errors.address && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
               />
             </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="City" htmlFor="city">
+              <Field label="City" htmlFor="city" error={errors.city}>
                 <Input
                   id="city"
                   value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, city: e.target.value }); clearError("city"); }}
                   placeholder="Tech City"
+                  className={cn(errors.city && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
                 />
               </Field>
-              <Field label="Zip / Postal code" htmlFor="zipCode">
+              <Field label="Zip / Postal code" htmlFor="zipCode" error={errors.zipCode}>
                 <Input
                   id="zipCode"
                   value={formData.zipCode}
-                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, zipCode: e.target.value }); clearError("zipCode"); }}
                   placeholder="10001"
+                  className={cn(errors.zipCode && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
                 />
               </Field>
             </div>
 
-            <Field label="Country" htmlFor="country">
-              <Input
-                id="country"
+            <Field label="Country" error={errors.country}>
+              <CountrySelect
                 value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                placeholder="USA"
+                onChange={(val) => { setFormData({ ...formData, country: val }); clearError("country"); }}
+                error={!!errors.country}
               />
             </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Phone" htmlFor="phone">
+              <Field label="Phone" htmlFor="phone" error={errors.phone}>
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); clearError("phone"); }}
                   placeholder="+1 (555) 123-4567"
+                  className={cn(errors.phone && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
                 />
               </Field>
-              <Field label="Email" htmlFor="email">
+              <Field label="Email" htmlFor="email" error={errors.companyEmail}>
                 <Input
                   id="email"
                   type="email"
                   value={formData.companyEmail}
-                  onChange={(e) => setFormData({ ...formData, companyEmail: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, companyEmail: e.target.value }); clearError("companyEmail"); }}
                   placeholder="billing@acme.com"
+                  className={cn(errors.companyEmail && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
                 />
               </Field>
             </div>
