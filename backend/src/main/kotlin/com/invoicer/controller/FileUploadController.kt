@@ -22,9 +22,9 @@ class FileUploadController(
             throw IllegalArgumentException("File is empty")
         }
 
-        val contentType = file.contentType ?: ""
-        if (!contentType.startsWith("image/")) {
-            throw IllegalArgumentException("Only image files are allowed")
+        val allowedTypes = listOf("image/png", "image/jpeg")
+        if (file.contentType !in allowedTypes) {
+            throw IllegalArgumentException("Only PNG and JPEG files are allowed")
         }
 
         if (file.size > 5 * 1024 * 1024) {

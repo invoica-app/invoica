@@ -92,8 +92,9 @@ export default function CompanyInfoPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file.");
+    const allowedTypes = ["image/png", "image/jpeg"];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Only PNG and JPEG files are allowed.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -173,7 +174,7 @@ export default function CompanyInfoPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png, image/jpeg"
                   className="hidden"
                   onChange={handleLogoUpload}
                 />
