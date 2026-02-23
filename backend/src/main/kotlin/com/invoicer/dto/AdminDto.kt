@@ -45,7 +45,7 @@ data class AdminInvoiceResponse(
     val invoiceNumber: String,
     val companyName: String,
     val clientName: String?,
-    val clientEmail: String,
+    val clientEmail: String?,
     val totalAmount: BigDecimal,
     val status: InvoiceStatus,
     val ownerEmail: String?,

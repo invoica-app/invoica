@@ -157,7 +157,7 @@ data class InvoiceResponse(
     val taxRate: Double?,
     val discount: Double?,
     val notes: String?,
-    val clientEmail: String,
+    val clientEmail: String?,
     val emailSubject: String?,
     val emailMessage: String?,
     val lineItems: List<LineItemResponse>,
