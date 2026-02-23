@@ -143,7 +143,7 @@ export default function InvoiceHistoryPage() {
                   </div>
                   <div className="flex items-center gap-3 sm:gap-4 ml-3">
                     <span className="text-sm font-semibold tabular-nums">
-                      {formatMoney(invoice.totalAmount ?? 0, defaultCurrency)}
+                      {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
                     </span>
                     <button
                       onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}

@@ -132,6 +132,7 @@ export default function ReviewPage() {
         dueDate: data.dueDate,
         primaryColor: data.primaryColor,
         fontFamily: data.fontFamily,
+        currency: data.currency || "USD",
         clientEmail: data.clientEmail,
         emailSubject: data.emailSubject || null,
         emailMessage: data.emailMessage || null,

@@ -47,6 +47,9 @@ data class CreateInvoiceRequest(
     val primaryColor: String = "#9747E6",
     val fontFamily: String = "Inter",
 
+    // Currency
+    val currency: String = "USD",
+
     // Client (Bill To)
     val clientName: String? = null,
     val clientCompany: String? = null,
@@ -94,6 +97,7 @@ data class UpdateInvoiceRequest(
     val dueDate: LocalDate? = null,
     val primaryColor: String? = null,
     val fontFamily: String? = null,
+    val currency: String? = null,
     // Client (Bill To)
     val clientName: String? = null,
     val clientCompany: String? = null,
@@ -146,6 +150,7 @@ data class InvoiceResponse(
     val dueDate: LocalDate,
     val primaryColor: String,
     val fontFamily: String,
+    val currency: String,
     // Client (Bill To)
     val clientName: String?,
     val clientCompany: String?,

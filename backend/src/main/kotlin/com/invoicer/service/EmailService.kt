@@ -9,9 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Service
 class EmailService(
@@ -19,7 +17,24 @@ class EmailService(
 ) {
     private val logger = LoggerFactory.getLogger(EmailService::class.java)
     private val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
-    private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
+
+    private val currencySymbols = mapOf(
+        "USD" to "$",
+        "GHS" to "GH₵",
+        "EUR" to "€",
+        "GBP" to "£",
+        "NGN" to "₦",
+        "KES" to "KSh",
+        "ZAR" to "R",
+        "CAD" to "C$",
+        "AUD" to "A$"
+    )
+
+    private fun formatMoney(amount: BigDecimal, currencyCode: String): String {
+        val symbol = currencySymbols[currencyCode] ?: currencyCode
+        val formatted = String.format("%,.2f", amount)
+        return "$symbol$formatted"
+    }
 
     fun sendInvoiceEmail(invoice: Invoice) {
         if (config.apiKey.isBlank()) {
@@ -57,6 +72,7 @@ class EmailService(
 
     private fun buildInvoiceHtml(invoice: Invoice): String {
         val color = invoice.primaryColor
+        val cur = invoice.currency
         val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
         val discountAmount = invoice.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
         val taxableAmount = subtotal.subtract(discountAmount)
@@ -69,8 +85,8 @@ class EmailService(
             <tr>
                 <td style="padding: 12px 16px; border-bottom: 1px solid #eee;">${escapeHtml(item.description)}</td>
                 <td style="padding: 12px 16px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid #eee; text-align: right;">${currencyFormatter.format(item.rate)}</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid #eee; text-align: right;">${currencyFormatter.format(item.amount)}</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #eee; text-align: right;">${formatMoney(item.rate, cur)}</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #eee; text-align: right;">${formatMoney(item.amount, cur)}</td>
             </tr>
             """.trimIndent()
         }
@@ -83,7 +99,7 @@ class EmailService(
             """
             <tr>
                 <td style="padding: 8px 16px; text-align: right; color: #555;">Discount</td>
-                <td style="padding: 8px 16px; text-align: right; color: #555;">-${currencyFormatter.format(discountAmount)}</td>
+                <td style="padding: 8px 16px; text-align: right; color: #555;">-${formatMoney(discountAmount, cur)}</td>
             </tr>
             """.trimIndent()
         } else ""
@@ -92,7 +108,7 @@ class EmailService(
             """
             <tr>
                 <td style="padding: 8px 16px; text-align: right; color: #555;">Tax (${invoice.taxRate}%)</td>
-                <td style="padding: 8px 16px; text-align: right; color: #555;">${currencyFormatter.format(taxAmount)}</td>
+                <td style="padding: 8px 16px; text-align: right; color: #555;">${formatMoney(taxAmount, cur)}</td>
             </tr>
             """.trimIndent()
         } else ""
@@ -159,13 +175,13 @@ class EmailService(
                         <table style="width: 100%; max-width: 300px; margin-left: auto;" cellpadding="0" cellspacing="0">
                             <tr>
                                 <td style="padding: 8px 16px; text-align: right; color: #555;">Subtotal</td>
-                                <td style="padding: 8px 16px; text-align: right; color: #555;">${currencyFormatter.format(subtotal)}</td>
+                                <td style="padding: 8px 16px; text-align: right; color: #555;">${formatMoney(subtotal, cur)}</td>
                             </tr>
                             $discountRow
                             $taxRow
                             <tr style="border-top: 2px solid $color;">
                                 <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: $color; font-size: 16px;">Total</td>
-                                <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: $color; font-size: 16px;">${currencyFormatter.format(invoice.totalAmount)}</td>
+                                <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: $color; font-size: 16px;">${formatMoney(invoice.totalAmount, cur)}</td>
                             </tr>
                         </table>
 

@@ -39,6 +39,8 @@ export interface Invoice {
   // Design
   primaryColor: string;
   fontFamily: string;
+  // Currency
+  currency: string;
   // Email
   clientEmail: string;
   emailSubject?: string | null;
@@ -68,6 +70,7 @@ export interface CreateInvoiceRequest {
   dueDate: string;
   primaryColor: string;
   fontFamily: string;
+  currency: string;
   clientEmail: string;
   emailSubject?: string | null;
   emailMessage?: string | null;
@@ -99,6 +102,7 @@ export interface UpdateInvoiceRequest {
   dueDate?: string;
   primaryColor?: string;
   fontFamily?: string;
+  currency?: string;
   clientEmail?: string;
   emailSubject?: string | null;
   emailMessage?: string | null;

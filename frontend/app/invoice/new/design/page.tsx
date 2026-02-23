@@ -9,6 +9,7 @@ import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/currency";
 
 const colors = [
   { name: "Purple", value: "#9747E6" },
@@ -32,7 +33,7 @@ const fonts = [
 export default function DesignPage() {
   const router = useRouter();
 
-  const { storePrimaryColor, storeFontFamily, companyName, invoiceNumber, lineItems } =
+  const { storePrimaryColor, storeFontFamily, companyName, invoiceNumber, lineItems, currency } =
     useInvoiceStore(
       useShallow((s) => ({
         storePrimaryColor: s.primaryColor,
@@ -40,6 +41,7 @@ export default function DesignPage() {
         companyName: s.companyName,
         invoiceNumber: s.invoiceNumber,
         lineItems: s.lineItems,
+        currency: s.currency,
       }))
     );
   const setDesign = useInvoiceStore((s) => s.setDesign);
@@ -141,7 +143,7 @@ export default function DesignPage() {
                   <div className="text-right" style={{ fontFamily }}>
                     <div className="text-xs text-gray-500">Total</div>
                     <div className="text-xl font-bold" style={{ color: primaryColor }}>
-                      ${subtotal.toFixed(2)}
+                      {formatMoney(subtotal, currency || "USD")}
                     </div>
                   </div>
                 </div>

@@ -53,6 +53,10 @@ class Invoice(
     @Column(nullable = false)
     var fontFamily: String = "Inter",
 
+    // Currency
+    @Column(nullable = false)
+    var currency: String = "USD",
+
     // Client (Bill To)
     var clientName: String? = null,
     var clientCompany: String? = null,

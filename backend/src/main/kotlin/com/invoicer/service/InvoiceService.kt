@@ -42,6 +42,7 @@ class InvoiceService(
             dueDate = request.dueDate,
             primaryColor = request.primaryColor,
             fontFamily = request.fontFamily,
+            currency = request.currency,
             clientName = request.clientName,
             clientCompany = request.clientCompany,
             clientAddress = request.clientAddress,
@@ -126,6 +127,7 @@ class InvoiceService(
         request.dueDate?.let { invoice.dueDate = it }
         request.primaryColor?.let { invoice.primaryColor = it }
         request.fontFamily?.let { invoice.fontFamily = it }
+        request.currency?.let { invoice.currency = it }
         request.clientName?.let { invoice.clientName = it }
         request.clientCompany?.let { invoice.clientCompany = it }
         request.clientAddress?.let { invoice.clientAddress = it }
@@ -206,6 +208,7 @@ class InvoiceService(
         dueDate = dueDate,
         primaryColor = primaryColor,
         fontFamily = fontFamily,
+        currency = currency,
         clientName = clientName,
         clientCompany = clientCompany,
         clientAddress = clientAddress,
