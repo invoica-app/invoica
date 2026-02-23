@@ -8,6 +8,7 @@ import com.invoicer.exception.InvoiceAccessDeniedException
 import com.invoicer.exception.InvoiceNotFoundException
 import com.invoicer.exception.DuplicateInvoiceNumberException
 import com.invoicer.repository.InvoiceRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -17,8 +18,10 @@ import java.time.LocalDateTime
 @Service
 @Transactional
 class InvoiceService(
-    private val invoiceRepository: InvoiceRepository
+    private val invoiceRepository: InvoiceRepository,
+    private val emailService: EmailService
 ) {
+    private val logger = LoggerFactory.getLogger(InvoiceService::class.java)
 
     fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
         if (invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)) {
@@ -71,6 +74,16 @@ class InvoiceService(
         invoice.totalAmount = calculateTotal(subtotal, request.discount, request.taxRate)
 
         val savedInvoice = invoiceRepository.save(invoice)
+
+        try {
+            emailService.sendInvoiceEmail(savedInvoice)
+            savedInvoice.status = InvoiceStatus.SENT
+            savedInvoice.updatedAt = LocalDateTime.now()
+            invoiceRepository.save(savedInvoice)
+        } catch (e: Exception) {
+            logger.warn("Failed to send invoice email for ${savedInvoice.invoiceNumber}, invoice saved as DRAFT", e)
+        }
+
         return savedInvoice.toResponse()
     }
 

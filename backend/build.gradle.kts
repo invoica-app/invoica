@@ -41,6 +41,9 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
 
+    // Email
+    implementation("com.resend:resend-java:3.1.0")
+
     // Environment Variables
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 

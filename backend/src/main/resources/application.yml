@@ -33,6 +33,11 @@ admin:
 cors:
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
 
+# Resend Email Configuration
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:}
+
 # Supabase Storage Configuration
 supabase:
   url: ${SUPABASE_URL:}

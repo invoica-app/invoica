@@ -68,8 +68,7 @@ class Invoice(
     var notes: String? = null,
 
     // Email
-    @Column(nullable = false)
-    var clientEmail: String = "",
+    var clientEmail: String? = null,
 
     var emailSubject: String? = null,
 

@@ -116,9 +116,7 @@ export default function InvoiceDetailsPage() {
     if (!dueDate) e.dueDate = "Required";
     if (dueDate && invoiceDate && dueDate < invoiceDate) e.dueDate = "Must be after invoice date";
     if (!clientName.trim()) e.clientName = "Required";
-    if (!clientEmail.trim()) {
-      e.clientEmail = "Required";
-    } else if (!isValidEmail(clientEmail)) {
+    if (clientEmail.trim() && !isValidEmail(clientEmail)) {
       e.clientEmail = "Enter a valid email";
     }
     if (lineItems.length === 0) e.lineItems = "Add at least one item";

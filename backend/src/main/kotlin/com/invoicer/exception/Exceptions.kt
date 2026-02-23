@@ -7,3 +7,5 @@ class DuplicateInvoiceNumberException(message: String) : RuntimeException(messag
 class InvoiceAccessDeniedException(message: String) : RuntimeException(message)
 
 class AdminAccessDeniedException(message: String) : RuntimeException(message)
+
+class EmailSendException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
