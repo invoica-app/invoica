@@ -87,7 +87,12 @@ export default function ReviewPage() {
 
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${data.invoiceNumber || "draft"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -303,7 +308,7 @@ export default function ReviewPage() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {generatingPdf ? "Generating..." : "Preview PDF"}
+                  {generatingPdf ? "Generating..." : "Download PDF"}
                 </Button>
                 <Button onClick={handleSend} disabled={sending || generatingPdf} className="gap-2">
                   {sending ? (
