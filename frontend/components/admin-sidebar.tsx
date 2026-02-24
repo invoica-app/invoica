@@ -84,7 +84,7 @@ export function AdminSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex bg-card border-r border-border py-5 flex-col shrink-0 h-screen sticky top-0 overflow-y-auto transition-all duration-200",
+          "hidden md:flex bg-card border-r border-border py-5 flex-col shrink-0 h-screen sticky top-0 overflow-visible transition-all duration-200",
           expanded ? "w-[240px] px-4" : "w-[60px] px-2"
         )}
       >
@@ -122,7 +122,7 @@ export function AdminSidebar() {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-0.5">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto">
           {adminNavItems.map((item) => (
             <SidebarLink
               key={item.href}

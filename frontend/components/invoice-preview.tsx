@@ -66,10 +66,8 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
             <img
               src={data.companyLogo}
               alt="Logo"
-              className="h-14 object-contain"
+              className="max-h-14 max-w-[160px] w-auto h-auto"
               loading="lazy"
-              width={140}
-              height={56}
             />
           ) : (
             <div className="w-14 h-14 rounded-lg bg-gray-100" />
