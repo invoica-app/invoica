@@ -12,6 +12,7 @@ import { useTheme } from "next-themes";
 import { CURRENCIES } from "@/lib/currency";
 import { LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppFooter } from "@/components/app-footer";
 
 const fonts = [
   { value: "Inter", label: "Inter" },
@@ -241,6 +242,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <AppFooter />
     </>
   );
 }

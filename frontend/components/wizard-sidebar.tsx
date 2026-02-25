@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
@@ -133,9 +134,25 @@ export function WizardSidebar() {
       >
         {/* Top row: logo + collapse toggle */}
         <div className={cn("flex items-center mb-5", expanded ? "justify-between px-2" : "justify-center")}>
-          {expanded && (
-            <Link href="/invoice/new/history" className="text-lg font-semibold tracking-tight">
-              invoica
+          {expanded ? (
+            <Link href="/invoice/new/history">
+              <Image
+                src="/images/logo-full-colored-lightmode.svg"
+                alt="invoica"
+                width={80}
+                height={22}
+                className="dark:brightness-0 dark:invert"
+              />
+            </Link>
+          ) : (
+            <Link href="/invoice/new/history">
+              <Image
+                src="/images/logo-colored-lightmode.svg"
+                alt="invoica"
+                width={9}
+                height={15}
+                className="dark:brightness-0 dark:invert"
+              />
             </Link>
           )}
           <button

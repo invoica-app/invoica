@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
@@ -90,9 +91,26 @@ export function AdminSidebar() {
       >
         {/* Top row: logo + collapse toggle */}
         <div className={cn("flex items-center mb-5", expanded ? "justify-between px-2" : "justify-center")}>
-          {expanded && (
-            <Link href="/admin" className="text-lg font-semibold tracking-tight">
-              invoica <span className="text-xs font-normal text-muted-foreground">admin</span>
+          {expanded ? (
+            <Link href="/admin" className="flex items-center gap-1.5">
+              <Image
+                src="/images/logo-full-colored-lightmode.svg"
+                alt="invoica"
+                width={80}
+                height={22}
+                className="dark:brightness-0 dark:invert"
+              />
+              <span className="text-xs font-normal text-muted-foreground">admin</span>
+            </Link>
+          ) : (
+            <Link href="/admin">
+              <Image
+                src="/images/logo-colored-lightmode.svg"
+                alt="invoica"
+                width={9}
+                height={15}
+                className="dark:brightness-0 dark:invert"
+              />
             </Link>
           )}
           <button
