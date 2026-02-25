@@ -7,9 +7,12 @@ import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
-import { Check } from "lucide-react";
+import { useSettingsStore } from "@/lib/settings-store";
+import { Ban, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/currency";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { DesignSkeleton } from "./loading";
 
 const colors = [
   { name: "Purple", value: "#9747E6" },
@@ -45,9 +48,14 @@ export default function DesignPage() {
       }))
     );
   const setDesign = useInvoiceStore((s) => s.setDesign);
+  const defaultColor = useSettingsStore((s) => s.defaultColor);
 
   const [primaryColor, setPrimaryColor] = useState(storePrimaryColor);
   const [fontFamily, setFontFamily] = useState(storeFontFamily);
+
+  // "" means "use default from settings"
+  const isNone = primaryColor === "";
+  const resolvedColor = primaryColor || defaultColor;
 
   const handleNext = () => {
     setDesign(primaryColor, fontFamily);
@@ -57,7 +65,7 @@ export default function DesignPage() {
   const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <>
+    <HydrationGuard fallback={<DesignSkeleton />}>
       <WizardHeader stepLabel="Step 3 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -74,6 +82,24 @@ export default function DesignPage() {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-3">Color</label>
               <div className="flex flex-wrap gap-3">
+                {/* None — uses default from settings */}
+                <button
+                  onClick={() => setPrimaryColor("")}
+                  className="relative"
+                  title="None (uses default from settings)"
+                >
+                  <div
+                    className={cn(
+                      "w-9 h-9 md:w-11 md:h-11 rounded-full transition-all border-2 border-dashed flex items-center justify-center",
+                      isNone
+                        ? "ring-2 ring-offset-2 ring-foreground/20 ring-offset-background border-muted-foreground/40"
+                        : "border-muted-foreground/20 hover:ring-2 hover:ring-offset-2 hover:ring-foreground/10 hover:ring-offset-background"
+                    )}
+                  >
+                    <Ban className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground/40" />
+                  </div>
+                </button>
+
                 {colors.map((color) => (
                   <button
                     key={color.value}
@@ -131,7 +157,7 @@ export default function DesignPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
-                      style={{ backgroundColor: primaryColor }}
+                      style={{ backgroundColor: resolvedColor }}
                     >
                       {companyName.charAt(0) || "A"}
                     </div>
@@ -142,7 +168,7 @@ export default function DesignPage() {
                   </div>
                   <div className="text-right" style={{ fontFamily }}>
                     <div className="text-xs text-gray-500">Total</div>
-                    <div className="text-xl font-bold" style={{ color: primaryColor }}>
+                    <div className="text-xl font-bold" style={{ color: resolvedColor }}>
                       {formatMoney(subtotal, currency || "USD")}
                     </div>
                   </div>
@@ -159,6 +185,6 @@ export default function DesignPage() {
           </div>
         </div>
       </div>
-    </>
+    </HydrationGuard>
   );
 }

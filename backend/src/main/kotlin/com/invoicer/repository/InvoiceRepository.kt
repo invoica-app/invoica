@@ -24,6 +24,8 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
 
     fun existsByInvoiceNumber(invoiceNumber: String): Boolean
 
+    fun existsByInvoiceNumberAndUserId(invoiceNumber: String, userId: Long): Boolean
+
     fun findByUserId(userId: Long): List<Invoice>
 
     fun findByUserIdAndStatus(userId: Long, status: InvoiceStatus): List<Invoice>

@@ -4,7 +4,9 @@ function Bar({ className }: { className?: string }) {
   return <div className={`bg-muted rounded animate-pulse ${className}`} />;
 }
 
-export default function SettingsLoading() {
+export { SettingsSkeleton as default };
+
+export function SettingsSkeleton() {
   return (
     <>
       <WizardHeader stepLabel="Settings" />

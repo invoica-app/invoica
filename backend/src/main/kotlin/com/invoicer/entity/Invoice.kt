@@ -6,7 +6,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "invoices")
+@Table(
+    name = "invoices",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "invoice_number"])]
+)
 class Invoice(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +40,7 @@ class Invoice(
     var companyEmail: String = "",
 
     // Invoice Details
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     var invoiceNumber: String = "",
 
     @Column(nullable = false)

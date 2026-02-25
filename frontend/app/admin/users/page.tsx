@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Loader2, RefreshCw, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { AdminUser } from "@/lib/admin-api";
 
@@ -85,16 +86,7 @@ export default function AdminUsersPage() {
         </div>
 
         {error && (
-          <div className="mb-4 px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center justify-between">
-            <span>{error}</span>
-            <button
-              onClick={() => fetchUsers(page, search)}
-              className="ml-4 flex items-center gap-1.5 text-destructive hover:text-destructive/80 text-sm font-medium"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Retry
-            </button>
-          </div>
+          <ErrorBanner message={error} onRetry={() => fetchUsers(page, search)} className="mb-4" />
         )}
 
         {loading ? (

@@ -3,6 +3,7 @@
 import { forwardRef, useRef, useState, useEffect, useCallback } from "react";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
+import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
 
 function useInvoiceData() {
@@ -19,6 +20,7 @@ function useInvoiceData() {
       city: state.city,
       zipCode: state.zipCode,
       country: state.country,
+      phoneCode: state.phoneCode,
       phone: state.phone,
       companyEmail: state.companyEmail,
       invoiceNumber: state.invoiceNumber,
@@ -40,6 +42,8 @@ function useInvoiceData() {
 type InvoiceData = ReturnType<typeof useInvoiceData>;
 
 function InvoiceBody({ data }: { data: InvoiceData }) {
+  const defaultColor = useSettingsStore((s) => s.defaultColor);
+  const resolvedColor = data.primaryColor || defaultColor;
   const subtotal = data.lineItems.reduce((sum, item) => sum + item.amount, 0);
   const discountAmount = data.discount || 0;
   const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
@@ -55,7 +59,8 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
     });
   };
 
-  const contactParts = [data.phone, data.companyEmail].filter(Boolean);
+  const combinedPhone = [data.phoneCode, data.phone].filter(Boolean).join(" ");
+  const contactParts = [combinedPhone, data.companyEmail].filter(Boolean);
 
   return (
     <>
@@ -77,7 +82,7 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
         <div className="text-right">
           <div
             className="text-4xl font-light tracking-wide mb-3"
-            style={{ color: data.primaryColor }}
+            style={{ color: resolvedColor }}
           >
             Invoice
           </div>
@@ -273,7 +278,7 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
           {/* Amount Due Box */}
           <div
             className="mt-4 rounded-lg px-4 py-3 border border-gray-200"
-            style={{ borderTopColor: data.primaryColor, borderTopWidth: 3 }}
+            style={{ borderTopColor: resolvedColor, borderTopWidth: 3 }}
           >
             <div className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-1">
               Amount Due

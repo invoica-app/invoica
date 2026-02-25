@@ -4,7 +4,9 @@ function Bar({ className }: { className?: string }) {
   return <div className={`bg-muted rounded animate-pulse ${className}`} />;
 }
 
-export default function HistoryLoading() {
+export { HistorySkeleton as default };
+
+export function HistorySkeleton() {
   return (
     <>
       <WizardHeader stepLabel="Invoice History" />

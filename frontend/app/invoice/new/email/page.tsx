@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { InvoicePreview } from "@/components/invoice-preview";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { EmailSkeleton } from "./loading";
 
 export default function EmailDetailsPage() {
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function EmailDetailsPage() {
   };
 
   return (
-    <>
+    <HydrationGuard fallback={<EmailSkeleton />}>
       <WizardHeader stepLabel="Step 4 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -103,6 +105,6 @@ export default function EmailDetailsPage() {
           </div>
         </div>
       </div>
-    </>
+    </HydrationGuard>
   );
 }

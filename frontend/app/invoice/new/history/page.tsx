@@ -2,16 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, RefreshCw, Trash2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Loader2, RefreshCw, Trash2, Plus, Pencil } from "lucide-react";
 import { NothingDey } from "@/components/nothing-dey";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/lib/auth";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
+import { useInvoiceStore } from "@/lib/store";
 import { Invoice } from "@/lib/types";
 import { WizardHeader } from "@/components/wizard-header";
 import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { HistorySkeleton } from "./loading";
 
 const statusStyles: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",
@@ -21,15 +26,19 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function InvoiceHistoryPage() {
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const api = useAuthenticatedApi();
+  const loadFromInvoice = useInvoiceStore((s) => s.loadFromInvoice);
   const defaultCurrency = useSettingsStore((s) => s.defaultCurrency);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [removingId, setRemovingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -55,18 +64,46 @@ export default function InvoiceHistoryPage() {
     setConfirmDeleteId(null);
     try {
       await api.deleteInvoice(id);
-      setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+      setDeletingId(null);
+      setRemovingId(id);
+      setTimeout(() => {
+        setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+        setRemovingId(null);
+      }, 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete invoice.");
-    } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleEdit = async (id: number) => {
+    setEditingId(id);
+    try {
+      const invoice = await api.getInvoiceById(id);
+      loadFromInvoice(invoice, id);
+      router.push("/invoice/new/company");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load invoice for editing.");
+      setEditingId(null);
     }
   };
 
   const invoiceToDelete = invoices.find((inv) => inv.id === confirmDeleteId);
 
   return (
-    <>
+    <HydrationGuard fallback={<HistorySkeleton />}>
+      <style>{`
+        @keyframes foldCard {
+          0%   { transform: perspective(600px) rotateX(0deg); opacity: 1; }
+          50%  { transform: perspective(600px) rotateX(-80deg) scaleY(0.6); opacity: 0.5; }
+          100% { transform: perspective(600px) rotateX(-90deg) scaleY(0.1); opacity: 0; }
+        }
+        @keyframes collapseRow {
+          0%   { max-height: 120px; margin-bottom: 8px; }
+          100% { max-height: 0; margin-bottom: 0; }
+        }
+      `}</style>
+
       <ConfirmDialog
         open={confirmDeleteId !== null}
         onCancel={() => setConfirmDeleteId(null)}
@@ -89,18 +126,8 @@ export default function InvoiceHistoryPage() {
             </p>
           </div>
 
-          {/* Error */}
           {error && (
-            <div className="mb-6 px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center justify-between">
-              <span>{error}</span>
-              <button
-                onClick={fetchInvoices}
-                className="ml-4 flex items-center gap-1.5 text-destructive hover:text-destructive/80 text-sm font-medium"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Retry
-              </button>
-            </div>
+            <ErrorBanner message={error} onRetry={fetchInvoices} className="mb-6" />
           )}
 
           {/* Loading skeleton */}
@@ -127,52 +154,74 @@ export default function InvoiceHistoryPage() {
           {/* Invoice list */}
           {!loading && !authLoading && invoices.length > 0 && (
             <div className="space-y-2">
-              {invoices.map((invoice) => (
-                <div
-                  key={invoice.id}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border hover:border-border/80 transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-medium">
-                        {invoice.invoiceNumber}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          statusStyles[invoice.status || "DRAFT"]
-                        }`}
-                      >
-                        {invoice.status || "DRAFT"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {invoice.clientEmail}
-                      {invoice.companyName && (
-                        <>
-                          <span className="mx-1.5 opacity-40">/</span>
-                          {invoice.companyName}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 sm:gap-4 ml-3">
-                    <span className="text-sm font-semibold tabular-nums">
-                      {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
-                    </span>
-                    <button
-                      onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
-                      disabled={deletingId === invoice.id}
-                      className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all disabled:opacity-50"
+              {invoices.map((invoice) => {
+                const isRemoving = removingId === invoice.id;
+                return (
+                  <div
+                    key={invoice.id}
+                    className="overflow-hidden"
+                    style={isRemoving ? { animation: "collapseRow 300ms 500ms ease-in forwards" } : undefined}
+                  >
+                    <div
+                      className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border hover:border-border/80 transition-colors group"
+                      style={isRemoving ? { animation: "foldCard 500ms ease-in forwards", transformOrigin: "top center" } : undefined}
                     >
-                      {deletingId === invoice.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
-                      )}
-                    </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-sm font-medium">
+                            {invoice.invoiceNumber}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              statusStyles[invoice.status || "DRAFT"]
+                            }`}
+                          >
+                            {invoice.status || "DRAFT"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {invoice.clientEmail}
+                          {invoice.companyName && (
+                            <>
+                              <span className="mx-1.5 opacity-40">/</span>
+                              {invoice.companyName}
+                            </>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 sm:gap-4 ml-3">
+                        <span className="text-sm font-semibold tabular-nums">
+                          {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
+                        </span>
+                        {(invoice.status || "DRAFT") === "DRAFT" && (
+                          <button
+                            onClick={() => invoice.id && handleEdit(invoice.id)}
+                            disabled={editingId === invoice.id}
+                            className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary transition-all disabled:opacity-50"
+                          >
+                            {editingId === invoice.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Pencil className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
+                          disabled={deletingId === invoice.id}
+                          className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all disabled:opacity-50"
+                        >
+                          {deletingId === invoice.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -198,6 +247,6 @@ export default function InvoiceHistoryPage() {
           )}
         </div>
       </div>
-    </>
+    </HydrationGuard>
   );
 }

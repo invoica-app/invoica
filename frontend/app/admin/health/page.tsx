@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { SystemHealth } from "@/lib/admin-api";
 
@@ -68,16 +69,7 @@ export default function AdminHealthPage() {
     return (
       <div className="p-4 md:p-6">
         <div className="max-w-5xl mx-auto">
-          <div className="px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center justify-between">
-            <span>{error}</span>
-            <button
-              onClick={fetchHealth}
-              className="ml-4 flex items-center gap-1.5 text-destructive hover:text-destructive/80 text-sm font-medium"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Retry
-            </button>
-          </div>
+          <ErrorBanner message={error} onRetry={fetchHealth} />
         </div>
       </div>
     );
@@ -120,9 +112,7 @@ export default function AdminHealthPage() {
         </div>
 
         {error && (
-          <div className="mb-4 px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-            {error}
-          </div>
+          <ErrorBanner message={error} className="mb-4" />
         )}
 
         {/* Health cards */}

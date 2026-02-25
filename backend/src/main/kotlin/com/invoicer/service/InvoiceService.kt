@@ -24,7 +24,7 @@ class InvoiceService(
     private val logger = LoggerFactory.getLogger(InvoiceService::class.java)
 
     fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
-        if (invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)) {
+        if (invoiceRepository.existsByInvoiceNumberAndUserId(request.invoiceNumber, userId)) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }
 
@@ -108,7 +108,7 @@ class InvoiceService(
 
         if (request.invoiceNumber != null &&
             request.invoiceNumber != invoice.invoiceNumber &&
-            invoiceRepository.existsByInvoiceNumber(request.invoiceNumber)
+            invoiceRepository.existsByInvoiceNumberAndUserId(request.invoiceNumber, userId)
         ) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }

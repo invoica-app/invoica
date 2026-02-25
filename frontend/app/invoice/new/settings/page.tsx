@@ -13,6 +13,8 @@ import { CURRENCIES } from "@/lib/currency";
 import { LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppFooter } from "@/components/app-footer";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { SettingsSkeleton } from "./loading";
 
 const fonts = [
   { value: "Inter", label: "Inter" },
@@ -59,7 +61,7 @@ export default function SettingsPage() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <>
+    <HydrationGuard fallback={<SettingsSkeleton />}>
       <WizardHeader stepLabel="Settings" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -106,7 +108,7 @@ export default function SettingsPage() {
                 <select
                   value={settings.defaultCurrency}
                   onChange={(e) => settings.updateSettings({ defaultCurrency: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
+                  className="w-full h-10 px-3 rounded-lg border border-border/60 bg-muted/30 text-sm shadow-sm transition-all duration-200 hover:border-border hover:bg-muted/40 focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:bg-background"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>
@@ -153,12 +155,12 @@ export default function SettingsPage() {
                 <Field label="Prefix" htmlFor="prefix">
                   <Input id="prefix" value={settings.invoicePrefix} onChange={(e) => settings.updateSettings({ invoicePrefix: e.target.value })} placeholder="INV-" />
                 </Field>
-                <Field label="Next number" htmlFor="nextNum">
+                <Field label="Initial number" htmlFor="nextNum">
                   <Input id="nextNum" type="number" value={settings.nextInvoiceNumber} onChange={(e) => settings.updateSettings({ nextInvoiceNumber: parseInt(e.target.value) || 1 })} min={1} />
                 </Field>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Next invoice: <span className="font-medium text-foreground">{settings.getNextInvoiceNumber()}</span>
+                Next invoice: <span className="font-medium text-foreground">{settings.getNextInvoiceNumber()}</span> (auto-increments after each invoice)
               </p>
             </section>
 
@@ -201,7 +203,7 @@ export default function SettingsPage() {
                     id="defFont"
                     value={settings.defaultFont}
                     onChange={(e) => settings.updateSettings({ defaultFont: e.target.value })}
-                    className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
+                    className="w-full h-10 px-3 rounded-lg border border-border/60 bg-muted/30 text-sm shadow-sm transition-all duration-200 hover:border-border hover:bg-muted/40 focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:bg-background"
                   >
                     {fonts.map((f) => (
                       <option key={f.value} value={f.value}>{f.label}</option>
@@ -244,6 +246,6 @@ export default function SettingsPage() {
       </div>
 
       <AppFooter />
-    </>
+    </HydrationGuard>
   );
 }

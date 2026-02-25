@@ -22,27 +22,50 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Invoica - Create Professional Invoices",
+  title: {
+    default: "Invoica - Create Professional Invoices",
+    template: "%s | Invoica",
+  },
   description:
-    "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device. Free to use, no account required.",
+    "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device. Free to use.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://invoica-livid.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://invoica.co"
   ),
   icons: {
     icon: "/icon.svg",
+  },
+  keywords: [
+    "invoice",
+    "invoicing",
+    "invoice generator",
+    "free invoice",
+    "PDF invoice",
+    "send invoice",
+    "billing",
+    "professional invoice",
+    "online invoice",
+  ],
+  authors: [{ name: "Invoica" }],
+  creator: "Invoica",
+  robots: {
+    index: true,
+    follow: true,
   },
   openGraph: {
     title: "Invoica - Invoice clients in minutes, not hours",
     description:
       "Create and send professional invoices in minutes. Supports 9 currencies, PDF export, and works on any device.",
     siteName: "Invoica",
+    url: "https://invoica.co",
     type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
     title: "Invoica - Invoice clients in minutes, not hours",
     description:
-      "Create and send professional invoices in minutes. Free, no account required.",
+      "Create and send professional invoices in minutes. 9 currencies, PDF export, works on any device.",
+    site: "@invoica",
   },
 };
 

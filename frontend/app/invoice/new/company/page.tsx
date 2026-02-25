@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
@@ -10,8 +10,12 @@ import { CountrySelect } from "@/components/ui/country-select";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
+import { useSettingsStore } from "@/lib/settings-store";
+import { getDialCode } from "@/lib/country-codes";
 import { Upload, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { CompanySkeleton } from "./loading";
 
 function Field({
   label,
@@ -33,13 +37,22 @@ function Field({
         {label}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {error && <p className="mt-1.5 text-[11px] text-red-400/80">{error}</p>}
     </div>
   );
 }
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function generatePrefix(companyName: string): string {
+  const words = companyName.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "INV-";
+  if (words.length === 1) {
+    return words[0].slice(0, 3).toUpperCase() + "-";
+  }
+  return words.map((w) => w[0]).join("").toUpperCase() + "-";
 }
 
 export default function CompanyInfoPage() {
@@ -53,6 +66,7 @@ export default function CompanyInfoPage() {
     city,
     zipCode,
     country,
+    phoneCode,
     phone,
     companyEmail,
     companyLogo,
@@ -63,12 +77,14 @@ export default function CompanyInfoPage() {
       city: s.city,
       zipCode: s.zipCode,
       country: s.country,
+      phoneCode: s.phoneCode,
       phone: s.phone,
       companyEmail: s.companyEmail,
       companyLogo: s.companyLogo,
     }))
   );
   const updateCompany = useInvoiceStore((s) => s.updateCompany);
+  const settings = useSettingsStore();
 
   const [formData, setFormData] = useState({
     companyName,
@@ -76,9 +92,18 @@ export default function CompanyInfoPage() {
     city,
     zipCode,
     country,
+    phoneCode,
     phone,
     companyEmail,
   });
+
+  // Auto-populate phoneCode from country if empty (handles migration from old saved state)
+  useEffect(() => {
+    if (formData.country && !formData.phoneCode) {
+      const code = getDialCode(formData.country);
+      if (code) setFormData((prev) => ({ ...prev, phoneCode: code }));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [logoUrl, setLogoUrl] = useState<string | null>(companyLogo);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -154,7 +179,7 @@ export default function CompanyInfoPage() {
   };
 
   return (
-    <>
+    <HydrationGuard fallback={<CompanySkeleton />}>
       <WizardHeader stepLabel="Step 1 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -214,7 +239,7 @@ export default function CompanyInfoPage() {
                   </div>
                 )}
                 {uploadError && (
-                  <p className="mt-1.5 text-xs text-destructive">{uploadError}</p>
+                  <p className="mt-1.5 text-[11px] text-red-400/80">{uploadError}</p>
                 )}
               </div>
 
@@ -224,11 +249,13 @@ export default function CompanyInfoPage() {
                   id="companyName"
                   value={formData.companyName}
                   onChange={(e) => {
-                    setFormData({ ...formData, companyName: e.target.value });
+                    const name = e.target.value;
+                    setFormData({ ...formData, companyName: name });
                     clearError("companyName");
+                    settings.updateSettings({ invoicePrefix: generatePrefix(name) });
                   }}
                   placeholder="Acme Corp"
-                  className={cn(errors.companyName && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.companyName && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
             </div>
@@ -239,7 +266,7 @@ export default function CompanyInfoPage() {
                 value={formData.address}
                 onChange={(e) => { setFormData({ ...formData, address: e.target.value }); clearError("address"); }}
                 placeholder="123 Business St"
-                className={cn(errors.address && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                className={cn(errors.address && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
               />
             </Field>
 
@@ -250,7 +277,7 @@ export default function CompanyInfoPage() {
                   value={formData.city}
                   onChange={(e) => { setFormData({ ...formData, city: e.target.value }); clearError("city"); }}
                   placeholder="Tech City"
-                  className={cn(errors.city && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.city && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Zip / Postal code" htmlFor="zipCode" error={errors.zipCode}>
@@ -259,7 +286,7 @@ export default function CompanyInfoPage() {
                   value={formData.zipCode}
                   onChange={(e) => { setFormData({ ...formData, zipCode: e.target.value }); clearError("zipCode"); }}
                   placeholder="10001"
-                  className={cn(errors.zipCode && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.zipCode && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
             </div>
@@ -267,20 +294,29 @@ export default function CompanyInfoPage() {
             <Field label="Country" error={errors.country}>
               <CountrySelect
                 value={formData.country}
-                onChange={(val) => { setFormData({ ...formData, country: val }); clearError("country"); }}
+                onChange={(val) => { setFormData({ ...formData, country: val, phoneCode: getDialCode(val) }); clearError("country"); }}
                 error={!!errors.country}
               />
             </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Phone" htmlFor="phone" error={errors.phone}>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); clearError("phone"); }}
-                  placeholder="+1 (555) 123-4567"
-                  className={cn(errors.phone && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.phoneCode}
+                    readOnly
+                    tabIndex={-1}
+                    className="w-[72px] text-center text-muted-foreground bg-muted/50 cursor-default"
+                    placeholder="+0"
+                  />
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); clearError("phone"); }}
+                    placeholder="123 456 789"
+                    className={cn("flex-1", errors.phone && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
+                  />
+                </div>
               </Field>
               <Field label="Email" htmlFor="email" error={errors.companyEmail}>
                 <Input
@@ -289,7 +325,7 @@ export default function CompanyInfoPage() {
                   value={formData.companyEmail}
                   onChange={(e) => { setFormData({ ...formData, companyEmail: e.target.value }); clearError("companyEmail"); }}
                   placeholder="billing@acme.com"
-                  className={cn(errors.companyEmail && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.companyEmail && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
             </div>
@@ -303,6 +339,6 @@ export default function CompanyInfoPage() {
           </div>
         </div>
       </div>
-    </>
+    </HydrationGuard>
   );
 }

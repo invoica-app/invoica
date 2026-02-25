@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
-import { CreateInvoiceRequest } from "@/lib/types";
+import { CreateInvoiceRequest, UpdateInvoiceRequest } from "@/lib/types";
 import { InvoicePreview, InvoiceFullPage } from "@/components/invoice-preview";
 import { formatMoney } from "@/lib/currency";
 import { useSettingsStore } from "@/lib/settings-store";
 import { Download, Send, Loader2 } from "lucide-react";
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { ReviewSkeleton } from "./loading";
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -28,6 +31,7 @@ export default function ReviewPage() {
       city: s.city,
       zipCode: s.zipCode,
       country: s.country,
+      phoneCode: s.phoneCode,
       phone: s.phone,
       companyEmail: s.companyEmail,
       invoiceNumber: s.invoiceNumber,
@@ -52,6 +56,7 @@ export default function ReviewPage() {
     }))
   );
   const reset = useInvoiceStore((s) => s.reset);
+  const editingInvoiceId = useInvoiceStore((s) => s.editingInvoiceId);
 
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -122,53 +127,92 @@ export default function ReviewPage() {
 
     setSending(true);
     setError(null);
+    const resolvedColor = data.primaryColor || settings.defaultColor;
     try {
-      const request: CreateInvoiceRequest = {
-        companyName: data.companyName,
-        companyLogo: data.companyLogo,
-        address: data.address,
-        city: data.city,
-        zipCode: data.zipCode,
-        country: data.country,
-        phone: data.phone,
-        companyEmail: data.companyEmail,
-        invoiceNumber: data.invoiceNumber,
-        invoiceDate: data.invoiceDate,
-        dueDate: data.dueDate,
-        primaryColor: data.primaryColor,
-        fontFamily: data.fontFamily,
-        currency: data.currency || "USD",
-        clientEmail: data.clientEmail,
-        emailSubject: data.emailSubject || null,
-        emailMessage: data.emailMessage || null,
-        clientName: data.clientName || null,
-        clientCompany: data.clientCompany || null,
-        clientAddress: data.clientAddress || null,
-        clientCity: data.clientCity || null,
-        clientZip: data.clientZip || null,
-        clientCountry: data.clientCountry || null,
-        taxRate: data.taxRate || null,
-        discount: data.discount || null,
-        notes: data.notes || null,
-        lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
-          description,
-          quantity,
-          rate,
-        })),
-      };
-      await api.createInvoice(request);
-      settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
+      if (editingInvoiceId) {
+        const updateRequest: UpdateInvoiceRequest = {
+          companyName: data.companyName,
+          companyLogo: data.companyLogo,
+          address: data.address,
+          city: data.city,
+          zipCode: data.zipCode,
+          country: data.country,
+          phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
+          companyEmail: data.companyEmail,
+          invoiceNumber: data.invoiceNumber,
+          invoiceDate: data.invoiceDate,
+          dueDate: data.dueDate,
+          primaryColor: resolvedColor,
+          fontFamily: data.fontFamily,
+          currency: data.currency || "USD",
+          clientEmail: data.clientEmail,
+          emailSubject: data.emailSubject || null,
+          emailMessage: data.emailMessage || null,
+          clientName: data.clientName || null,
+          clientCompany: data.clientCompany || null,
+          clientAddress: data.clientAddress || null,
+          clientCity: data.clientCity || null,
+          clientZip: data.clientZip || null,
+          clientCountry: data.clientCountry || null,
+          taxRate: data.taxRate || null,
+          discount: data.discount || null,
+          notes: data.notes || null,
+          lineItems: data.lineItems.map(({ description, quantity, rate, amount }) => ({
+            description,
+            quantity,
+            rate,
+            amount,
+          })),
+        };
+        await api.updateInvoice(editingInvoiceId, updateRequest);
+      } else {
+        const request: CreateInvoiceRequest = {
+          companyName: data.companyName,
+          companyLogo: data.companyLogo,
+          address: data.address,
+          city: data.city,
+          zipCode: data.zipCode,
+          country: data.country,
+          phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
+          companyEmail: data.companyEmail,
+          invoiceNumber: data.invoiceNumber,
+          invoiceDate: data.invoiceDate,
+          dueDate: data.dueDate,
+          primaryColor: resolvedColor,
+          fontFamily: data.fontFamily,
+          currency: data.currency || "USD",
+          clientEmail: data.clientEmail,
+          emailSubject: data.emailSubject || null,
+          emailMessage: data.emailMessage || null,
+          clientName: data.clientName || null,
+          clientCompany: data.clientCompany || null,
+          clientAddress: data.clientAddress || null,
+          clientCity: data.clientCity || null,
+          clientZip: data.clientZip || null,
+          clientCountry: data.clientCountry || null,
+          taxRate: data.taxRate || null,
+          discount: data.discount || null,
+          notes: data.notes || null,
+          lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
+            description,
+            quantity,
+            rate,
+          })),
+        };
+        await api.createInvoice(request);
+        settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
+      }
       reset();
       router.push("/invoice/new/history");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send invoice.");
+      setError(err instanceof Error ? err.message : editingInvoiceId ? "Failed to update invoice." : "Failed to send invoice.");
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <>
+    <HydrationGuard fallback={<ReviewSkeleton />}>
       <WizardHeader stepLabel="Step 5 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -288,11 +332,8 @@ export default function ReviewPage() {
                 </p>
               </div>
 
-              {/* Error */}
               {error && (
-                <div className="px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-                  {error}
-                </div>
+                <ErrorBanner message={error} onDismiss={() => setError(null)} />
               )}
 
               {/* Actions */}
@@ -316,7 +357,7 @@ export default function ReviewPage() {
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                  {sending ? "Sending..." : "Send invoice"}
+                  {sending ? (editingInvoiceId ? "Updating..." : "Sending...") : (editingInvoiceId ? "Update invoice" : "Send invoice")}
                 </Button>
               </div>
             </div>
@@ -340,6 +381,6 @@ export default function ReviewPage() {
       <div className="fixed left-[-9999px] top-0" aria-hidden="true">
         <InvoiceFullPage ref={pdfRef} />
       </div>
-    </>
+    </HydrationGuard>
   );
 }

@@ -77,10 +77,10 @@ export function CountrySelect({
     <div ref={containerRef} className="relative">
       <div
         className={cn(
-          "flex h-10 w-full items-center rounded-lg border bg-transparent px-3 text-sm transition-colors cursor-text",
+          "flex h-10 w-full items-center rounded-lg border bg-muted/30 px-3 text-sm shadow-sm transition-all duration-200 cursor-text hover:border-border hover:bg-muted/40",
           error
-            ? "border-destructive focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive/20"
-            : "border-input focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20"
+            ? "border-red-400/50 focus-within:border-red-400/50 focus-within:ring-2 focus-within:ring-red-400/10"
+            : "border-border/60 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 focus-within:bg-background"
         )}
         onClick={() => {
           inputRef.current?.focus();
@@ -96,7 +96,7 @@ export function CountrySelect({
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={value || placeholder}
-          className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/60 min-w-0"
+          className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/50 min-w-0"
           autoComplete="off"
         />
         <ChevronDown className={cn(

@@ -14,6 +14,8 @@ import { useSettingsStore } from "@/lib/settings-store";
 import { CURRENCIES, formatMoney } from "@/lib/currency";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HydrationGuard } from "@/components/hydration-guard";
+import { DetailsSkeleton } from "./loading";
 
 function Field({
   label,
@@ -38,7 +40,7 @@ function Field({
         {optional && <span className="ml-1 opacity-50">optional</span>}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {error && <p className="mt-1.5 text-[11px] text-red-400/80">{error}</p>}
     </div>
   );
 }
@@ -136,7 +138,7 @@ export default function InvoiceDetailsPage() {
   };
 
   return (
-    <>
+    <HydrationGuard fallback={<DetailsSkeleton />}>
       <WizardHeader stepLabel="Step 2 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
@@ -158,7 +160,7 @@ export default function InvoiceDetailsPage() {
                   value={invoiceNumber}
                   onChange={(e) => { setInvoiceNumber(e.target.value); setErrors((p) => ({ ...p, invoiceNumber: "" })); }}
                   placeholder="INV-001"
-                  className={cn(errors.invoiceNumber && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.invoiceNumber && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Date" htmlFor="invoiceDate" error={errors.invoiceDate}>
@@ -167,7 +169,7 @@ export default function InvoiceDetailsPage() {
                   type="date"
                   value={invoiceDate}
                   onChange={(e) => { setInvoiceDate(e.target.value); setErrors((p) => ({ ...p, invoiceDate: "" })); }}
-                  className={cn(errors.invoiceDate && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.invoiceDate && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Due date" htmlFor="dueDate" error={errors.dueDate}>
@@ -176,7 +178,7 @@ export default function InvoiceDetailsPage() {
                   type="date"
                   value={dueDate}
                   onChange={(e) => { setDueDate(e.target.value); setErrors((p) => ({ ...p, dueDate: "" })); }}
-                  className={cn(errors.dueDate && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.dueDate && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Currency" htmlFor="currency">
@@ -184,7 +186,7 @@ export default function InvoiceDetailsPage() {
                   id="currency"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/20"
+                  className="flex h-10 w-full rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm shadow-sm transition-all duration-200 hover:border-border hover:bg-muted/40 focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:bg-background"
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
@@ -206,7 +208,7 @@ export default function InvoiceDetailsPage() {
                   value={clientName}
                   onChange={(e) => { setClientName(e.target.value); setErrors((p) => ({ ...p, clientName: "" })); }}
                   placeholder="John Doe"
-                  className={cn(errors.clientName && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.clientName && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Company" htmlFor="clientCompany" optional>
@@ -219,7 +221,7 @@ export default function InvoiceDetailsPage() {
                   value={clientEmail}
                   onChange={(e) => { setClientEmail(e.target.value); setErrors((p) => ({ ...p, clientEmail: "" })); }}
                   placeholder="client@example.com"
-                  className={cn(errors.clientEmail && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20")}
+                  className={cn(errors.clientEmail && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
               <Field label="Address" htmlFor="clientAddress">
@@ -259,7 +261,7 @@ export default function InvoiceDetailsPage() {
             </div>
 
             {errors.lineItems && (
-              <p className="mb-3 text-xs text-destructive">{errors.lineItems}</p>
+              <p className="mb-3 text-[11px] text-red-400/80">{errors.lineItems}</p>
             )}
 
             {/* Desktop table */}
@@ -431,6 +433,6 @@ export default function InvoiceDetailsPage() {
           </div>
         </div>
       </div>
-    </>
+    </HydrationGuard>
   );
 }

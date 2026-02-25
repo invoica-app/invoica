@@ -4,7 +4,9 @@ function Bar({ className }: { className?: string }) {
   return <div className={`bg-muted rounded animate-pulse ${className}`} />;
 }
 
-export default function EmailLoading() {
+export { EmailSkeleton as default };
+
+export function EmailSkeleton() {
   return (
     <>
       <WizardHeader stepLabel="Step 4 of 5" />

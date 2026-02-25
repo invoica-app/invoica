@@ -1,5 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Invoice } from "./types";
+import { splitPhoneString } from "./country-codes";
+import { useSettingsStore } from "./settings-store";
 
 export interface LineItem {
   id: string;
@@ -17,6 +20,7 @@ interface InvoiceStore {
   city: string;
   zipCode: string;
   country: string;
+  phoneCode: string;
   phone: string;
   companyEmail: string;
 
@@ -54,6 +58,9 @@ interface InvoiceStore {
   // Draft saved timestamp
   lastSaved: string;
 
+  // Editing state
+  editingInvoiceId: number | null;
+
   // Actions
   updateCompany: (data: Partial<InvoiceStore>) => void;
   updateInvoice: (data: Partial<InvoiceStore>) => void;
@@ -63,50 +70,56 @@ interface InvoiceStore {
   updateLineItem: (id: string, data: Partial<LineItem>) => void;
   setDesign: (color: string, font: string) => void;
   updateEmail: (data: Partial<InvoiceStore>) => void;
+  loadFromInvoice: (invoice: Invoice, id: number) => void;
   reset: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
-const initialState = {
-  companyLogo: null,
-  companyName: "",
-  address: "",
-  city: "",
-  zipCode: "",
-  country: "",
-  phone: "",
-  companyEmail: "",
-  invoiceNumber: "",
-  invoiceDate: new Date().toISOString().split("T")[0],
-  dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0],
-  lineItems: [] as { id: string; description: string; quantity: number; rate: number; amount: number }[],
-  primaryColor: "#9747E6",
-  fontFamily: "Inter",
-  currency: "USD",
-  clientEmail: "",
-  emailSubject: "",
-  emailMessage: "",
-  // Client (Bill To) fields
-  clientName: "",
-  clientCompany: "",
-  clientAddress: "",
-  clientCity: "",
-  clientZip: "",
-  clientCountry: "",
-  // Tax, Discount, Notes
-  taxRate: 0,
-  discount: 0,
-  notes: "",
-  lastSaved: new Date().toISOString(),
-};
+function getInitialState() {
+  const settings = useSettingsStore.getState();
+  return {
+    companyLogo: null,
+    companyName: "",
+    address: "",
+    city: "",
+    zipCode: "00233",
+    country: "Ghana",
+    phoneCode: "+233",
+    phone: "",
+    companyEmail: "",
+    invoiceNumber: "",
+    invoiceDate: new Date().toISOString().split("T")[0],
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    lineItems: [] as { id: string; description: string; quantity: number; rate: number; amount: number }[],
+    primaryColor: "",
+    fontFamily: settings.defaultFont || "Inter",
+    currency: settings.defaultCurrency || "USD",
+    clientEmail: "",
+    emailSubject: "",
+    emailMessage: "",
+    // Client (Bill To) fields
+    clientName: "",
+    clientCompany: "",
+    clientAddress: "",
+    clientCity: "",
+    clientZip: "",
+    clientCountry: "",
+    // Tax, Discount, Notes
+    taxRate: 0,
+    discount: 0,
+    notes: "",
+    lastSaved: new Date().toISOString(),
+    editingInvoiceId: null,
+  };
+}
 
 export const useInvoiceStore = create<InvoiceStore>()(
   persist(
     (set, get) => ({
-      ...initialState,
+      ...getInitialState(),
 
       updateCompany: (data) =>
         set({
@@ -176,7 +189,49 @@ export const useInvoiceStore = create<InvoiceStore>()(
           lastSaved: new Date().toISOString(),
         }),
 
-      reset: () => set({ ...initialState, lastSaved: new Date().toISOString() }),
+      loadFromInvoice: (invoice: Invoice, id: number) => {
+        const { phoneCode, localNumber } = splitPhoneString(invoice.phone, invoice.country);
+        return set({
+          editingInvoiceId: id,
+          companyName: invoice.companyName,
+          companyLogo: invoice.companyLogo ?? null,
+          address: invoice.address,
+          city: invoice.city,
+          zipCode: invoice.zipCode,
+          country: invoice.country,
+          phoneCode,
+          phone: localNumber,
+          companyEmail: invoice.companyEmail,
+          invoiceNumber: invoice.invoiceNumber,
+          invoiceDate: invoice.invoiceDate,
+          dueDate: invoice.dueDate,
+          primaryColor: invoice.primaryColor,
+          fontFamily: invoice.fontFamily,
+          currency: invoice.currency,
+          clientEmail: invoice.clientEmail,
+          emailSubject: invoice.emailSubject ?? "",
+          emailMessage: invoice.emailMessage ?? "",
+          clientName: invoice.clientName ?? "",
+          clientCompany: invoice.clientCompany ?? "",
+          clientAddress: invoice.clientAddress ?? "",
+          clientCity: invoice.clientCity ?? "",
+          clientZip: invoice.clientZip ?? "",
+          clientCountry: invoice.clientCountry ?? "",
+          taxRate: invoice.taxRate ?? 0,
+          discount: invoice.discount ?? 0,
+          notes: invoice.notes ?? "",
+          lineItems: invoice.lineItems.map((item) => ({
+            id: generateId(),
+            description: item.description,
+            quantity: item.quantity,
+            rate: item.rate,
+            amount: item.quantity * item.rate,
+          })),
+          lastSaved: new Date().toISOString(),
+        });
+      },
+
+      reset: () => set({ ...getInitialState(), lastSaved: new Date().toISOString() }),
     }),
     {
       name: "invoice-storage",

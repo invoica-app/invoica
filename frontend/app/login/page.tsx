@@ -3,13 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
-import { Copy, ExternalLink, Check } from "lucide-react";
+import { Copy, ExternalLink, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
-const APP_URL = "https://invoica-livid.vercel.app";
+const APP_URL = "https://invoica.co";
 
 
 function useIsSnapchat() {
@@ -131,8 +131,11 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="mb-5 px-3 py-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-                {error}
+              <div className="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-sm mb-5">
+                <div className="mt-0.5 shrink-0 rounded-full bg-red-500/10 p-1">
+                  <AlertCircle className="h-3.5 w-3.5 text-red-500/70" />
+                </div>
+                <p className="flex-1 text-muted-foreground leading-relaxed">{error}</p>
               </div>
             )}
 

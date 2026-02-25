@@ -4,7 +4,9 @@ function Bar({ className }: { className?: string }) {
   return <div className={`bg-muted rounded animate-pulse ${className}`} />;
 }
 
-export default function CompanyLoading() {
+export { CompanySkeleton as default };
+
+export function CompanySkeleton() {
   return (
     <>
       <WizardHeader stepLabel="Step 1 of 5" />
@@ -53,7 +55,10 @@ export default function CompanyLoading() {
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Bar className="h-3 w-14" />
-              <Bar className="h-10 w-full" />
+              <div className="flex gap-2">
+                <Bar className="h-10 w-[72px]" />
+                <Bar className="h-10 flex-1" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Bar className="h-3 w-12" />
