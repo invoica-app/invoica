@@ -103,10 +103,24 @@ export default function InvoiceHistoryPage() {
             </div>
           )}
 
-          {/* Loading */}
+          {/* Loading skeleton */}
           {(loading || authLoading) && (
-            <div className="flex justify-center py-20">
-              <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border"
+                >
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                      <div className="h-4 w-12 bg-muted rounded animate-pulse" />
+                    </div>
+                    <div className="h-3 w-40 bg-muted/60 rounded animate-pulse" />
+                  </div>
+                  <div className="h-4 w-16 bg-muted rounded animate-pulse ml-3" />
+                </div>
+              ))}
             </div>
           )}
 

@@ -140,16 +140,17 @@ export default function InvoiceDetailsPage() {
       <WizardHeader stepLabel="Step 2 of 5" />
 
       <div className="flex-1 p-4 md:p-6 overflow-auto">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-6">
+        <div className="max-w-3xl mx-auto space-y-8">
+          <div>
             <h1 className="text-lg font-semibold mb-0.5">Invoice Details</h1>
             <p className="text-sm text-muted-foreground">
               Invoice number, dates, client info, and line items.
             </p>
           </div>
 
-          {/* Invoice info */}
-          <section className="mb-8">
+          {/* ─── Invoice Meta ─── */}
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Invoice info</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <Field label="Invoice #" htmlFor="invoiceNumber" error={errors.invoiceNumber}>
                 <Input
@@ -193,10 +194,12 @@ export default function InvoiceDetailsPage() {
             </div>
           </section>
 
-          {/* Bill To */}
-          <section className="mb-8">
+          <div className="border-t border-border/40" />
+
+          {/* ─── Bill To ─── */}
+          <section>
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Bill to</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Name" htmlFor="clientName" error={errors.clientName}>
                 <Input
                   id="clientName"
@@ -240,129 +243,161 @@ export default function InvoiceDetailsPage() {
             </div>
           </section>
 
-          {/* Line Items */}
-          <section className="mb-8">
+          <div className="border-t border-border/40" />
+
+          {/* ─── Line Items ─── */}
+          <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Line items</h2>
               <button
                 onClick={() => { addLineItem(); setErrors((p) => ({ ...p, lineItems: "" })); }}
-                className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                className="text-sm text-[#9747E6] hover:underline transition-colors font-medium"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 inline mr-1" />
                 Add item
               </button>
             </div>
 
             {errors.lineItems && (
-              <p className="mb-2 text-xs text-destructive">{errors.lineItems}</p>
+              <p className="mb-3 text-xs text-destructive">{errors.lineItems}</p>
             )}
 
             {/* Desktop table */}
-            <div className="hidden md:block border border-border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-muted/40">
-                    <th className="px-3 py-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Description</th>
-                    <th className="px-3 py-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wider w-20">Qty</th>
-                    <th className="px-3 py-2 text-left text-[11px] font-medium text-muted-foreground uppercase tracking-wider w-28">Rate</th>
-                    <th className="px-3 py-2 text-right text-[11px] font-medium text-muted-foreground uppercase tracking-wider w-28">Amount</th>
-                    <th className="px-3 py-2 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {lineItems.map((item) => (
-                    <tr key={item.id} className="group">
-                      <td className="px-3 py-1">
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
-                          className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
-                          placeholder="Service description"
-                        />
-                      </td>
-                      <td className="px-3 py-1">
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateLineItem(item.id, { quantity: parseInt(e.target.value) || 0 })}
-                          className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
-                        />
-                      </td>
-                      <td className="px-3 py-1">
-                        <Input
-                          type="number"
-                          value={item.rate}
-                          onChange={(e) => updateLineItem(item.id, { rate: parseFloat(e.target.value) || 0 })}
-                          className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
-                        />
-                      </td>
-                      <td className="px-3 py-1 text-right text-sm font-medium tabular-nums">
+            <div className="hidden md:block">
+              {lineItems.length > 0 && (
+                <div className="border border-border rounded-lg overflow-hidden">
+                  {/* Header */}
+                  <div className="grid grid-cols-[1fr_72px_100px_100px_40px] gap-0 bg-muted/40 px-3 py-2">
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Description</span>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Qty</span>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Rate</span>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider text-right">Amount</span>
+                    <span />
+                  </div>
+                  {/* Rows */}
+                  {lineItems.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "grid grid-cols-[1fr_72px_100px_100px_40px] gap-0 items-center px-3 py-1 group",
+                        idx < lineItems.length - 1 && "border-b border-gray-100 dark:border-gray-800/50"
+                      )}
+                    >
+                      <Input
+                        value={item.description}
+                        onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
+                        className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
+                        placeholder="Service description"
+                      />
+                      <Input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => updateLineItem(item.id, { quantity: parseInt(e.target.value) || 0 })}
+                        className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
+                      />
+                      <Input
+                        type="number"
+                        value={item.rate}
+                        onChange={(e) => updateLineItem(item.id, { rate: parseFloat(e.target.value) || 0 })}
+                        className="border-0 shadow-none h-9 px-1 rounded-md focus-visible:ring-0 focus-visible:bg-muted/30"
+                      />
+                      <span className="text-sm font-medium tabular-nums text-right pr-1">
                         {formatMoney(item.amount, currency)}
-                      </td>
-                      <td className="px-3 py-1 text-center">
-                        <button
-                          onClick={() => removeLineItem(item.id)}
-                          className="text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
+                      </span>
+                      <button
+                        onClick={() => removeLineItem(item.id)}
+                        className="flex justify-center text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
-                  {lineItems.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                        No items yet. Click &quot;Add item&quot; to start.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                </div>
+              )}
+
+              {lineItems.length === 0 && (
+                <div className="border border-dashed border-border rounded-lg py-10 text-center">
+                  <p className="text-sm text-muted-foreground">No items yet. Click &quot;Add item&quot; to start.</p>
+                </div>
+              )}
             </div>
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-2">
               {lineItems.map((item) => (
-                <div key={item.id} className="border border-border rounded-lg p-3 space-y-2">
+                <div key={item.id} className="border border-border rounded-lg p-3 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <Input
                       value={item.description}
                       onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
-                      className="h-9 flex-1"
+                      className="h-10 flex-1"
                       placeholder="Description"
                     />
                     <button
                       onClick={() => removeLineItem(item.id)}
-                      className="mt-2 text-muted-foreground hover:text-destructive shrink-0"
+                      className="mt-2.5 text-muted-foreground hover:text-destructive shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-[11px] text-muted-foreground mb-0.5 block">Qty</label>
-                      <Input type="number" value={item.quantity} onChange={(e) => updateLineItem(item.id, { quantity: parseInt(e.target.value) || 0 })} className="h-9" />
+                      <label className="text-[11px] text-muted-foreground mb-1 block">Qty</label>
+                      <Input type="number" value={item.quantity} onChange={(e) => updateLineItem(item.id, { quantity: parseInt(e.target.value) || 0 })} className="h-10" />
                     </div>
                     <div>
-                      <label className="text-[11px] text-muted-foreground mb-0.5 block">Rate</label>
-                      <Input type="number" value={item.rate} onChange={(e) => updateLineItem(item.id, { rate: parseFloat(e.target.value) || 0 })} className="h-9" />
+                      <label className="text-[11px] text-muted-foreground mb-1 block">Rate</label>
+                      <Input type="number" value={item.rate} onChange={(e) => updateLineItem(item.id, { rate: parseFloat(e.target.value) || 0 })} className="h-10" />
                     </div>
-                    <div className="flex items-end justify-end pb-1">
-                      <span className="text-sm font-medium tabular-nums">{formatMoney(item.amount, currency)}</span>
+                    <div className="flex flex-col justify-end">
+                      <label className="text-[11px] text-muted-foreground mb-1 block">Amount</label>
+                      <span className="text-sm font-medium tabular-nums h-10 flex items-center justify-end">{formatMoney(item.amount, currency)}</span>
                     </div>
                   </div>
                 </div>
               ))}
               {lineItems.length === 0 && (
-                <p className="text-center py-8 text-sm text-muted-foreground">No items yet.</p>
+                <div className="border border-dashed border-border rounded-lg py-10 text-center">
+                  <p className="text-sm text-muted-foreground">No items yet.</p>
+                </div>
               )}
+            </div>
+
+            {/* Totals */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+              <div className="flex justify-end">
+                <div className="w-full md:w-64 space-y-1.5 text-sm">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-destructive">
+                      <span>Discount</span>
+                      <span className="tabular-nums">-{formatMoney(discountAmount, currency)}</span>
+                    </div>
+                  )}
+                  {taxRate > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Tax ({taxRate}%)</span>
+                      <span className="tabular-nums">{formatMoney(taxAmount, currency)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-semibold text-base pt-2 border-t border-border">
+                    <span>Total</span>
+                    <span className="tabular-nums">{formatMoney(total, currency)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Tax, Discount, Notes */}
-          <section className="mb-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Adjustments</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="border-t border-border/40" />
+
+          {/* ─── Adjustments & Notes ─── */}
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Adjustments & notes</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Tax rate (%)" htmlFor="taxRate">
                 <Input
                   id="taxRate" type="number" step="0.1" min="0" max="100"
@@ -379,41 +414,16 @@ export default function InvoiceDetailsPage() {
                   placeholder="0.00"
                 />
               </Field>
-              <div className="sm:col-span-2 md:col-span-1">
-                <Field label="Notes / Terms" htmlFor="notes">
-                  <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Payment terms..." />
+              <div className="sm:col-span-2">
+                <Field label="Notes / Terms" htmlFor="notes" optional>
+                  <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Payment terms, bank details, thank you note..." />
                 </Field>
               </div>
             </div>
           </section>
 
-          {/* Totals */}
-          <div className="flex justify-end mb-2">
-            <div className="w-full md:w-64 space-y-1.5 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Subtotal</span>
-                <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
-              </div>
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-destructive">
-                  <span>Discount</span>
-                  <span className="tabular-nums">-{formatMoney(discountAmount, currency)}</span>
-                </div>
-              )}
-              {taxRate > 0 && (
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Tax ({taxRate}%)</span>
-                  <span className="tabular-nums">{formatMoney(taxAmount, currency)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-semibold text-base pt-1.5 border-t border-border">
-                <span>Total</span>
-                <span className="tabular-nums">{formatMoney(total, currency)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between mt-6 pt-6 border-t border-border/50">
+          {/* Footer nav */}
+          <div className="flex justify-between pt-6 border-t border-border/50">
             <Button variant="ghost" asChild>
               <Link href="/invoice/new/company">Back</Link>
             </Button>
