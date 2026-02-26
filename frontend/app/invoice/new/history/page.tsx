@@ -99,7 +99,7 @@ export default function InvoiceHistoryPage() {
           100% { transform: perspective(600px) rotateX(-90deg) scaleY(0.1); opacity: 0; }
         }
         @keyframes collapseRow {
-          0%   { max-height: 120px; margin-bottom: 8px; }
+          0%   { max-height: 200px; margin-bottom: 8px; }
           100% { max-height: 0; margin-bottom: 0; }
         }
       `}</style>
@@ -117,7 +117,7 @@ export default function InvoiceHistoryPage() {
 
       <WizardHeader stepLabel="Invoice History" />
 
-      <div className="flex-1 p-4 md:p-6 overflow-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-auto overflow-x-hidden">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6">
             <h1 className="text-lg font-semibold mb-0.5">Invoices</h1>
@@ -136,16 +136,19 @@ export default function InvoiceHistoryPage() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border"
+                  className="p-3 sm:p-4 bg-card rounded-lg border border-border overflow-hidden"
                 >
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
-                      <div className="h-4 w-12 bg-muted rounded animate-pulse" />
+                  <div className="flex items-start sm:items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                        <div className="h-4 w-12 bg-muted rounded animate-pulse" />
+                      </div>
+                      <div className="h-3 w-40 max-w-full bg-muted/60 rounded animate-pulse" />
                     </div>
-                    <div className="h-3 w-40 bg-muted/60 rounded animate-pulse" />
+                    <div className="h-4 w-16 bg-muted rounded animate-pulse shrink-0 hidden sm:block" />
                   </div>
-                  <div className="h-4 w-16 bg-muted rounded animate-pulse ml-3" />
+                  <div className="h-4 w-20 bg-muted rounded animate-pulse mt-1.5 ml-auto sm:hidden" />
                 </div>
               ))}
             </div>
@@ -163,61 +166,67 @@ export default function InvoiceHistoryPage() {
                     style={isRemoving ? { animation: "collapseRow 300ms 500ms ease-in forwards" } : undefined}
                   >
                     <div
-                      className="flex items-center justify-between p-3 sm:p-4 bg-card rounded-lg border border-border hover:border-border/80 transition-colors group"
+                      className="p-3 sm:p-4 bg-card rounded-lg border border-border hover:border-border/80 transition-colors group overflow-hidden"
                       style={isRemoving ? { animation: "foldCard 500ms ease-in forwards", transformOrigin: "top center" } : undefined}
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-medium">
-                            {invoice.invoiceNumber}
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                              statusStyles[invoice.status || "DRAFT"]
-                            }`}
-                          >
-                            {invoice.status || "DRAFT"}
-                          </span>
+                      <div className="flex items-start sm:items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-sm font-medium truncate">
+                              {invoice.invoiceNumber}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${
+                                statusStyles[invoice.status || "DRAFT"]
+                              }`}
+                            >
+                              {invoice.status || "DRAFT"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {invoice.clientEmail}
+                            {invoice.companyName && (
+                              <>
+                                <span className="mx-1.5 opacity-40">/</span>
+                                {invoice.companyName}
+                              </>
+                            )}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {invoice.clientEmail}
-                          {invoice.companyName && (
-                            <>
-                              <span className="mx-1.5 opacity-40">/</span>
-                              {invoice.companyName}
-                            </>
+                        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                          <span className="text-sm font-semibold tabular-nums hidden sm:block">
+                            {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
+                          </span>
+                          {(invoice.status || "DRAFT") === "DRAFT" && (
+                            <button
+                              onClick={() => invoice.id && handleEdit(invoice.id)}
+                              disabled={editingId === invoice.id}
+                              className="p-1.5 text-muted-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-primary transition-all disabled:opacity-50"
+                            >
+                              {editingId === invoice.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Pencil className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           )}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 sm:gap-4 ml-3">
-                        <span className="text-sm font-semibold tabular-nums">
-                          {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
-                        </span>
-                        {(invoice.status || "DRAFT") === "DRAFT" && (
                           <button
-                            onClick={() => invoice.id && handleEdit(invoice.id)}
-                            disabled={editingId === invoice.id}
-                            className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary transition-all disabled:opacity-50"
+                            onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
+                            disabled={deletingId === invoice.id}
+                            className="p-1.5 text-muted-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-destructive transition-all disabled:opacity-50"
                           >
-                            {editingId === invoice.id ? (
+                            {deletingId === invoice.id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
-                              <Pencil className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             )}
                           </button>
-                        )}
-                        <button
-                          onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
-                          disabled={deletingId === invoice.id}
-                          className="p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all disabled:opacity-50"
-                        >
-                          {deletingId === invoice.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                        </div>
                       </div>
+                      {/* Mobile: amount on its own row */}
+                      <p className="text-sm font-semibold tabular-nums text-right mt-1.5 sm:hidden">
+                        {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
+                      </p>
                     </div>
                   </div>
                 );
