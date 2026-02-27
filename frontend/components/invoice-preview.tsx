@@ -5,6 +5,8 @@ import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
+import { findPhoneCountry } from "@/lib/phone-countries";
+import type { PaymentMethodType, MomoProvider } from "@/lib/types";
 
 function useInvoiceData() {
   return useInvoiceStore(
@@ -35,11 +37,74 @@ function useInvoiceData() {
       clientCountry: state.clientCountry,
       notes: state.notes,
       currency: state.currency,
+      paymentMethod: state.paymentMethod,
+      momoProvider: state.momoProvider,
+      momoAccountName: state.momoAccountName,
+      momoNumber: state.momoNumber,
+      momoCountryCode: state.momoCountryCode,
+      bankName: state.bankName,
+      bankAccountName: state.bankAccountName,
+      bankAccountNumber: state.bankAccountNumber,
+      bankBranch: state.bankBranch,
+      bankSwiftCode: state.bankSwiftCode,
     }))
   );
 }
 
 type InvoiceData = ReturnType<typeof useInvoiceData>;
+
+const MOMO_LABELS: Record<MomoProvider, string> = {
+  mtn: "MTN Mobile Money",
+  telecel: "Telecel Cash",
+  airteltigo: "AirtelTigo Money",
+};
+
+function PaymentDetails({ data }: { data: InvoiceData }) {
+  const hasPaymentInfo =
+    data.paymentMethod === "momo"
+      ? !!(data.momoAccountName || data.momoNumber)
+      : !!(data.bankAccountName || data.bankAccountNumber);
+
+  if (!hasPaymentInfo) return null;
+
+  const momoCountry = findPhoneCountry(data.momoCountryCode);
+  const momoDialCode = momoCountry?.dialCode ?? "+233";
+
+  return (
+    <div>
+      <div className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-1.5">
+        Payment Details
+      </div>
+      {data.paymentMethod === "momo" ? (
+        <div className="text-xs text-gray-500 space-y-0.5 leading-relaxed">
+          <div className="text-gray-700 font-medium">
+            {MOMO_LABELS[data.momoProvider]}
+          </div>
+          {data.momoAccountName && <div>{data.momoAccountName}</div>}
+          {data.momoNumber && (
+            <div>
+              {momoDialCode} {data.momoNumber}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-xs text-gray-500 space-y-0.5 leading-relaxed">
+          {data.bankName && (
+            <div className="text-gray-700 font-medium">{data.bankName}</div>
+          )}
+          {data.bankAccountName && <div>{data.bankAccountName}</div>}
+          {data.bankAccountNumber && (
+            <div style={{ fontFamily: "monospace" }}>
+              {data.bankAccountNumber}
+            </div>
+          )}
+          {data.bankBranch && <div>Branch: {data.bankBranch}</div>}
+          {data.bankSwiftCode && <div>SWIFT: {data.bankSwiftCode}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function InvoiceBody({ data }: { data: InvoiceData }) {
   const defaultColor = useSettingsStore((s) => s.defaultColor);
@@ -224,20 +289,21 @@ function InvoiceBody({ data }: { data: InvoiceData }) {
         </tbody>
       </table>
 
-      {/* Footer: Notes left, Totals right */}
+      {/* Footer: Notes + Payment left, Totals right */}
       <div className="flex justify-between items-start">
-        {/* Notes */}
-        <div className="max-w-[320px]">
+        {/* Notes & Payment */}
+        <div className="max-w-[320px] space-y-4">
           {data.notes && (
-            <>
+            <div>
               <div className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-1.5">
                 Notes / Terms
               </div>
               <p className="text-xs text-gray-500 leading-relaxed whitespace-pre-line">
                 {data.notes}
               </p>
-            </>
+            </div>
           )}
+          <PaymentDetails data={data} />
         </div>
 
         {/* Totals */}

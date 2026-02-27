@@ -7,11 +7,14 @@ import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CountrySelect } from "@/components/ui/country-select";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { useSettingsStore } from "@/lib/settings-store";
 import { getDialCode } from "@/lib/country-codes";
+import { findPhoneCountry } from "@/lib/phone-countries";
+import type { PhoneCountry } from "@/lib/phone-countries";
 import { Upload, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HydrationGuard } from "@/components/hydration-guard";
@@ -86,15 +89,20 @@ export default function CompanyInfoPage() {
   const updateCompany = useInvoiceStore((s) => s.updateCompany);
   const settings = useSettingsStore();
 
-  const [formData, setFormData] = useState({
-    companyName,
-    address,
-    city,
-    zipCode,
-    country,
-    phoneCode,
-    phone,
-    companyEmail,
+  const [formData, setFormData] = useState(() => {
+    // Resolve initial phone country ISO code from country name
+    const pc = findPhoneCountry(country);
+    return {
+      companyName,
+      address,
+      city,
+      zipCode,
+      country,
+      phoneCode,
+      phoneCountryCode: pc?.iso ?? "GH",
+      phone,
+      companyEmail,
+    };
   });
 
   // Auto-populate phoneCode from country if empty (handles migration from old saved state)
@@ -294,29 +302,36 @@ export default function CompanyInfoPage() {
             <Field label="Country" error={errors.country}>
               <CountrySelect
                 value={formData.country}
-                onChange={(val) => { setFormData({ ...formData, country: val, phoneCode: getDialCode(val) }); clearError("country"); }}
+                onChange={(val) => {
+                  const dialCode = getDialCode(val);
+                  const pc = findPhoneCountry(val);
+                  setFormData((prev) => ({
+                    ...prev,
+                    country: val,
+                    phoneCode: dialCode,
+                    ...(pc ? { phoneCountryCode: pc.iso } : {}),
+                  }));
+                  clearError("country");
+                }}
                 error={!!errors.country}
               />
             </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Phone" htmlFor="phone" error={errors.phone}>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.phoneCode}
-                    readOnly
-                    tabIndex={-1}
-                    className="w-[72px] text-center text-muted-foreground bg-muted/50 cursor-default"
-                    placeholder="+0"
-                  />
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); clearError("phone"); }}
-                    placeholder="123 456 789"
-                    className={cn("flex-1", errors.phone && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
-                  />
-                </div>
+              <Field label="Phone" error={errors.phone}>
+                <PhoneInput
+                  countryCode={formData.phoneCountryCode}
+                  value={formData.phone}
+                  onChange={(val) => { setFormData((prev) => ({ ...prev, phone: val })); clearError("phone"); }}
+                  onCountryChange={(c: PhoneCountry) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      phoneCode: c.dialCode,
+                      phoneCountryCode: c.iso,
+                    }));
+                  }}
+                  error={!!errors.phone}
+                />
               </Field>
               <Field label="Email" htmlFor="email" error={errors.companyEmail}>
                 <Input

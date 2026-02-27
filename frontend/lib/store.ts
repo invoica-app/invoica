@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Invoice } from "./types";
+import { Invoice, PaymentMethodType, MomoProvider } from "./types";
 import { splitPhoneString } from "./country-codes";
 import { useSettingsStore } from "./settings-store";
 
@@ -43,6 +43,18 @@ interface InvoiceStore {
   discount: number;
   notes: string;
 
+  // Payment Method
+  paymentMethod: PaymentMethodType;
+  momoProvider: MomoProvider;
+  momoAccountName: string;
+  momoNumber: string;
+  momoCountryCode: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankBranch: string;
+  bankSwiftCode: string;
+
   // Design
   primaryColor: string;
   fontFamily: string;
@@ -69,6 +81,7 @@ interface InvoiceStore {
   removeLineItem: (id: string) => void;
   updateLineItem: (id: string, data: Partial<LineItem>) => void;
   setDesign: (color: string, font: string) => void;
+  updatePayment: (data: Partial<InvoiceStore>) => void;
   updateEmail: (data: Partial<InvoiceStore>) => void;
   loadFromInvoice: (invoice: Invoice, id: number) => void;
   reset: () => void;
@@ -111,6 +124,17 @@ function getInitialState() {
     taxRate: 0,
     discount: 0,
     notes: "",
+    // Payment Method
+    paymentMethod: "momo" as PaymentMethodType,
+    momoProvider: "mtn" as MomoProvider,
+    momoAccountName: "",
+    momoNumber: "",
+    momoCountryCode: "GH",
+    bankName: "",
+    bankAccountName: "",
+    bankAccountNumber: "",
+    bankBranch: "",
+    bankSwiftCode: "",
     lastSaved: new Date().toISOString(),
     editingInvoiceId: null,
   };
@@ -180,6 +204,12 @@ export const useInvoiceStore = create<InvoiceStore>()(
         set({
           primaryColor: color,
           fontFamily: font,
+          lastSaved: new Date().toISOString(),
+        }),
+
+      updatePayment: (data) =>
+        set({
+          ...data,
           lastSaved: new Date().toISOString(),
         }),
 
