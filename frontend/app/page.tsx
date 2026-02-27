@@ -478,8 +478,37 @@ export default function LandingPage() {
   const { resolvedTheme, setTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [navDark, setNavDark] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const el = bannerRef.current;
+    if (!el) return;
+    // Shrink the observation area to just the navbar strip (top 56px).
+    // rootMargin: top=0, right=0, bottom=-(viewportHeight - 56px), left=0
+    // This way the banner only "intersects" when it overlaps the navbar itself.
+    const updateMargin = () => {
+      const vh = window.innerHeight;
+      obs.disconnect();
+      obs = new IntersectionObserver(
+        ([entry]) => setNavDark(entry.isIntersecting),
+        { rootMargin: `0px 0px -${vh - 56}px 0px`, threshold: 0 }
+      );
+      obs.observe(el);
+    };
+    let obs = new IntersectionObserver(
+      ([entry]) => setNavDark(entry.isIntersecting),
+      { rootMargin: `0px 0px -${window.innerHeight - 56}px 0px`, threshold: 0 }
+    );
+    obs.observe(el);
+    window.addEventListener("resize", updateMargin);
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("resize", updateMargin);
+    };
+  }, []);
 
   const appHref = "/invoice/new/company";
 
@@ -492,7 +521,15 @@ export default function LandingPage() {
       <WaveBackground />
 
       {/* Nav */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+      <header
+        className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 ${
+          navDark
+            ? mounted && resolvedTheme !== "dark"
+              ? "bg-[#7c3aed]/90 border-white/10"
+              : "bg-[#1e0a3c]/90 border-white/10"
+            : "bg-background/80 border-border/50"
+        }`}
+      >
         <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/">
             <Image
@@ -500,7 +537,9 @@ export default function LandingPage() {
               alt="invoica"
               width={100}
               height={28}
-              className="w-[70px] md:w-[100px] h-auto dark:brightness-0 dark:invert"
+              className={`w-[70px] md:w-[100px] h-auto transition-all duration-300 ${
+                navDark ? "brightness-0 invert" : "dark:brightness-0 dark:invert"
+              }`}
             />
           </Link>
           <div className="flex items-center gap-2">
@@ -515,7 +554,11 @@ export default function LandingPage() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block px-2"
+                  className={`text-sm transition-colors hidden sm:block px-2 ${
+                    navDark
+                      ? "text-white/60 hover:text-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   Sign in
                 </Link>
@@ -627,6 +670,7 @@ export default function LandingPage() {
           {/* Large dark banner */}
           <Reveal delay={0.1} scale>
             <div
+              ref={bannerRef}
               className="relative rounded-2xl overflow-hidden"
               style={{ backgroundImage: `url('/images/${mounted && resolvedTheme !== "dark" ? "slide1-light" : "slide1"}.svg')`, backgroundSize: "cover", backgroundPosition: "center bottom" }}
             >

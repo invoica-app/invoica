@@ -57,8 +57,6 @@ export default function ReviewPage() {
   );
   const reset = useInvoiceStore((s) => s.reset);
   const editingInvoiceId = useInvoiceStore((s) => s.editingInvoiceId);
-  const editingInvoiceStatus = useInvoiceStore((s) => s.editingInvoiceStatus);
-  const wasSent = editingInvoiceId !== null && editingInvoiceStatus === "SENT";
 
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -93,22 +91,17 @@ export default function ReviewPage() {
       pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
 
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-      if (isSafari) {
-        // Safari (especially iOS) blocks programmatic blob downloads.
-        // jsPDF.save() uses a Safari-compatible fallback internally.
-        pdf.save(fileName);
+      // iOS Safari blocks both blob URLs and programmatic link clicks.
+      // Open the PDF as a data URI in a new tab — works everywhere.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+      if (isIOS) {
+        const dataUri = pdf.output("datauristring");
+        window.open(dataUri, "_blank");
       } else {
-        const blob = pdf.output("blob");
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        pdf.save(fileName);
       }
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -175,7 +168,7 @@ export default function ReviewPage() {
             amount,
           })),
         };
-        await api.updateInvoice(editingInvoiceId, updateRequest, wasSent);
+        await api.updateInvoice(editingInvoiceId, updateRequest, true);
       } else {
         const request: CreateInvoiceRequest = {
           companyName: data.companyName,
@@ -369,8 +362,8 @@ export default function ReviewPage() {
                     <Send className="w-4 h-4" />
                   )}
                   {sending
-                    ? (wasSent ? "Updating & resending..." : editingInvoiceId ? "Updating..." : "Sending...")
-                    : (wasSent ? "Update & resend" : editingInvoiceId ? "Update invoice" : "Send invoice")}
+                    ? (editingInvoiceId ? "Updating & sending..." : "Sending...")
+                    : (editingInvoiceId ? "Update & send" : "Send invoice")}
                 </Button>
               </div>
             </div>
