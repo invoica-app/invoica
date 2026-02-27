@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CountrySelect } from "@/components/ui/country-select";
+import { PaymentMethod } from "@/components/ui/payment-method";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/lib/settings-store";
@@ -70,13 +71,24 @@ export default function InvoiceDetailsPage() {
       discount: s.discount,
       notes: s.notes,
       lineItems: s.lineItems,
+      paymentMethod: s.paymentMethod,
+      momoProvider: s.momoProvider,
+      momoAccountName: s.momoAccountName,
+      momoNumber: s.momoNumber,
+      momoCountryCode: s.momoCountryCode,
+      bankName: s.bankName,
+      bankAccountName: s.bankAccountName,
+      bankAccountNumber: s.bankAccountNumber,
+      bankBranch: s.bankBranch,
+      bankSwiftCode: s.bankSwiftCode,
     }))
   );
-  const { updateInvoice, updateClient, addLineItem, removeLineItem, updateLineItem } =
+  const { updateInvoice, updateClient, updatePayment, addLineItem, removeLineItem, updateLineItem } =
     useInvoiceStore(
       useShallow((s) => ({
         updateInvoice: s.updateInvoice,
         updateClient: s.updateClient,
+        updatePayment: s.updatePayment,
         addLineItem: s.addLineItem,
         removeLineItem: s.removeLineItem,
         updateLineItem: s.updateLineItem,
@@ -422,6 +434,26 @@ export default function InvoiceDetailsPage() {
                 </Field>
               </div>
             </div>
+          </section>
+
+          <div className="border-t border-border/40" />
+
+          {/* ─── Payment Method ─── */}
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Payment information</h2>
+            <PaymentMethod
+              method={storeData.paymentMethod}
+              momoProvider={storeData.momoProvider}
+              momoAccountName={storeData.momoAccountName}
+              momoNumber={storeData.momoNumber}
+              momoCountryCode={storeData.momoCountryCode}
+              bankName={storeData.bankName}
+              bankAccountName={storeData.bankAccountName}
+              bankAccountNumber={storeData.bankAccountNumber}
+              bankBranch={storeData.bankBranch}
+              bankSwiftCode={storeData.bankSwiftCode}
+              onChange={updatePayment}
+            />
           </section>
 
           {/* Footer nav */}

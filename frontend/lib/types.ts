@@ -2,6 +2,31 @@
 
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'CANCELLED';
 
+// Payment method types
+export type PaymentMethodType = 'momo' | 'bank';
+export type MomoProvider = 'mtn' | 'telecel' | 'airteltigo';
+
+export interface MomoPaymentInfo {
+  provider: MomoProvider;
+  accountName: string;
+  momoNumber: string;
+  momoCountryCode: string;
+}
+
+export interface BankPaymentInfo {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branch: string;
+  swiftCode: string;
+}
+
+export interface PaymentInfo {
+  method: PaymentMethodType;
+  momo: MomoPaymentInfo;
+  bank: BankPaymentInfo;
+}
+
 export interface LineItem {
   id?: number;
   description: string;

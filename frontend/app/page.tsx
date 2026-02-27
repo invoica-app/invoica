@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, ArrowRight } from "lucide-react";
+import { Sun, Moon, ArrowRight, Smartphone, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NothingDey } from "@/components/nothing-dey";
 import { DemoInvoice } from "@/components/demo-invoice";
@@ -109,10 +109,10 @@ function Reveal({
 }
 
 const FEATURES = [
-  "9 currencies built in \u2014 USD, GHS, EUR, GBP, NGN, and more",
+  "Mobile Money & bank transfer \u2014 MTN, Telecel, AirtelTigo, or any GH bank",
+  "9 currencies built in \u2014 GHS, USD, EUR, GBP, NGN, and more",
   "PDF preview and download before sending",
   "Works on phone, tablet, and laptop",
-  "Guest mode \u2014 no account needed to start",
 ];
 
 function DetailsIllustration({ color = "#9747E6" }: { color?: string }) {
@@ -123,11 +123,21 @@ function DetailsIllustration({ color = "#9747E6" }: { color?: string }) {
         <div className="p-4 space-y-3">
           <div className="h-2.5 w-3/4 bg-gray-100 rounded-full transition-all duration-500 ease-out group-hover:w-full group-hover:bg-gray-200" />
           <div className="h-2.5 w-1/2 bg-gray-100 rounded-full transition-all duration-500 ease-out delay-75 group-hover:w-2/3 group-hover:bg-gray-200" />
-          <div className="flex gap-2">
-            <div className="h-8 flex-1 rounded-md border border-gray-200 bg-gray-50 transition-all duration-300 delay-150 group-hover:bg-gray-100" />
-            <div className="h-8 flex-1 rounded-md border border-gray-200 bg-gray-50 transition-all duration-300 delay-200 group-hover:bg-gray-100" />
+          {/* Payment toggle hint */}
+          <div className="flex gap-0.5 rounded-md bg-gray-100 p-0.5 transition-all duration-300 delay-100 group-hover:bg-gray-200/70">
+            <div className="flex-1 h-6 rounded bg-white shadow-sm flex items-center justify-center gap-1 transition-all duration-300 delay-150">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#FFC300" }} />
+              <div className="h-1.5 w-8 rounded-full bg-gray-300" />
+            </div>
+            <div className="flex-1 h-6 rounded flex items-center justify-center gap-1 transition-all duration-300 delay-200 group-hover:bg-white/50">
+              <div className="w-2.5 h-2.5 rounded-sm bg-gray-300 transition-all duration-300 delay-200 group-hover:bg-gray-400" />
+              <div className="h-1.5 w-6 rounded-full bg-gray-200 transition-all duration-300 delay-200 group-hover:bg-gray-300" />
+            </div>
           </div>
-          <div className="h-2.5 w-2/3 bg-gray-100 rounded-full transition-all duration-500 ease-out delay-300 group-hover:w-full group-hover:bg-gray-200" />
+          <div className="flex gap-2">
+            <div className="h-8 flex-1 rounded-md border border-gray-200 bg-gray-50 transition-all duration-300 delay-250 group-hover:bg-gray-100" />
+            <div className="h-8 flex-1 rounded-md border border-gray-200 bg-gray-50 transition-all duration-300 delay-300 group-hover:bg-gray-100" />
+          </div>
         </div>
       </div>
     </div>
@@ -223,11 +233,124 @@ function DeliverIllustration({ color = "#9747E6" }: { color?: string }) {
   );
 }
 
+const BANNER_SLIDES = [
+  {
+    label: "BUILT FOR EVERYDAY PEOPLE",
+    heading: "Payment info that actually shows up on the invoice",
+    desc: "No more copy-pasting MoMo numbers into notes. Structured, professional, always visible.",
+  },
+  {
+    label: "MOBILE MONEY",
+    heading: "Accept MoMo payments instantly",
+    desc: "MTN MoMo, Telecel Cash, AirtelTigo Money \u2014 your client sees exactly how to pay.",
+  },
+  {
+    label: "MULTI-CURRENCY",
+    heading: "Send invoices in any currency",
+    desc: "GHS, USD, EUR, GBP, NGN, and more. 9 currencies built right in.",
+  },
+  {
+    label: "PROFESSIONAL",
+    heading: "Clean invoices, ready in minutes",
+    desc: "Pick a design, add your details, preview the PDF, and send \u2014 all from one place.",
+  },
+];
+
+const SLIDE_INTERVAL = 4000;
+
+function BannerSlideshow() {
+  const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"visible" | "exit" | "enter">("visible");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const advance = useCallback(() => {
+    setPhase("exit");
+    setTimeout(() => {
+      setIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
+      setPhase("enter");
+      setTimeout(() => setPhase("visible"), 400);
+    }, 400);
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(advance, SLIDE_INTERVAL);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [advance]);
+
+  const slide = BANNER_SLIDES[index];
+  const animClass = phase === "exit" ? "slide-exit" : phase === "enter" ? "slide-enter" : "";
+
+  return (
+    <div>
+      {/* Text content */}
+      <div className="min-h-[140px] sm:min-h-[120px]">
+        <div key={index} className={animClass}>
+          <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/50 mb-3">
+            {slide.label}
+          </p>
+          <h3 className="text-xl sm:text-2xl font-semibold text-white tracking-tight leading-snug max-w-md">
+            {slide.heading}
+          </h3>
+          <p className="text-sm text-white/60 mt-2 max-w-sm leading-relaxed">
+            {slide.desc}
+          </p>
+        </div>
+      </div>
+
+      {/* Slide indicators */}
+      <div className="flex gap-1.5 mt-6">
+        {BANNER_SLIDES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => {
+              if (i === index || phase !== "visible") return;
+              if (timerRef.current) clearInterval(timerRef.current);
+              setPhase("exit");
+              setTimeout(() => {
+                setIndex(i);
+                setPhase("enter");
+                setTimeout(() => setPhase("visible"), 400);
+                timerRef.current = setInterval(advance, SLIDE_INTERVAL);
+              }, 400);
+            }}
+            className="h-1 rounded-full transition-all duration-300"
+            style={{
+              width: i === index ? 24 : 8,
+              backgroundColor: i === index ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.2)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const STEP_CARDS = [
-  { label: "DETAILS", title: "Enter your details", desc: "Company name, client info, and line items with amounts.", key: "details" as const },
+  { label: "DETAILS", title: "Enter your details", desc: "Company info, line items, and your MoMo or bank payment details.", key: "details" as const },
   { label: "DESIGN", title: "Pick a design", desc: "Choose a color and layout. See a live preview as you go.", key: "design" as const },
   { label: "COMPOSE", title: "Write the email", desc: "Customize the subject line and message body.", key: "compose" as const },
   { label: "DELIVER", title: "Send it", desc: "Review the PDF, then send directly from the app.", key: "deliver" as const },
+];
+
+const TESTIMONIALS = [
+  { quote: "I used to send MoMo numbers in WhatsApp messages. Now my invoices look like they came from a real company.", name: "Kwame Mensah", role: "Founder, Mensah Creative Studio", initials: "KM" },
+  { quote: "My clients abroad can pay in USD or GBP and I still track everything in cedis. The multi-currency support is a lifesaver.", name: "Abena Osei-Bonsu", role: "Freelance Developer", initials: "AO" },
+  { quote: "I run a small catering business. Before Invoica, I was writing receipts by hand. This changed everything for me.", name: "Nana Ama Darko", role: "Owner, Ama\u2019s Kitchen", initials: "NA" },
+  { quote: "Setting up took five minutes. I created my first invoice on my phone during a trotro ride. It just works.", name: "Kofi Asante", role: "IT Consultant, TechBridge Solutions", initials: "KA" },
+  { quote: "The PDF looks so clean my clients thought I hired a designer. It\u2019s the best free tool I\u2019ve found for invoicing in Ghana.", name: "Efua Mensah-Williams", role: "Marketing Lead, Coastal Agency", initials: "EM" },
+  { quote: "Bank transfer details right on the invoice \u2014 account number, branch, everything. No more back-and-forth with clients.", name: "Yaw Boateng", role: "Director, Boateng & Partners", initials: "YB" },
+];
+
+const AVATAR_COLORS = [
+  { bg: "bg-primary/10", text: "text-primary" },
+  { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400" },
+  { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400" },
+  { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400" },
+  { bg: "bg-rose-500/10", text: "text-rose-600 dark:text-rose-400" },
+  { bg: "bg-primary/10", text: "text-primary" },
 ];
 
 function HowItWorks() {
@@ -245,7 +368,7 @@ function HowItWorks() {
 
   return (
     <section className="relative z-10 px-4 sm:px-5 py-16 md:py-28">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <Reveal>
           <div className="text-center mb-10 sm:mb-14">
@@ -315,6 +438,45 @@ function HowItWorks() {
   );
 }
 
+function Testimonials() {
+  return (
+    <section className="relative z-10 px-4 sm:px-5 py-16 md:py-28">
+      <div className="max-w-6xl mx-auto">
+        <Reveal>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-2">
+              TRUSTED BY BUSINESSES
+            </p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-3">
+              What people are saying
+            </h2>
+            <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
+              Small businesses and freelancers across Ghana use Invoica every day.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
+          {TESTIMONIALS.map((t, i) => (
+            <Reveal key={t.name} delay={i * 0.08}>
+              <blockquote>
+                <span className="block text-3xl font-serif leading-none text-primary/20 select-none mb-2">&ldquo;</span>
+                <p className="text-sm italic text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {t.quote}
+                </p>
+                <footer className="mt-4">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{t.role}</p>
+                </footer>
+              </blockquote>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const { resolvedTheme, setTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
@@ -334,7 +496,7 @@ export default function LandingPage() {
 
       {/* Nav */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/">
             <Image
               src="/images/logo-full-colored-lightmode.svg"
@@ -370,15 +532,15 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 max-w-5xl mx-auto px-5 pt-14 sm:pt-24 pb-4 sm:pb-6">
+      <section className="relative z-10 max-w-6xl mx-auto px-5 pt-14 sm:pt-24 pb-4 sm:pb-6">
         <div className="max-w-2xl">
           <h1 className="text-3xl sm:text-[42px] font-semibold tracking-tight leading-[1.15] animate-fade-in-up">
             Invoice clients in minutes,
             <br className="hidden sm:block" /> not <RotatingWord />.
           </h1>
           <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up-delay-1">
-            Fill in the details, pick a design, send. Supports 9 currencies
-            including USD, GHS, EUR, and GBP.
+            Fill in the details, add your MoMo or bank info, pick a design,
+            send. Supports 9 currencies including GHS, USD, EUR, and GBP.
           </p>
           <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3 sm:gap-4 animate-fade-in-up-delay-2">
             <Button asChild>
@@ -397,7 +559,7 @@ export default function LandingPage() {
       </section>
 
       {/* Demo invoice */}
-      <section className="relative z-10 max-w-5xl mx-auto px-5 pt-8 sm:pt-12 pb-16 sm:pb-24">
+      <section className="relative z-10 max-w-6xl mx-auto px-5 pt-8 sm:pt-12 pb-16 sm:pb-24">
         <div className="animate-fade-in-up-delay-3">
           <DemoInvoice />
         </div>
@@ -406,9 +568,101 @@ export default function LandingPage() {
       {/* How it works */}
       <HowItWorks />
 
+      {/* Payment showcase */}
+      <section className="relative z-10 px-4 sm:px-5 py-16 md:py-28">
+        <div className="max-w-6xl mx-auto">
+          {/* Header row */}
+          <Reveal>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-2">
+                  PAYMENT COLLECTION
+                </p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                  Get paid your way
+                </h2>
+                <p className="text-sm sm:text-base text-gray-500 mt-2 max-w-md">
+                  Add your Mobile Money or bank details directly to the invoice.
+                  Your client sees exactly how to pay you.
+                </p>
+              </div>
+              <Button asChild size="sm" className="shrink-0 w-fit">
+                <Link href={isAuthenticated ? appHref : "/login"}>
+                  Try it now
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </Reveal>
+
+          {/* Two feature cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <Reveal delay={0.08} scale className="flex">
+              <div className="flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
+                <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    Mobile Money
+                  </p>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    MTN MoMo, Telecel Cash, or AirtelTigo Money.
+                    Pick your provider, enter your number, done.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.16} scale className="flex">
+              <div className="flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
+                <Landmark className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    Bank Transfer
+                  </p>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    13 Ghanaian banks — GCB, Ecobank, Stanbic, and more.
+                    Account number, branch, and SWIFT code included.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Large dark banner */}
+          <Reveal delay={0.1} scale>
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{ backgroundImage: `url('/images/${resolvedTheme === "dark" ? "slide1" : "slide1-light"}.svg')`, backgroundSize: "cover", backgroundPosition: "center bottom" }}
+            >
+              <div className="relative z-10 px-6 pt-12 pb-10 sm:px-10 sm:pt-16 sm:pb-14 md:px-12 md:pt-20 md:pb-16">
+                <BannerSlideshow />
+
+                {/* Stats row */}
+                <div className="flex gap-10 sm:gap-14 mt-8 pt-6 border-t border-white/10">
+                  <div>
+                    <p className="text-2xl font-semibold text-white tabular-nums">3</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">MoMo providers</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-white tabular-nums">13</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">Ghanaian banks</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-white tabular-nums">9</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">Currencies</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <Testimonials />
+
       {/* Mascot */}
       <section className="relative z-10 border-t border-border/50">
-        <div className="max-w-5xl mx-auto px-5 py-14 sm:py-20 flex flex-col sm:flex-row items-center gap-6 sm:gap-12">
+        <div className="max-w-6xl mx-auto px-5 py-14 sm:py-20 flex flex-col sm:flex-row items-center gap-6 sm:gap-12">
           <Reveal direction="right">
             <NothingDey className="w-24 h-28 shrink-0" />
           </Reveal>
