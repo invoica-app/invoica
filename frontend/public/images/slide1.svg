@@ -1,0 +1,18 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e0a3c"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)" />
+
+  <!-- Mountains -->
+  <path d="M0 320 L200 250 L400 300 L600 240 L800 310 L800 500 L0 500 Z"
+        fill="#13062b"/>
+
+  <!-- River -->
+  <path d="M200 500 Q350 350 600 500 Z"
+        fill="#9747E6" opacity="0.25"/>
+</svg>

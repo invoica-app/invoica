@@ -78,8 +78,16 @@ export function DemoInvoice() {
             </tbody>
           </table>
 
-          {/* Total */}
-          <div className="flex justify-end mt-4 pt-3 border-t border-gray-200">
+          {/* Footer: Payment details + Total */}
+          <div className="flex justify-between items-end mt-4 pt-3 border-t border-gray-200">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium mb-1">
+                Payment Details
+              </p>
+              <p className="text-xs font-medium text-gray-700">MTN Mobile Money</p>
+              <p className="text-xs text-gray-500">Kwame Mensah</p>
+              <p className="text-xs text-gray-500">+233 24 123 4567</p>
+            </div>
             <div className="flex items-baseline gap-6">
               <span className="text-xs text-gray-500 font-medium uppercase tracking-widest">
                 Total
