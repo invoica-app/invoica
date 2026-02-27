@@ -187,19 +187,17 @@ export default function InvoiceHistoryPage() {
                           {invoice.status || "DRAFT"}
                         </span>
                         <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                          {isDraft && (
-                            <button
-                              onClick={() => invoice.id && handleEdit(invoice.id)}
-                              disabled={editingId === invoice.id}
-                              className="p-1.5 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-                            >
-                              {editingId === invoice.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Pencil className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          )}
+                          <button
+                            onClick={() => invoice.id && handleEdit(invoice.id)}
+                            disabled={editingId === invoice.id}
+                            className="p-1.5 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                          >
+                            {editingId === invoice.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Pencil className="w-3.5 h-3.5" />
+                            )}
+                          </button>
                           <button
                             onClick={() => invoice.id && setConfirmDeleteId(invoice.id)}
                             disabled={deletingId === invoice.id}

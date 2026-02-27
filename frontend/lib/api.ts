@@ -80,8 +80,9 @@ class ApiClient {
     return this.request<Invoice>(`/invoices/${id}`, {}, token);
   }
 
-  async updateInvoice(id: number, data: UpdateInvoiceRequest, token?: string): Promise<Invoice> {
-    return this.request<Invoice>(`/invoices/${id}`, {
+  async updateInvoice(id: number, data: UpdateInvoiceRequest, resend = false, token?: string): Promise<Invoice> {
+    const query = resend ? '?resend=true' : '';
+    return this.request<Invoice>(`/invoices/${id}${query}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }, token);
@@ -128,8 +129,8 @@ export const invoiceApi = {
     api.getAllInvoices(status, token),
   getById: (id: number, token?: string) =>
     api.getInvoiceById(id, token),
-  update: (id: number, data: UpdateInvoiceRequest, token?: string) =>
-    api.updateInvoice(id, data, token),
+  update: (id: number, data: UpdateInvoiceRequest, resend?: boolean, token?: string) =>
+    api.updateInvoice(id, data, resend, token),
   delete: (id: number, token?: string) =>
     api.deleteInvoice(id, token),
   uploadLogo: (file: File, token?: string) =>

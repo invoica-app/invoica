@@ -72,6 +72,7 @@ interface InvoiceStore {
 
   // Editing state
   editingInvoiceId: number | null;
+  editingInvoiceStatus: string | null;
 
   // Actions
   updateCompany: (data: Partial<InvoiceStore>) => void;
@@ -137,6 +138,7 @@ function getInitialState() {
     bankSwiftCode: "",
     lastSaved: new Date().toISOString(),
     editingInvoiceId: null,
+    editingInvoiceStatus: null,
   };
 }
 
@@ -223,6 +225,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
         const { phoneCode, localNumber } = splitPhoneString(invoice.phone, invoice.country);
         return set({
           editingInvoiceId: id,
+          editingInvoiceStatus: invoice.status || "DRAFT",
           companyName: invoice.companyName,
           companyLogo: invoice.companyLogo ?? null,
           address: invoice.address,

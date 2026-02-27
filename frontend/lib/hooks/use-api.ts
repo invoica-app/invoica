@@ -16,8 +16,9 @@ export function useAuthenticatedApi() {
       getInvoiceById: (id: number) => invoiceApi.getById(id, accessToken),
       updateInvoice: (
         id: number,
-        data: Parameters<typeof invoiceApi.update>[1]
-      ) => invoiceApi.update(id, data, accessToken),
+        data: Parameters<typeof invoiceApi.update>[1],
+        resend?: boolean
+      ) => invoiceApi.update(id, data, resend, accessToken),
       deleteInvoice: (id: number) => invoiceApi.delete(id, accessToken),
       uploadLogo: (file: File) => invoiceApi.uploadLogo(file, accessToken),
     }),

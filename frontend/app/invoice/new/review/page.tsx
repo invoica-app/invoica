@@ -57,6 +57,8 @@ export default function ReviewPage() {
   );
   const reset = useInvoiceStore((s) => s.reset);
   const editingInvoiceId = useInvoiceStore((s) => s.editingInvoiceId);
+  const editingInvoiceStatus = useInvoiceStore((s) => s.editingInvoiceStatus);
+  const wasSent = editingInvoiceId !== null && editingInvoiceStatus === "SENT";
 
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -90,15 +92,24 @@ export default function ReviewPage() {
 
       pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
 
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `invoice-${data.invoiceNumber || "draft"}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isSafari) {
+        // Safari (especially iOS) blocks programmatic blob downloads.
+        // jsPDF.save() uses a Safari-compatible fallback internally.
+        pdf.save(fileName);
+      } else {
+        const blob = pdf.output("blob");
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }
     } catch (err) {
       console.error("PDF generation failed:", err);
       setError("Failed to generate PDF. Please try again.");
@@ -164,7 +175,7 @@ export default function ReviewPage() {
             amount,
           })),
         };
-        await api.updateInvoice(editingInvoiceId, updateRequest);
+        await api.updateInvoice(editingInvoiceId, updateRequest, wasSent);
       } else {
         const request: CreateInvoiceRequest = {
           companyName: data.companyName,
@@ -357,7 +368,9 @@ export default function ReviewPage() {
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                  {sending ? (editingInvoiceId ? "Updating..." : "Sending...") : (editingInvoiceId ? "Update invoice" : "Send invoice")}
+                  {sending
+                    ? (wasSent ? "Updating & resending..." : editingInvoiceId ? "Updating..." : "Sending...")
+                    : (wasSent ? "Update & resend" : editingInvoiceId ? "Update invoice" : "Send invoice")}
                 </Button>
               </div>
             </div>

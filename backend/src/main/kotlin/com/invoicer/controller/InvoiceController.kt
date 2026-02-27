@@ -55,10 +55,11 @@ class InvoiceController(
     fun updateInvoice(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateInvoiceRequest,
+        @RequestParam(required = false, defaultValue = "false") resend: Boolean,
         authentication: Authentication
     ): ResponseEntity<InvoiceResponse> {
         val userId = authentication.credentials as Long
-        val invoice = invoiceService.updateInvoice(id, request, userId)
+        val invoice = invoiceService.updateInvoice(id, request, userId, resend)
         return ResponseEntity.ok(invoice)
     }
 

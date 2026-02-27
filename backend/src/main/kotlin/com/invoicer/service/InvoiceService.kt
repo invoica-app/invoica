@@ -101,7 +101,7 @@ class InvoiceService(
         return invoiceRepository.findByUserId(userId).map { it.toResponse() }
     }
 
-    fun updateInvoice(id: Long, request: UpdateInvoiceRequest, userId: Long): InvoiceResponse {
+    fun updateInvoice(id: Long, request: UpdateInvoiceRequest, userId: Long, resend: Boolean = false): InvoiceResponse {
         val invoice = invoiceRepository.findById(id)
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
         verifyOwnership(invoice, userId)
@@ -163,7 +163,20 @@ class InvoiceService(
         val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
         invoice.totalAmount = calculateTotal(subtotal, invoice.discount, invoice.taxRate)
 
-        return invoiceRepository.save(invoice).toResponse()
+        val savedInvoice = invoiceRepository.save(invoice)
+
+        if (resend) {
+            try {
+                emailService.sendInvoiceEmail(savedInvoice)
+                savedInvoice.status = InvoiceStatus.SENT
+                savedInvoice.updatedAt = LocalDateTime.now()
+                invoiceRepository.save(savedInvoice)
+            } catch (e: Exception) {
+                logger.warn("Failed to resend invoice email for ${savedInvoice.invoiceNumber}", e)
+            }
+        }
+
+        return savedInvoice.toResponse()
     }
 
     fun deleteInvoice(id: Long, userId: Long) {
