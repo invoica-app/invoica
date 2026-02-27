@@ -631,7 +631,7 @@ export default function LandingPage() {
           <Reveal delay={0.1} scale>
             <div
               className="relative rounded-2xl overflow-hidden"
-              style={{ backgroundImage: `url('/images/${resolvedTheme === "dark" ? "slide1" : "slide1-light"}.svg')`, backgroundSize: "cover", backgroundPosition: "center bottom" }}
+              style={{ backgroundImage: `url('/images/${mounted && resolvedTheme !== "dark" ? "slide1-light" : "slide1"}.svg')`, backgroundSize: "cover", backgroundPosition: "center bottom" }}
             >
               <div className="relative z-10 px-6 pt-12 pb-10 sm:px-10 sm:pt-16 sm:pb-14 md:px-12 md:pt-20 md:pb-16">
                 <BannerSlideshow />
