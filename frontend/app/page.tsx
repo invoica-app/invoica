@@ -338,10 +338,7 @@ const STEP_CARDS = [
 const TESTIMONIALS = [
   { quote: "I used to send MoMo numbers in WhatsApp messages. Now my invoices look like they came from a real company.", name: "Kwame Mensah", role: "Founder, Mensah Creative Studio", initials: "KM" },
   { quote: "My clients abroad can pay in USD or GBP and I still track everything in cedis. The multi-currency support is a lifesaver.", name: "Abena Osei-Bonsu", role: "Freelance Developer", initials: "AO" },
-  { quote: "I run a small catering business. Before Invoica, I was writing receipts by hand. This changed everything for me.", name: "Nana Ama Darko", role: "Owner, Ama\u2019s Kitchen", initials: "NA" },
   { quote: "Setting up took five minutes. I created my first invoice on my phone during a trotro ride. It just works.", name: "Kofi Asante", role: "IT Consultant, TechBridge Solutions", initials: "KA" },
-  { quote: "The PDF looks so clean my clients thought I hired a designer. It\u2019s the best free tool I\u2019ve found for invoicing in Ghana.", name: "Efua Mensah-Williams", role: "Marketing Lead, Coastal Agency", initials: "EM" },
-  { quote: "Bank transfer details right on the invoice \u2014 account number, branch, everything. No more back-and-forth with clients.", name: "Yaw Boateng", role: "Director, Boateng & Partners", initials: "YB" },
 ];
 
 const AVATAR_COLORS = [
