@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Invoice, PaymentMethodType, MomoProvider } from "./types";
+import { Invoice, PaymentMethodType, MomoProvider, TemplateId } from "./types";
 import { splitPhoneString } from "./country-codes";
 import { useSettingsStore } from "./settings-store";
 
@@ -58,6 +58,8 @@ interface InvoiceStore {
   // Design
   primaryColor: string;
   fontFamily: string;
+  templateId: TemplateId;
+  authorizedSignature: string;
 
   // Currency
   currency: string;
@@ -81,7 +83,7 @@ interface InvoiceStore {
   addLineItem: () => void;
   removeLineItem: (id: string) => void;
   updateLineItem: (id: string, data: Partial<LineItem>) => void;
-  setDesign: (color: string, font: string) => void;
+  setDesign: (color: string, font: string, templateId: TemplateId) => void;
   updatePayment: (data: Partial<InvoiceStore>) => void;
   updateEmail: (data: Partial<InvoiceStore>) => void;
   loadFromInvoice: (invoice: Invoice, id: number) => void;
@@ -110,6 +112,8 @@ function getInitialState() {
     lineItems: [] as { id: string; description: string; quantity: number; rate: number; amount: number }[],
     primaryColor: "",
     fontFamily: settings.defaultFont || "Inter",
+    templateId: "modern" as TemplateId,
+    authorizedSignature: "",
     currency: settings.defaultCurrency || "USD",
     clientEmail: "",
     emailSubject: "",
@@ -202,10 +206,11 @@ export const useInvoiceStore = create<InvoiceStore>()(
           };
         }),
 
-      setDesign: (color, font) =>
+      setDesign: (color, font, templateId) =>
         set({
           primaryColor: color,
           fontFamily: font,
+          templateId,
           lastSaved: new Date().toISOString(),
         }),
 
@@ -240,6 +245,8 @@ export const useInvoiceStore = create<InvoiceStore>()(
           dueDate: invoice.dueDate,
           primaryColor: invoice.primaryColor,
           fontFamily: invoice.fontFamily,
+          templateId: (invoice.templateId as TemplateId) || "modern",
+          authorizedSignature: invoice.authorizedSignature ?? "",
           currency: invoice.currency,
           clientEmail: invoice.clientEmail,
           emailSubject: invoice.emailSubject ?? "",

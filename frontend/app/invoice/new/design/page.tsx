@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/currency";
 import { HydrationGuard } from "@/components/hydration-guard";
 import { DesignSkeleton } from "./loading";
+import { TEMPLATES } from "@/lib/templates/registry";
+import type { TemplateId } from "@/lib/types";
 
 const colors = [
   { name: "Purple", value: "#9747E6" },
@@ -33,14 +35,100 @@ const fonts = [
   { name: "Courier New", value: "Courier New", style: "monospace" },
 ];
 
+const TEMPLATE_ICONS: Record<TemplateId, { lines: string; accent: string }> = {
+  modern: { lines: "top-right", accent: "banner" },
+  classic: { lines: "center", accent: "double-rule" },
+  enterprise: { lines: "top-bar", accent: "colored-header" },
+  freelancer: { lines: "left-bar", accent: "rounded" },
+  corporate: { lines: "watermark", accent: "structured" },
+};
+
+function TemplateThumbnail({ templateId, color }: { templateId: TemplateId; color: string }) {
+  const icon = TEMPLATE_ICONS[templateId];
+
+  return (
+    <div className="w-full aspect-[8.5/11] bg-white rounded border border-gray-200 relative overflow-hidden p-2">
+      {/* Enterprise: top colored bar */}
+      {templateId === "enterprise" && (
+        <div className="h-2.5 -mx-2 -mt-2 mb-1.5" style={{ backgroundColor: color }} />
+      )}
+
+      {/* Corporate: diagonal watermark */}
+      {templateId === "corporate" && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-[10px] font-black tracking-widest uppercase opacity-5 rotate-[-35deg]" style={{ color }}>
+            INVOICE
+          </div>
+        </div>
+      )}
+
+      {/* Freelancer: left accent bar */}
+      {templateId === "freelancer" && (
+        <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
+      )}
+
+      {/* Header area */}
+      <div className={cn("flex mb-1.5", templateId === "classic" ? "justify-center" : "justify-between")}>
+        {templateId === "classic" ? (
+          <div className="text-center">
+            <div className="w-4 h-1 rounded-full mx-auto mb-0.5" style={{ backgroundColor: color }} />
+            <div className="w-8 h-0.5 bg-gray-200 mx-auto" />
+          </div>
+        ) : (
+          <>
+            <div className="w-4 h-3 rounded-sm bg-gray-100" />
+            <div className="w-6 h-1 rounded-full" style={{ backgroundColor: color }} />
+          </>
+        )}
+      </div>
+
+      {/* Classic double rule */}
+      {templateId === "classic" && (
+        <div className="mb-1.5">
+          <div className="h-[1px]" style={{ backgroundColor: color }} />
+          <div className="h-[1px] mt-[1px]" style={{ backgroundColor: color }} />
+        </div>
+      )}
+
+      {/* Bill to area */}
+      <div className="rounded bg-gray-50 p-1 mb-1.5">
+        <div className="w-6 h-0.5 bg-gray-200 mb-0.5" />
+        <div className="w-10 h-0.5 bg-gray-200" />
+      </div>
+
+      {/* Table lines */}
+      <div className="space-y-1 mb-1.5">
+        <div className="h-[1px] bg-gray-200" />
+        <div className="flex justify-between">
+          <div className="w-10 h-0.5 bg-gray-100" />
+          <div className="w-4 h-0.5 bg-gray-100" />
+        </div>
+        <div className="flex justify-between">
+          <div className="w-8 h-0.5 bg-gray-100" />
+          <div className="w-4 h-0.5 bg-gray-100" />
+        </div>
+        <div className="h-[1px] bg-gray-200" />
+      </div>
+
+      {/* Total area */}
+      <div className="flex justify-end">
+        <div className="w-8 h-1.5 rounded-sm" style={{ backgroundColor: `${color}20` }}>
+          <div className="h-full rounded-sm" style={{ backgroundColor: color, width: "60%", marginLeft: "auto", opacity: 0.3 }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DesignPage() {
   const router = useRouter();
 
-  const { storePrimaryColor, storeFontFamily, companyName, invoiceNumber, lineItems, currency } =
+  const { storePrimaryColor, storeFontFamily, storeTemplateId, companyName, invoiceNumber, lineItems, currency } =
     useInvoiceStore(
       useShallow((s) => ({
         storePrimaryColor: s.primaryColor,
         storeFontFamily: s.fontFamily,
+        storeTemplateId: s.templateId,
         companyName: s.companyName,
         invoiceNumber: s.invoiceNumber,
         lineItems: s.lineItems,
@@ -52,13 +140,14 @@ export default function DesignPage() {
 
   const [primaryColor, setPrimaryColor] = useState(storePrimaryColor);
   const [fontFamily, setFontFamily] = useState(storeFontFamily);
+  const [templateId, setTemplateId] = useState<TemplateId>(storeTemplateId || "modern");
 
   // "" means "use default from settings"
   const isNone = primaryColor === "";
   const resolvedColor = primaryColor || defaultColor;
 
   const handleNext = () => {
-    setDesign(primaryColor, fontFamily);
+    setDesign(primaryColor, fontFamily, templateId);
     router.push("/invoice/new/email");
   };
 
@@ -78,6 +167,33 @@ export default function DesignPage() {
           </div>
 
           <div className="space-y-8">
+            {/* Template Selector */}
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-3">Template</label>
+              <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 sm:snap-none lg:grid-cols-5">
+                {TEMPLATES.map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    onClick={() => setTemplateId(tmpl.id)}
+                    className={cn(
+                      "rounded-lg border p-2.5 text-left transition-all snap-start shrink-0 w-[calc(50%-6px)] sm:w-auto sm:shrink",
+                      templateId === tmpl.id
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                        : "border-border hover:border-muted-foreground/30"
+                    )}
+                  >
+                    <TemplateThumbnail templateId={tmpl.id} color={resolvedColor} />
+                    <div className="mt-2">
+                      <div className="text-xs font-medium">{tmpl.name}</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {tmpl.description}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Primary Color */}
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-3">Color</label>

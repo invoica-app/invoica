@@ -1,6 +1,7 @@
 // Shared types matching backend DTOs
 
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'CANCELLED';
+export type TemplateId = 'modern' | 'classic' | 'enterprise' | 'freelancer' | 'corporate';
 
 // Payment method types
 export type PaymentMethodType = 'momo' | 'bank';
@@ -64,6 +65,8 @@ export interface Invoice {
   // Design
   primaryColor: string;
   fontFamily: string;
+  templateId?: TemplateId;
+  authorizedSignature?: string | null;
   // Currency
   currency: string;
   // Email
@@ -95,6 +98,8 @@ export interface CreateInvoiceRequest {
   dueDate: string;
   primaryColor: string;
   fontFamily: string;
+  templateId?: TemplateId;
+  authorizedSignature?: string | null;
   currency: string;
   clientEmail: string;
   emailSubject?: string | null;
@@ -127,6 +132,8 @@ export interface UpdateInvoiceRequest {
   dueDate?: string;
   primaryColor?: string;
   fontFamily?: string;
+  templateId?: TemplateId;
+  authorizedSignature?: string | null;
   currency?: string;
   clientEmail?: string;
   emailSubject?: string | null;

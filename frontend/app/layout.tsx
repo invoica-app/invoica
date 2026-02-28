@@ -3,6 +3,7 @@ import { Inter, Amatic_SC } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { FeedbackButton } from "@/components/feedback/feedback-button";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,7 +90,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            {children}
+            <FeedbackButton />
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>
