@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
-import { invoiceApi } from "@/lib/api";
+import { invoiceApi, feedbackApi, FeedbackData } from "@/lib/api";
 
 export function useAuthenticatedApi() {
   const { accessToken } = useAuth();
@@ -21,6 +21,9 @@ export function useAuthenticatedApi() {
       ) => invoiceApi.update(id, data, resend, accessToken),
       deleteInvoice: (id: number) => invoiceApi.delete(id, accessToken),
       uploadLogo: (file: File) => invoiceApi.uploadLogo(file, accessToken),
+      submitFeedback: (data: FeedbackData) => feedbackApi.submit(data, accessToken),
+      checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId, accessToken),
+      getFeedbackCount: () => feedbackApi.getCount(accessToken),
     }),
     [accessToken]
   );

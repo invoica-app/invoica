@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
@@ -15,6 +15,9 @@ import { useSettingsStore } from "@/lib/settings-store";
 import { Download, Send, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { HydrationGuard } from "@/components/hydration-guard";
+import { useAuth } from "@/lib/auth";
+import { PostInvoiceRating } from "@/components/feedback/post-invoice-rating";
+import { FirstInvoiceFeedback } from "@/components/feedback/first-invoice-feedback";
 import { ReviewSkeleton } from "./loading";
 
 export default function ReviewPage() {
@@ -60,9 +63,17 @@ export default function ReviewPage() {
   const reset = useInvoiceStore((s) => s.reset);
   const editingInvoiceId = useInvoiceStore((s) => s.editingInvoiceId);
 
+  const { isAuthenticated, isGuest } = useAuth();
   const [sending, setSending] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentInvoiceId, setSentInvoiceId] = useState<number | null>(null);
+  const [showFirstInvoice, setShowFirstInvoice] = useState(false);
+
+  const dismissFeedback = useCallback(() => {
+    setSentInvoiceId(null);
+    setShowFirstInvoice(false);
+  }, []);
 
   const currency = data.currency || "USD";
   const subtotal = data.lineItems.reduce((sum, item) => sum + item.amount, 0);
@@ -172,7 +183,10 @@ export default function ReviewPage() {
             amount,
           })),
         };
-        await api.updateInvoice(editingInvoiceId, updateRequest, true);
+        const updatedInvoice = await api.updateInvoice(editingInvoiceId, updateRequest, true);
+        if (isAuthenticated && !isGuest && updatedInvoice.id) {
+          setSentInvoiceId(updatedInvoice.id);
+        }
       } else {
         const request: CreateInvoiceRequest = {
           companyName: data.companyName,
@@ -209,8 +223,28 @@ export default function ReviewPage() {
             rate,
           })),
         };
-        await api.createInvoice(request);
+        const createdInvoice = await api.createInvoice(request);
         settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
+
+        if (isAuthenticated && !isGuest) {
+          // Check if first invoice for celebration modal
+          try {
+            const attempts = parseInt(localStorage.getItem("first_invoice_attempts") || "0", 10);
+            if (attempts < 3) {
+              const { count } = await api.getFeedbackCount();
+              if (count === 0) {
+                setSentInvoiceId(null);
+                setShowFirstInvoice(true);
+                reset();
+                setSending(false);
+                return;
+              }
+            }
+          } catch {
+            // Ignore — feedback is non-critical
+          }
+          if (createdInvoice.id) setSentInvoiceId(createdInvoice.id);
+        }
       }
       reset();
       router.push("/invoice/new/history");
@@ -393,6 +427,16 @@ export default function ReviewPage() {
       <div className="fixed left-[-9999px] top-0" aria-hidden="true">
         <InvoiceFullPage ref={pdfRef} />
       </div>
+
+      {/* Post-invoice feedback */}
+      {sentInvoiceId && (
+        <PostInvoiceRating invoiceId={sentInvoiceId} onDismiss={dismissFeedback} />
+      )}
+
+      {/* First invoice celebration */}
+      {showFirstInvoice && (
+        <FirstInvoiceFeedback onDismiss={dismissFeedback} />
+      )}
     </HydrationGuard>
   );
 }
