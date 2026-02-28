@@ -170,13 +170,13 @@ export default function DesignPage() {
             {/* Template Selector */}
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-3">Template</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 sm:snap-none lg:grid-cols-5">
                 {TEMPLATES.map((tmpl) => (
                   <button
                     key={tmpl.id}
                     onClick={() => setTemplateId(tmpl.id)}
                     className={cn(
-                      "rounded-lg border p-2.5 text-left transition-all",
+                      "rounded-lg border p-2.5 text-left transition-all snap-start shrink-0 w-[calc(50%-6px)] sm:w-auto sm:shrink",
                       templateId === tmpl.id
                         ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                         : "border-border hover:border-muted-foreground/30"
