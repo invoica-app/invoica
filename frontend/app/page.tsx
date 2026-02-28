@@ -118,9 +118,9 @@ const FEATURES = [
 function DetailsIllustration({ color = "#9747E6" }: { color?: string }) {
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="w-full max-w-[260px] rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+      <div className="w-full max-w-[220px] sm:max-w-[260px] rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-transform duration-500 ease-out group-hover:scale-[1.03]">
         <div className="h-1.5 transition-all duration-500 ease-out group-hover:h-2" style={{ backgroundColor: color }} />
-        <div className="p-4 space-y-3">
+        <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
           <div className="h-2.5 w-3/4 bg-gray-100 rounded-full transition-all duration-500 ease-out group-hover:w-full group-hover:bg-gray-200" />
           <div className="h-2.5 w-1/2 bg-gray-100 rounded-full transition-all duration-500 ease-out delay-75 group-hover:w-2/3 group-hover:bg-gray-200" />
           {/* Payment toggle hint */}
@@ -149,7 +149,7 @@ const SWATCH_COLORS = ["#9747E6", "#2563eb", "#f59e0b", "#176636"];
 function DesignIllustration({ color = "#9747E6", onColorChange }: { color?: string; onColorChange?: (c: string) => void }) {
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="flex gap-4 items-end">
+      <div className="flex gap-3 sm:gap-4 items-end">
         {SWATCH_COLORS.map((c, i) => {
           const selected = c === color;
           return (
@@ -184,7 +184,7 @@ function DesignIllustration({ color = "#9747E6", onColorChange }: { color?: stri
 function ComposeIllustration({ color = "#9747E6" }: { color?: string }) {
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="w-full max-w-[260px] rounded-xl border border-gray-200 bg-white shadow-sm p-4 space-y-3 transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+      <div className="w-full max-w-[220px] sm:max-w-[260px] rounded-xl border border-gray-200 bg-white shadow-sm p-3 sm:p-4 space-y-2.5 sm:space-y-3 transition-transform duration-500 ease-out group-hover:scale-[1.03]">
         <div className="h-2.5 w-1/2 bg-gray-100 rounded-full transition-all duration-500 ease-out group-hover:w-2/3 group-hover:bg-gray-200" />
         <div className="border-t border-gray-100 pt-3 space-y-2">
           <div className="h-2 w-full bg-gray-100 rounded-full transition-all duration-500 ease-out delay-75 group-hover:bg-gray-200" />
@@ -385,19 +385,19 @@ function HowItWorks() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {STEP_CARDS.map((card, i) => (
             <Reveal key={card.label} delay={i * 0.12} scale>
-              <div className="group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-                <div className="px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
+              <div className="group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30">
+                <div className="px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
                   <p className="text-[10px] font-bold tracking-[0.16em] uppercase mb-1.5 transition-colors duration-500" style={{ color: accentColor }}>
                     {card.label}
                   </p>
-                  <p className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  <p className="text-base sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
                     {card.title}
                   </p>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
                     {card.desc}
                   </p>
                 </div>
-                <div className="h-36 sm:h-44 px-5 sm:px-6">
+                <div className="py-4 px-4 sm:h-44 sm:px-6">
                   {renderIllustration(card.key)}
                 </div>
               </div>
@@ -456,14 +456,14 @@ function Testimonials() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
           {TESTIMONIALS.map((t, i) => (
             <Reveal key={t.name} delay={i * 0.08}>
-              <blockquote>
-                <span className="block text-3xl font-serif leading-none text-primary/20 select-none mb-2">&ldquo;</span>
-                <p className="text-sm italic text-gray-600 dark:text-gray-400 leading-relaxed">
+              <blockquote className="group cursor-default">
+                <span className="block text-3xl font-serif leading-none text-primary/20 select-none mb-2 transition-colors duration-300 group-hover:text-primary">&ldquo;</span>
+                <p className="text-sm italic text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300 group-hover:text-primary">
                   {t.quote}
                 </p>
                 <footer className="mt-4">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.name}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">{t.role}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors duration-300 group-hover:text-primary">{t.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 transition-colors duration-300 group-hover:text-primary/60">{t.role}</p>
                 </footer>
               </blockquote>
             </Reveal>
@@ -638,8 +638,8 @@ export default function LandingPage() {
           {/* Two feature cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
             <Reveal delay={0.08} scale className="flex">
-              <div className="flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
-                <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="group flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
+                <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5 group-hover:animate-[icon-shake_0.5s_ease-in-out]" />
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
                     Mobile Money
@@ -652,8 +652,8 @@ export default function LandingPage() {
               </div>
             </Reveal>
             <Reveal delay={0.16} scale className="flex">
-              <div className="flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
-                <Landmark className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="group flex-1 rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] p-5 sm:p-6 flex gap-4 items-start">
+                <Landmark className="w-5 h-5 text-primary shrink-0 mt-0.5 group-hover:animate-[icon-shake_0.5s_ease-in-out]" />
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
                     Bank Transfer
