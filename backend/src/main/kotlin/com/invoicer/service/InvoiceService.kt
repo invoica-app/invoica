@@ -42,6 +42,8 @@ class InvoiceService(
             dueDate = request.dueDate,
             primaryColor = request.primaryColor,
             fontFamily = request.fontFamily,
+            templateId = request.templateId,
+            authorizedSignature = request.authorizedSignature,
             currency = request.currency,
             clientName = request.clientName,
             clientCompany = request.clientCompany,
@@ -127,6 +129,8 @@ class InvoiceService(
         request.dueDate?.let { invoice.dueDate = it }
         request.primaryColor?.let { invoice.primaryColor = it }
         request.fontFamily?.let { invoice.fontFamily = it }
+        request.templateId?.let { invoice.templateId = it }
+        request.authorizedSignature?.let { invoice.authorizedSignature = it }
         request.currency?.let { invoice.currency = it }
         request.clientName?.let { invoice.clientName = it }
         request.clientCompany?.let { invoice.clientCompany = it }
@@ -221,6 +225,8 @@ class InvoiceService(
         dueDate = dueDate,
         primaryColor = primaryColor,
         fontFamily = fontFamily,
+        templateId = templateId,
+        authorizedSignature = authorizedSignature,
         currency = currency,
         clientName = clientName,
         clientCompany = clientCompany,

@@ -73,6 +73,8 @@ export default function CompanyInfoPage() {
     phone,
     companyEmail,
     companyLogo,
+    templateId,
+    authorizedSignature,
   } = useInvoiceStore(
     useShallow((s) => ({
       companyName: s.companyName,
@@ -84,6 +86,8 @@ export default function CompanyInfoPage() {
       phone: s.phone,
       companyEmail: s.companyEmail,
       companyLogo: s.companyLogo,
+      templateId: s.templateId,
+      authorizedSignature: s.authorizedSignature,
     }))
   );
   const updateCompany = useInvoiceStore((s) => s.updateCompany);
@@ -102,8 +106,11 @@ export default function CompanyInfoPage() {
       phoneCountryCode: pc?.iso ?? "GH",
       phone,
       companyEmail,
+      authorizedSignature,
     };
   });
+
+  const showSignature = templateId === "enterprise" || templateId === "corporate";
 
   // Auto-populate phoneCode from country if empty (handles migration from old saved state)
   useEffect(() => {
@@ -345,6 +352,17 @@ export default function CompanyInfoPage() {
               </Field>
             </div>
           </div>
+
+          {showSignature && (
+            <Field label="Authorized Signature Name" htmlFor="authorizedSignature">
+              <Input
+                id="authorizedSignature"
+                value={formData.authorizedSignature}
+                onChange={(e) => setFormData({ ...formData, authorizedSignature: e.target.value })}
+                placeholder="e.g. John Doe, CEO"
+              />
+            </Field>
+          )}
 
           <div className="flex justify-between mt-6 pt-6 border-t border-border/50">
             <Button variant="ghost" asChild>
