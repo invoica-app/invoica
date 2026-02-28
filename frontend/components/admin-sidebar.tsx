@@ -12,6 +12,7 @@ import {
   FileText,
   Mail,
   Activity,
+  MessageSquare,
   ArrowLeft,
   LogOut,
   ChevronUp,
@@ -29,6 +30,7 @@ const adminNavItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/invoices", label: "Invoices", icon: FileText },
   { href: "/admin/emails", label: "Email Logs", icon: Mail },
+  { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/admin/health", label: "System Health", icon: Activity },
 ];
 

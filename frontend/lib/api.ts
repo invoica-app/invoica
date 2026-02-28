@@ -94,6 +94,22 @@ class ApiClient {
     }, token);
   }
 
+  // Feedback API methods
+  async submitFeedback(data: FeedbackData, token?: string): Promise<FeedbackResponse> {
+    return this.request<FeedbackResponse>('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token);
+  }
+
+  async checkFeedback(invoiceId: number, token?: string): Promise<{ feedbackGiven: boolean }> {
+    return this.request<{ feedbackGiven: boolean }>(`/feedback/check/${invoiceId}`, {}, token);
+  }
+
+  async getFeedbackCount(token?: string): Promise<{ count: number }> {
+    return this.request<{ count: number }>('/feedback/count', {}, token);
+  }
+
   async uploadLogo(file: File, token?: string): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
@@ -121,6 +137,42 @@ class ApiClient {
 
 // Single reusable instance — token passed per-request, no allocation per call
 const api = new ApiClient(API_BASE_URL);
+
+export interface FeedbackData {
+  type: string;
+  category?: string;
+  rating?: number;
+  npsScore?: number;
+  easeScore?: number;
+  message?: string;
+  invoiceId?: number;
+  page?: string;
+  userAgent?: string;
+}
+
+export interface FeedbackResponse {
+  id: number;
+  userId: number;
+  type: string;
+  category: string | null;
+  rating: number | null;
+  npsScore: number | null;
+  easeScore: number | null;
+  message: string | null;
+  invoiceId: number | null;
+  page: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
+export const feedbackApi = {
+  submit: (data: FeedbackData, token?: string) =>
+    api.submitFeedback(data, token),
+  check: (invoiceId: number, token?: string) =>
+    api.checkFeedback(invoiceId, token),
+  getCount: (token?: string) =>
+    api.getFeedbackCount(token),
+};
 
 export const invoiceApi = {
   create: (data: CreateInvoiceRequest, token?: string) =>

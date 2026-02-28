@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { Copy, ExternalLink, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
+
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const APP_URL = "https://invoica.co";
@@ -25,13 +25,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const isSnapchat = useIsSnapchat();
-
-  const isDark = mounted && resolvedTheme === "dark";
-
-  useEffect(() => setMounted(true), []);
 
   const handleGoogleSignIn = async () => {
     setIsLoading("google");
@@ -302,26 +296,22 @@ export default function LoginPage() {
             }
           `}</style>
 
-          {/* Day image */}
+          {/* Day image — visible in light mode, hidden in dark mode */}
           <Image
             src="/images/auth/day.png"
             alt="Illustrated sky with warm Kente-patterned clouds"
             fill
-            priority={!isDark}
-            className={`object-cover auth-illustration transition-opacity duration-700 ${
-              isDark ? "opacity-0" : "opacity-100"
-            }`}
+            priority
+            className="object-cover auth-illustration transition-opacity duration-700 opacity-100 dark:opacity-0"
           />
 
-          {/* Night image */}
+          {/* Night image — hidden in light mode, visible in dark mode */}
           <Image
             src="/images/auth/night.png"
             alt="Illustrated night sky with purple Kente-patterned clouds and crescent moon"
             fill
-            priority={isDark}
-            className={`object-cover auth-illustration transition-opacity duration-700 ${
-              isDark ? "opacity-100" : "opacity-0"
-            }`}
+            priority
+            className="object-cover auth-illustration transition-opacity duration-700 opacity-0 dark:opacity-100"
           />
 
         </div>

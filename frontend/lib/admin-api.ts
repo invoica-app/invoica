@@ -91,6 +91,35 @@ async function adminRequest<T>(
   return response.json();
 }
 
+export interface AdminFeedback {
+  id: number;
+  userId: number;
+  type: string;
+  category: string | null;
+  rating: number | null;
+  npsScore: number | null;
+  easeScore: number | null;
+  message: string | null;
+  invoiceId: number | null;
+  page: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
+export interface AdminFeedbackList {
+  feedback: AdminFeedback[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface FeedbackStats {
+  averageRating: number;
+  totalCount: number;
+  npsScore: number;
+  categoryBreakdown: Record<string, number>;
+}
+
 export const adminApi = {
   getDashboard: (token?: string) =>
     adminRequest<DashboardStats>("/admin/dashboard", token),
@@ -122,4 +151,14 @@ export const adminApi = {
 
   getHealth: (token?: string) =>
     adminRequest<SystemHealth>("/admin/health", token),
+
+  getFeedbackList: (page: number, size: number, type?: string, category?: string, token?: string) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    if (type) params.set("type", type);
+    if (category) params.set("category", category);
+    return adminRequest<AdminFeedbackList>(`/feedback/admin/list?${params}`, token);
+  },
+
+  getFeedbackStats: (token?: string) =>
+    adminRequest<FeedbackStats>("/feedback/admin/stats", token),
 };

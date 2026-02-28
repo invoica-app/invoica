@@ -10,10 +10,11 @@ import { useAuth } from "@/lib/auth";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { CURRENCIES } from "@/lib/currency";
-import { LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
+import { LogOut, Sun, Moon, Monitor, Check, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppFooter } from "@/components/app-footer";
 import { HydrationGuard } from "@/components/hydration-guard";
+import { FeedbackModal } from "@/components/feedback/feedback-modal";
 import { SettingsSkeleton } from "./loading";
 
 const fonts = [
@@ -57,6 +58,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -235,6 +237,20 @@ export default function SettingsPage() {
                 Log out
               </Button>
             </section>
+
+            {/* Feedback — mobile only */}
+            <section className="md:hidden">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Feedback</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFeedbackOpen(true)}
+                className="gap-2"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                Send Feedback
+              </Button>
+            </section>
           </div>
 
           {/* Auto-save note */}
@@ -246,6 +262,8 @@ export default function SettingsPage() {
       </div>
 
       <AppFooter />
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </HydrationGuard>
   );
 }

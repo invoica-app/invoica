@@ -19,6 +19,9 @@ export function useAdminApi() {
         adminApi.getInvoices(page, pageSize, status, search, accessToken),
       getInvoiceById: (id: number) => adminApi.getInvoiceById(id, accessToken),
       getHealth: () => adminApi.getHealth(accessToken),
+      getFeedbackList: (page: number, size: number, type?: string, category?: string) =>
+        adminApi.getFeedbackList(page, size, type, category, accessToken),
+      getFeedbackStats: () => adminApi.getFeedbackStats(accessToken),
     }),
     [accessToken]
   );

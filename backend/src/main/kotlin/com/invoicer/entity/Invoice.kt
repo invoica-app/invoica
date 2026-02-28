@@ -56,6 +56,10 @@ class Invoice(
     @Column(nullable = false)
     var fontFamily: String = "Inter",
 
+    var templateId: String = "modern",
+
+    var authorizedSignature: String? = null,
+
     // Currency
     @Column(nullable = false)
     var currency: String = "USD",
