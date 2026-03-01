@@ -39,6 +39,10 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
 
 
+    // OAuth ID token verification
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("org.springframework.security:spring-security-oauth2-jose")
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")

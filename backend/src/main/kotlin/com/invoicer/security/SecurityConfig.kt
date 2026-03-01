@@ -16,7 +16,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthenticationFilter
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+    private val rateLimitFilter: RateLimitFilter
 ) {
 
     @Value("\${cors.allowed-origins:http://localhost:3000}")
@@ -33,14 +34,17 @@ class SecurityConfig(
                     // Public endpoints
                     .requestMatchers("/api/health").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                    // Admin endpoints require ROLE_ADMIN
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                     // Require authentication for all other endpoints
                     .anyRequest().authenticated()
             }
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .headers { it.frameOptions { frameOptions -> frameOptions.disable() } }
+            .headers { it.frameOptions { frameOptions -> frameOptions.sameOrigin() } }
 
         return http.build()
     }
@@ -50,7 +54,7 @@ class SecurityConfig(
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = allowedOrigins.split(",").map { it.trim() }
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        configuration.allowedHeaders = listOf("*")
+        configuration.allowedHeaders = listOf("Authorization", "Content-Type", "Accept")
         configuration.allowCredentials = true
         configuration.maxAge = 3600L
 

@@ -4,10 +4,12 @@ import com.invoicer.dto.*
 import com.invoicer.entity.Invoice
 import com.invoicer.entity.InvoiceStatus
 import com.invoicer.entity.LineItem
+import com.invoicer.exception.GuestLimitExceededException
 import com.invoicer.exception.InvoiceAccessDeniedException
 import com.invoicer.exception.InvoiceNotFoundException
 import com.invoicer.exception.DuplicateInvoiceNumberException
 import com.invoicer.repository.InvoiceRepository
+import com.invoicer.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,11 +21,25 @@ import java.time.LocalDateTime
 @Transactional
 class InvoiceService(
     private val invoiceRepository: InvoiceRepository,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val userRepository: UserRepository
 ) {
     private val logger = LoggerFactory.getLogger(InvoiceService::class.java)
 
+    companion object {
+        private const val GUEST_INVOICE_LIMIT = 5
+    }
+
     fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
+        // Enforce guest user invoice limit
+        val user = userRepository.findById(userId).orElse(null)
+        if (user?.isGuest == true) {
+            val count = invoiceRepository.countByUserId(userId)
+            if (count >= GUEST_INVOICE_LIMIT) {
+                throw GuestLimitExceededException("Guest users are limited to $GUEST_INVOICE_LIMIT invoices. Sign up for unlimited access.")
+            }
+        }
+
         if (invoiceRepository.existsByInvoiceNumberAndUserId(request.invoiceNumber, userId)) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }
@@ -188,6 +204,7 @@ class InvoiceService(
             .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
         verifyOwnership(invoice, userId)
         invoiceRepository.deleteById(id)
+        logger.info("AUDIT: Invoice deleted id={} number={} userId={}", id, invoice.invoiceNumber, userId)
     }
 
     fun recordDownload(id: Long, userId: Long) {

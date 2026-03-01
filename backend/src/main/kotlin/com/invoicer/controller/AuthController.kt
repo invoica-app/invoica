@@ -2,6 +2,7 @@ package com.invoicer.controller
 
 import com.invoicer.dto.*
 import com.invoicer.service.AuthService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -13,7 +14,7 @@ class AuthController(
 ) {
 
     @PostMapping("/oauth/login")
-    fun oauthLogin(@RequestBody request: OAuthLoginRequest): ResponseEntity<AuthResponse> {
+    fun oauthLogin(@Valid @RequestBody request: OAuthLoginRequest): ResponseEntity<AuthResponse> {
         val response = authService.loginWithOAuth(request)
         return ResponseEntity.ok(response)
     }

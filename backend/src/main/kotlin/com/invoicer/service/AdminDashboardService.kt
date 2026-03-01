@@ -6,6 +6,7 @@ import com.invoicer.exception.AdminAccessDeniedException
 import com.invoicer.repository.InvoiceRepository
 import com.invoicer.repository.UserRepository
 import com.invoicer.security.AdminService
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,11 +21,16 @@ class AdminDashboardService(
     private val invoiceRepository: InvoiceRepository,
     private val adminService: AdminService
 ) {
+    private val logger = LoggerFactory.getLogger(AdminDashboardService::class.java)
 
     private fun requireAdmin(email: String) {
         if (!adminService.isAdmin(email)) {
             throw AdminAccessDeniedException("Admin access required")
         }
+    }
+
+    private fun escapeSqlWildcards(input: String): String {
+        return input.replace("%", "\\%").replace("_", "\\_")
     }
 
     fun getDashboardStats(email: String): DashboardStatsResponse {
@@ -67,7 +73,7 @@ class AdminDashboardService(
         val usersPage = if (search.isNullOrBlank()) {
             userRepository.findAll(pageable)
         } else {
-            userRepository.searchUsers(search, pageable)
+            userRepository.searchUsers(escapeSqlWildcards(search), pageable)
         }
 
         val users = usersPage.content.map { user ->
@@ -118,9 +124,13 @@ class AdminDashboardService(
         val user = userRepository.findById(userId)
             .orElseThrow { RuntimeException("User not found") }
 
+        val previousStatus = user.isDisabled
         user.isDisabled = request.disabled
         user.updatedAt = LocalDateTime.now()
         userRepository.save(user)
+
+        logger.info("AUDIT: Admin {} {} user id={} email={} (was disabled={})",
+            email, if (request.disabled) "disabled" else "enabled", userId, user.email, previousStatus)
 
         return AdminUserResponse(
             id = user.id,
@@ -140,10 +150,11 @@ class AdminDashboardService(
 
         val pageable = PageRequest.of(page, pageSize)
         val hasSearch = !search.isNullOrBlank()
+        val sanitizedSearch = if (hasSearch) escapeSqlWildcards(search!!) else null
         val invoicesPage = when {
-            status != null && hasSearch -> invoiceRepository.searchByStatusAndText(status, search!!, pageable)
+            status != null && sanitizedSearch != null -> invoiceRepository.searchByStatusAndText(status, sanitizedSearch, pageable)
             status != null -> invoiceRepository.findByStatus(status, pageable)
-            hasSearch -> invoiceRepository.searchByText(search!!, pageable)
+            sanitizedSearch != null -> invoiceRepository.searchByText(sanitizedSearch, pageable)
             else -> invoiceRepository.findAll(pageable)
         }
 

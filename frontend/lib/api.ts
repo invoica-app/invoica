@@ -41,6 +41,13 @@ class ApiClient {
       const response = await fetch(url, config);
 
       if (!response.ok) {
+        // Auto sign-out on expired/invalid token
+        if (response.status === 401 && typeof window !== 'undefined') {
+          const { signOut } = await import('next-auth/react');
+          signOut({ callbackUrl: '/login' });
+          throw new Error('Session expired. Please log in again.');
+        }
+
         const error: ApiError = await response.json();
         // Include validation details if present (e.g. "invoiceNumber: Invoice number is required")
         const message = error.details?.length

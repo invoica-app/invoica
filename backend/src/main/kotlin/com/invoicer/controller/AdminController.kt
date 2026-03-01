@@ -27,7 +27,7 @@ class AdminController(
         authentication: Authentication
     ): ResponseEntity<AdminUserListResponse> {
         val email = authentication.name
-        return ResponseEntity.ok(adminDashboardService.getUsers(email, page, pageSize, search))
+        return ResponseEntity.ok(adminDashboardService.getUsers(email, page, pageSize.coerceAtMost(100), search))
     }
 
     @GetMapping("/users/{id}")
@@ -58,7 +58,7 @@ class AdminController(
         authentication: Authentication
     ): ResponseEntity<AdminInvoiceListResponse> {
         val email = authentication.name
-        return ResponseEntity.ok(adminDashboardService.getInvoices(email, page, pageSize, status, search))
+        return ResponseEntity.ok(adminDashboardService.getInvoices(email, page, pageSize.coerceAtMost(100), status, search))
     }
 
     @GetMapping("/invoices/{id}")

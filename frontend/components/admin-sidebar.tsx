@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { handleSignOut } from "@/lib/sign-out";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import {
@@ -213,7 +213,7 @@ export function AdminSidebar() {
                   Settings
                 </Link>
                 <button
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={handleSignOut}
                   className="flex items-center gap-2.5 px-2.5 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors w-full"
                 >
                   <LogOut className="w-3.5 h-3.5" />

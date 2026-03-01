@@ -57,10 +57,8 @@ export const authOptions: NextAuthOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: user.email,
-              name: user.name,
+              idToken: account.id_token,
               provider: account.provider === "google" ? "GOOGLE" : "MICROSOFT",
-              providerId: account.providerAccountId,
             }),
           });
 
@@ -103,6 +101,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 4 * 60 * 60, // 4 hours — matches backend JWT expiration
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
