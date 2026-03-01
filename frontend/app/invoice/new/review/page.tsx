@@ -73,7 +73,8 @@ export default function ReviewPage() {
   const dismissFeedback = useCallback(() => {
     setSentInvoiceId(null);
     setShowFirstInvoice(false);
-  }, []);
+    router.push("/invoice/new/history");
+  }, [router]);
 
   const currency = data.currency || "USD";
   const subtotal = data.lineItems.reduce((sum, item) => sum + item.amount, 0);
@@ -105,14 +106,19 @@ export default function ReviewPage() {
 
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
 
-      // iOS Safari blocks both blob URLs and programmatic link clicks.
-      // Open the PDF as a data URI in a new tab — works everywhere.
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      // Safari (both macOS and iOS) blocks programmatic blob downloads
+      // and link clicks after an async gap. Use a blob URL in a new tab instead.
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-      if (isIOS) {
-        const dataUri = pdf.output("datauristring");
-        window.open(dataUri, "_blank");
+      if (isSafari) {
+        const blob = pdf.output("blob");
+        const blobUrl = URL.createObjectURL(blob);
+        const newTab = window.open(blobUrl, "_blank");
+        if (!newTab) {
+          // Pop-up blocked — fall back to direct navigation
+          window.location.href = blobUrl;
+        }
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
       } else {
         pdf.save(fileName);
       }
@@ -190,6 +196,9 @@ export default function ReviewPage() {
         const updatedInvoice = await api.updateInvoice(editingInvoiceId, updateRequest, true);
         if (isAuthenticated && !isGuest && updatedInvoice.id) {
           setSentInvoiceId(updatedInvoice.id);
+          reset();
+          setSending(false);
+          return;
         }
       } else {
         const request: CreateInvoiceRequest = {
@@ -247,7 +256,12 @@ export default function ReviewPage() {
           } catch {
             // Ignore — feedback is non-critical
           }
-          if (createdInvoice.id) setSentInvoiceId(createdInvoice.id);
+          if (createdInvoice.id) {
+            setSentInvoiceId(createdInvoice.id);
+            reset();
+            setSending(false);
+            return;
+          }
         }
       }
       reset();
