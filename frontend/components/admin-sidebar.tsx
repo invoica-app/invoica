@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { FeedbackModal } from "@/components/feedback/feedback-modal";
 
 const adminNavItems = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -56,6 +57,7 @@ export function AdminSidebar() {
   const { user } = useAuth();
   const [showPopover, setShowPopover] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -84,6 +86,8 @@ export function AdminSidebar() {
 
   return (
     <>
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+
       {/* Desktop sidebar */}
       <aside
         className={cn(
@@ -155,8 +159,8 @@ export function AdminSidebar() {
           ))}
         </nav>
 
-        {/* Theme Toggle */}
-        <div className="pt-3 border-t border-border/60">
+        {/* Theme Toggle + Feedback */}
+        <div className="pt-3 border-t border-border/60 space-y-0.5">
           <button
             onClick={toggleTheme}
             className={cn(
@@ -171,6 +175,18 @@ export function AdminSidebar() {
               <Moon className="w-4 h-4 shrink-0" />
             )}
             {expanded && (mounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode")}
+          </button>
+
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className={cn(
+              "flex items-center w-full rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors",
+              expanded ? "gap-3 px-2.5 py-2" : "justify-center py-2"
+            )}
+            title={collapsed ? "Feedback" : undefined}
+          >
+            <MessageSquare className="w-4 h-4 shrink-0" />
+            {expanded && "Feedback"}
           </button>
         </div>
 
