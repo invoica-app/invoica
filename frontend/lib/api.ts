@@ -94,6 +94,12 @@ class ApiClient {
     }, token);
   }
 
+  async recordDownload(id: number, token?: string): Promise<void> {
+    return this.request<void>(`/invoices/${id}/download`, {
+      method: 'POST',
+    }, token);
+  }
+
   // Feedback API methods
   async submitFeedback(data: FeedbackData, token?: string): Promise<FeedbackResponse> {
     return this.request<FeedbackResponse>('/feedback', {
@@ -185,6 +191,8 @@ export const invoiceApi = {
     api.updateInvoice(id, data, resend, token),
   delete: (id: number, token?: string) =>
     api.deleteInvoice(id, token),
+  recordDownload: (id: number, token?: string) =>
+    api.recordDownload(id, token),
   uploadLogo: (file: File, token?: string) =>
     api.uploadLogo(file, token),
 };

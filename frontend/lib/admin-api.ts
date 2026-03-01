@@ -10,6 +10,7 @@ export interface DashboardStats {
   totalUsers: number;
   totalInvoices: number;
   paidRevenue: number;
+  totalDownloads: number;
   activeUsers30d: number;
   invoicesByStatus: Record<string, number>;
   invoicesOverTime: TimeSeriesPoint[];
@@ -45,6 +46,7 @@ export interface AdminInvoice {
   status: string;
   ownerEmail: string | null;
   ownerName: string | null;
+  downloadCount: number;
   invoiceDate: string;
   createdAt: string;
 }

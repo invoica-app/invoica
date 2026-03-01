@@ -116,6 +116,10 @@ export default function ReviewPage() {
       } else {
         pdf.save(fileName);
       }
+
+      if (editingInvoiceId) {
+        api.recordDownload(editingInvoiceId).catch(() => {});
+      }
     } catch (err) {
       console.error("PDF generation failed:", err);
       setError("Failed to generate PDF. Please try again.");
