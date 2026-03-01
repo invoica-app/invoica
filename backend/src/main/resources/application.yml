@@ -21,16 +21,6 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # OAuth Client IDs (for ID token verification)
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:}
-          azure-ad:
-            client-id: ${MICROSOFT_CLIENT_ID:}
-
 server:
   port: 8080
 
@@ -38,6 +28,13 @@ server:
 jwt:
   secret: ${JWT_SECRET:dev-secret-key-change-in-production-at-least-256-bits-long}
   expiration: ${JWT_EXPIRATION:14400000}
+
+# OAuth Client IDs (for ID token verification only)
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  microsoft:
+    client-id: ${MICROSOFT_CLIENT_ID:}
 
 # Admin Configuration
 admin:
