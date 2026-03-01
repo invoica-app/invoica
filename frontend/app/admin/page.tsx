@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, Users, FileText, DollarSign, UserCheck } from "lucide-react";
+import { Users, FileText, DollarSign, UserCheck } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { DashboardStats } from "@/lib/admin-api";
@@ -41,11 +41,7 @@ export default function AdminDashboardPage() {
   }, [fetchStats]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -170,6 +166,61 @@ export default function AdminDashboardPage() {
               )}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Bone({ className = "" }: { className?: string }) {
+  return <div className={`bg-muted rounded animate-pulse ${className}`} />;
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="p-4 md:p-6">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 space-y-2">
+          <Bone className="h-5 w-24" />
+          <Bone className="h-3.5 w-52 opacity-60" />
+        </div>
+
+        {/* Metric cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-muted/50 rounded-lg p-3.5">
+              <div className="flex items-center gap-2 mb-2">
+                <Bone className="w-4 h-4 rounded" />
+                <Bone className="h-3 w-20" />
+              </div>
+              <Bone className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Status breakdown */}
+        <div className="bg-muted/50 rounded-lg p-3.5 mb-6">
+          <Bone className="h-3 w-40 mb-3" />
+          <div className="flex flex-wrap gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <Bone className="w-2 h-2 rounded-full" />
+                <Bone className="h-3.5 w-14" />
+                <Bone className="h-3.5 w-6" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-muted/50 rounded-lg p-3.5">
+              <Bone className="h-3 w-32 mb-4" />
+              <Bone className="h-48 w-full rounded-lg" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
