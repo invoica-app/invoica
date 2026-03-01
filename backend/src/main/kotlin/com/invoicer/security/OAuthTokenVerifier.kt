@@ -19,10 +19,10 @@ data class VerifiedOAuthUser(
 
 @Component
 class OAuthTokenVerifier(
-    @Value("\${spring.security.oauth2.client.registration.google.client-id:}")
+    @Value("\${oauth.google.client-id:}")
     private val googleClientId: String,
 
-    @Value("\${spring.security.oauth2.client.registration.azure-ad.client-id:}")
+    @Value("\${oauth.microsoft.client-id:}")
     private val microsoftClientId: String
 ) {
     private val logger = LoggerFactory.getLogger(OAuthTokenVerifier::class.java)
