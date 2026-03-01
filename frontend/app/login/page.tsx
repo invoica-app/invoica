@@ -285,35 +285,8 @@ export default function LoginPage() {
       {/* Right panel — Illustration (desktop only) */}
       <div className="hidden md:block md:w-[40%] relative">
         <div className="sticky top-0 h-screen overflow-hidden">
-          {/* Slow zoom animation */}
-          <style jsx>{`
-            @keyframes slowZoom {
-              from { transform: scale(1); }
-              to { transform: scale(1.05); }
-            }
-            .auth-illustration {
-              animation: slowZoom 30s ease infinite alternate;
-            }
-          `}</style>
-
-          {/* Day image — visible in light mode, hidden in dark mode */}
-          <Image
-            src="/images/auth/day.png"
-            alt="Illustrated sky with warm Kente-patterned clouds"
-            fill
-            priority
-            className="object-cover auth-illustration transition-opacity duration-700 opacity-100 dark:opacity-0"
-          />
-
-          {/* Night image — hidden in light mode, visible in dark mode */}
-          <Image
-            src="/images/auth/night.png"
-            alt="Illustrated night sky with purple Kente-patterned clouds and crescent moon"
-            fill
-            priority
-            className="object-cover auth-illustration transition-opacity duration-700 opacity-0 dark:opacity-100"
-          />
-
+          <div className="auth-bg auth-bg-day" role="img" aria-label="Illustrated sky with warm Kente-patterned clouds" />
+          <div className="auth-bg auth-bg-night" role="img" aria-label="Illustrated night sky with purple Kente-patterned clouds and crescent moon" />
         </div>
       </div>
       </div>

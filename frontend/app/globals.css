@@ -175,6 +175,39 @@
   80% { transform: rotate(4deg); }
 }
 
+/* Auth illustration */
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  animation: slowZoom 30s ease infinite alternate;
+  transition: opacity 0.7s ease;
+}
+
+.auth-bg-day {
+  background-image: url('/images/auth/day.png');
+  opacity: 1;
+}
+
+.auth-bg-night {
+  background-image: url('/images/auth/night.png');
+  opacity: 0;
+}
+
+.dark .auth-bg-day {
+  opacity: 0;
+}
+
+.dark .auth-bg-night {
+  opacity: 1;
+}
+
 /* Dialog */
 @keyframes dialog-in {
   from {
