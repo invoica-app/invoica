@@ -40,6 +40,9 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
     @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.status = 'PAID'")
     fun sumPaidRevenue(): BigDecimal
 
+    @Query("SELECT COALESCE(SUM(i.downloadCount), 0) FROM Invoice i")
+    fun sumDownloadCount(): Long
+
     fun findByStatus(status: InvoiceStatus, pageable: Pageable): Page<Invoice>
 
     @Query(

@@ -190,6 +190,15 @@ class InvoiceService(
         invoiceRepository.deleteById(id)
     }
 
+    fun recordDownload(id: Long, userId: Long) {
+        val invoice = invoiceRepository.findById(id)
+            .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        verifyOwnership(invoice, userId)
+        invoice.downloadCount += 1
+        invoice.lastDownloadedAt = LocalDateTime.now()
+        invoiceRepository.save(invoice)
+    }
+
     @Transactional(readOnly = true)
     fun getInvoicesByStatus(status: InvoiceStatus, userId: Long): List<InvoiceResponse> {
         return invoiceRepository.findByUserIdAndStatus(userId, status).map { it.toResponse() }
@@ -243,6 +252,8 @@ class InvoiceService(
         lineItems = lineItems.map { it.toResponse() },
         totalAmount = totalAmount,
         status = status,
+        downloadCount = downloadCount,
+        lastDownloadedAt = lastDownloadedAt,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

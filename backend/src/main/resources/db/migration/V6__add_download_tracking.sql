@@ -1,0 +1,2 @@
+ALTER TABLE invoices ADD COLUMN download_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE invoices ADD COLUMN last_downloaded_at TIMESTAMP;

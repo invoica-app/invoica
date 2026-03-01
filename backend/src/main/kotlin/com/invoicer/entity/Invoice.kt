@@ -104,6 +104,10 @@ class Invoice(
     @Column(nullable = false)
     var status: InvoiceStatus = InvoiceStatus.DRAFT,
 
+    // Download tracking
+    var downloadCount: Int = 0,
+    var lastDownloadedAt: LocalDateTime? = null,
+
     // Owner
     val userId: Long? = null,
 

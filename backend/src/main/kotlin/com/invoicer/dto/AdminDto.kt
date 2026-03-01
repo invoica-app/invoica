@@ -10,6 +10,7 @@ data class DashboardStatsResponse(
     val totalUsers: Long,
     val totalInvoices: Long,
     val paidRevenue: BigDecimal,
+    val totalDownloads: Long,
     val activeUsers30d: Long,
     val invoicesByStatus: Map<String, Long>,
     val invoicesOverTime: List<TimeSeriesPoint>,
@@ -50,6 +51,7 @@ data class AdminInvoiceResponse(
     val status: InvoiceStatus,
     val ownerEmail: String?,
     val ownerName: String?,
+    val downloadCount: Int,
     val invoiceDate: LocalDate,
     val createdAt: LocalDateTime
 )
