@@ -19,6 +19,7 @@ class Invoice(
     @Column(nullable = false)
     var companyName: String = "",
 
+    @Column(columnDefinition = "TEXT")
     var companyLogo: String? = null,
 
     @Column(nullable = false)
@@ -58,6 +59,7 @@ class Invoice(
 
     var templateId: String = "modern",
 
+    @Column(columnDefinition = "TEXT")
     var authorizedSignature: String? = null,
 
     // Currency
