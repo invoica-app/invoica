@@ -1,15 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Lightbulb, Bug, Heart, Star } from "lucide-react";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { value: "idea", emoji: "\u{1F4A1}", label: "Idea" },
-  { value: "bug", emoji: "\u{1F41B}", label: "Bug" },
-  { value: "praise", emoji: "\u{1F64F}", label: "Praise" },
+  {
+    value: "idea",
+    label: "Idea",
+    icon: Lightbulb,
+    selectedColor: "text-[#9747E6]",
+    selectedBorder: "border-[#9747E6] bg-[#9747E6]/5",
+  },
+  {
+    value: "bug",
+    label: "Bug",
+    icon: Bug,
+    selectedColor: "text-red-500",
+    selectedBorder: "border-red-500 bg-red-500/5",
+  },
+  {
+    value: "praise",
+    label: "Praise",
+    icon: Heart,
+    selectedColor: "text-pink-500",
+    selectedBorder: "border-pink-500 bg-pink-500/5",
+  },
 ];
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Poor",
+  2: "Fair",
+  3: "Good",
+  4: "Great",
+  5: "Amazing",
+};
 
 interface FeedbackModalProps {
   open: boolean;
@@ -68,6 +94,9 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
   if (!open) return null;
 
+  const activeRating = hoveredStar ?? rating;
+  const ratingLabel = activeRating ? RATING_LABELS[activeRating] : null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center md:items-center">
       {/* Backdrop */}
@@ -95,7 +124,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
         <div className="p-6">
           {submitted ? (
             <p className="text-center text-sm py-8">
-              Feedback sent! Thank you {"\u{1F49C}"}
+              Feedback sent! Thank you.
             </p>
           ) : (
             <>
@@ -106,21 +135,37 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
               {/* Category cards */}
               <div className="grid grid-cols-3 gap-2 mb-4">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => setCategory(category === c.value ? null : c.value)}
-                    className={cn(
-                      "flex flex-col items-center gap-1 py-3 rounded-xl border text-xs font-medium transition-colors",
-                      category === c.value
-                        ? "border-[#9747E6] bg-[#9747E6]/5 text-foreground"
-                        : "border-gray-200 dark:border-border text-muted-foreground hover:border-gray-300 dark:hover:border-gray-600"
-                    )}
-                  >
-                    <span className="text-lg">{c.emoji}</span>
-                    {c.label}
-                  </button>
-                ))}
+                {CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const isSelected = category === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      onClick={() => setCategory(isSelected ? null : c.value)}
+                      className={cn(
+                        "flex flex-col items-center py-3 rounded-xl border transition-colors",
+                        isSelected
+                          ? c.selectedBorder
+                          : "border-gray-200 dark:border-border hover:border-gray-300 dark:hover:border-gray-600"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "w-5 h-5",
+                          isSelected ? c.selectedColor : "text-gray-400"
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "text-xs font-medium mt-1.5",
+                          isSelected ? "text-foreground" : "text-muted-foreground"
+                        )}
+                      >
+                        {c.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Message */}
@@ -128,40 +173,44 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Tell us what's on your mind..."
-                className="w-full min-h-[100px] rounded-xl border border-gray-200 dark:border-border bg-transparent p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#9747E6] mb-4"
+                className="w-full min-h-[100px] rounded-xl border border-gray-200 dark:border-border bg-transparent p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#9747E6]/30 focus:border-[#9747E6] mb-4 transition-colors"
               />
 
               {/* Star rating */}
-              <div className="flex items-center gap-1 mb-5">
-                <span className="text-xs text-muted-foreground mr-2">Rating:</span>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoveredStar(star)}
-                    onMouseLeave={() => setHoveredStar(null)}
-                    className="transition-transform hover:scale-110"
-                  >
-                    <svg
-                      className={cn(
-                        "w-5 h-5",
-                        (hoveredStar !== null ? star <= hoveredStar : star <= (rating || 0))
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-200 dark:text-gray-600 fill-gray-200 dark:fill-gray-600"
-                      )}
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  </button>
-                ))}
+              <div className="mb-5">
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const filled = activeRating !== null && star <= activeRating;
+                    return (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoveredStar(star)}
+                        onMouseLeave={() => setHoveredStar(null)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={cn(
+                            "w-5 h-5 transition-colors",
+                            filled
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-gray-200 dark:text-gray-600"
+                          )}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                {ratingLabel && (
+                  <p className="text-xs text-gray-400 mt-1">{ratingLabel}</p>
+                )}
               </div>
 
               {/* Submit */}
               <button
                 onClick={handleSubmit}
                 disabled={submitting || (!message.trim() && !category && !rating)}
-                className="w-full bg-[#9747E6] text-white rounded-xl py-2.5 text-sm font-medium disabled:opacity-40 hover:bg-[#8535d4] transition-colors"
+                className="w-full bg-[#9747E6] text-white rounded-xl py-2.5 text-sm font-medium disabled:opacity-40 hover:bg-[#8a3dd4] transition-colors"
               >
                 {submitting ? "Sending..." : "Submit Feedback"}
               </button>
