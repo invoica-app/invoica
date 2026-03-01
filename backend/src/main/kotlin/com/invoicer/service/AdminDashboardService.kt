@@ -33,6 +33,7 @@ class AdminDashboardService(
         val totalUsers = userRepository.count()
         val totalInvoices = invoiceRepository.count()
         val paidRevenue = invoiceRepository.sumPaidRevenue()
+        val totalDownloads = invoiceRepository.sumDownloadCount()
         val activeUsers30d = userRepository.countActiveUsersSince(LocalDateTime.now().minusDays(30))
 
         val invoicesByStatus = InvoiceStatus.entries.associate { status ->
@@ -51,6 +52,7 @@ class AdminDashboardService(
             totalUsers = totalUsers,
             totalInvoices = totalInvoices,
             paidRevenue = paidRevenue,
+            totalDownloads = totalDownloads,
             activeUsers30d = activeUsers30d,
             invoicesByStatus = invoicesByStatus,
             invoicesOverTime = invoicesOverTime,
@@ -157,6 +159,7 @@ class AdminDashboardService(
                 status = invoice.status,
                 ownerEmail = owner?.email,
                 ownerName = owner?.name,
+                downloadCount = invoice.downloadCount,
                 invoiceDate = invoice.invoiceDate,
                 createdAt = invoice.createdAt
             )
@@ -188,6 +191,7 @@ class AdminDashboardService(
             status = invoice.status,
             ownerEmail = owner?.email,
             ownerName = owner?.name,
+            downloadCount = invoice.downloadCount,
             invoiceDate = invoice.invoiceDate,
             createdAt = invoice.createdAt
         )

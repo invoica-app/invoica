@@ -63,6 +63,16 @@ class InvoiceController(
         return ResponseEntity.ok(invoice)
     }
 
+    @PostMapping("/{id}/download")
+    fun recordDownload(
+        @PathVariable id: Long,
+        authentication: Authentication
+    ): ResponseEntity<Void> {
+        val userId = authentication.credentials as Long
+        invoiceService.recordDownload(id, userId)
+        return ResponseEntity.noContent().build()
+    }
+
     @DeleteMapping("/{id}")
     fun deleteInvoice(
         @PathVariable id: Long,

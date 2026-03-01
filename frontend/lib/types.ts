@@ -79,6 +79,9 @@ export interface Invoice {
   totalAmount?: number;
   // Status
   status?: InvoiceStatus;
+  // Download tracking
+  downloadCount?: number;
+  lastDownloadedAt?: string | null;
   // Audit
   createdAt?: string;
   updatedAt?: string;

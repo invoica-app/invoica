@@ -20,6 +20,7 @@ export function useAuthenticatedApi() {
         resend?: boolean
       ) => invoiceApi.update(id, data, resend, accessToken),
       deleteInvoice: (id: number) => invoiceApi.delete(id, accessToken),
+      recordDownload: (id: number) => invoiceApi.recordDownload(id, accessToken),
       uploadLogo: (file: File) => invoiceApi.uploadLogo(file, accessToken),
       submitFeedback: (data: FeedbackData) => feedbackApi.submit(data, accessToken),
       checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId, accessToken),

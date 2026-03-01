@@ -174,6 +174,8 @@ data class InvoiceResponse(
     val lineItems: List<LineItemResponse>,
     val totalAmount: BigDecimal,
     val status: InvoiceStatus,
+    val downloadCount: Int,
+    val lastDownloadedAt: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

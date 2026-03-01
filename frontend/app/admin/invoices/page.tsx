@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { AdminInvoice } from "@/lib/admin-api";
@@ -113,6 +113,7 @@ export default function AdminInvoicesPage() {
                       <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Client</th>
                       <th className="text-right px-4 py-2.5 font-medium text-muted-foreground">Amount</th>
                       <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Status</th>
+                      <th className="text-center px-4 py-2.5 font-medium text-muted-foreground"><Download className="w-3.5 h-3.5 inline" /></th>
                       <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Owner</th>
                       <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Date</th>
                     </tr>
@@ -136,6 +137,9 @@ export default function AdminInvoicesPage() {
                             {invoice.status}
                           </span>
                         </td>
+                        <td className="px-4 py-2.5 text-center text-muted-foreground tabular-nums text-xs">
+                          {invoice.downloadCount > 0 ? invoice.downloadCount : "\u2014"}
+                        </td>
                         <td className="px-4 py-2.5 text-muted-foreground text-xs">
                           {invoice.ownerName || invoice.ownerEmail || "—"}
                         </td>
@@ -146,7 +150,7 @@ export default function AdminInvoicesPage() {
                     ))}
                     {invoices.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No invoices found.
                         </td>
                       </tr>

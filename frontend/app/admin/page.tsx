@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Users, FileText, DollarSign, UserCheck } from "lucide-react";
+import { Users, FileText, DollarSign, UserCheck, Download } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { DashboardStats } from "@/lib/admin-api";
@@ -60,6 +60,7 @@ export default function AdminDashboardPage() {
     { label: "Total Users", value: stats.totalUsers.toLocaleString(), icon: Users },
     { label: "Total Invoices", value: stats.totalInvoices.toLocaleString(), icon: FileText },
     { label: "Revenue (Paid)", value: `$${stats.paidRevenue.toLocaleString()}`, icon: DollarSign },
+    { label: "Downloads", value: stats.totalDownloads.toLocaleString(), icon: Download },
     { label: "Active Users (30d)", value: stats.activeUsers30d.toLocaleString(), icon: UserCheck },
   ];
 
@@ -72,7 +73,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Metric cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
           {metricCards.map((card) => {
             const Icon = card.icon;
             return (
@@ -187,8 +188,8 @@ function DashboardSkeleton() {
         </div>
 
         {/* Metric cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+          {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="bg-muted/50 rounded-lg p-3.5">
               <div className="flex items-center gap-2 mb-2">
                 <Bone className="w-4 h-4 rounded" />
