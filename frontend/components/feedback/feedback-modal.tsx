@@ -178,7 +178,10 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
               {/* Star rating */}
               <div className="mb-5">
-                <div className="flex items-center gap-1">
+                <div
+                  className="flex items-center gap-1"
+                  onMouseLeave={() => setHoveredStar(null)}
+                >
                   {[1, 2, 3, 4, 5].map((star) => {
                     const filled = activeRating !== null && star <= activeRating;
                     return (
@@ -186,12 +189,11 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                         key={star}
                         onClick={() => setRating(star)}
                         onMouseEnter={() => setHoveredStar(star)}
-                        onMouseLeave={() => setHoveredStar(null)}
                         className="transition-transform hover:scale-110"
                       >
                         <Star
                           className={cn(
-                            "w-5 h-5 transition-colors",
+                            "w-5 h-5",
                             filled
                               ? "fill-amber-400 text-amber-400"
                               : "text-gray-200 dark:text-gray-600"
@@ -201,9 +203,12 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                     );
                   })}
                 </div>
-                {ratingLabel && (
-                  <p className="text-xs text-gray-400 mt-1">{ratingLabel}</p>
-                )}
+                <p className={cn(
+                  "text-xs text-gray-400 mt-1 h-4",
+                  ratingLabel ? "opacity-100" : "opacity-0"
+                )}>
+                  {ratingLabel || "\u00A0"}
+                </p>
               </div>
 
               {/* Submit */}
