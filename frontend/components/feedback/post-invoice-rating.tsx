@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Star } from "lucide-react";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { cn } from "@/lib/utils";
 
-const EMOJIS = [
-  { emoji: "\u{1F621}", label: "Terrible", value: 1 },
-  { emoji: "\u{1F615}", label: "Bad", value: 2 },
-  { emoji: "\u{1F610}", label: "Okay", value: 3 },
-  { emoji: "\u{1F642}", label: "Good", value: 4 },
-  { emoji: "\u{1F60D}", label: "Amazing", value: 5 },
+const RATINGS = [
+  { label: "Terrible", value: 1 },
+  { label: "Bad", value: 2 },
+  { label: "Okay", value: 3 },
+  { label: "Good", value: 4 },
+  { label: "Amazing", value: 5 },
 ];
 
 interface PostInvoiceRatingProps {
@@ -108,29 +109,39 @@ export function PostInvoiceRating({ invoiceId, onDismiss }: PostInvoiceRatingPro
       <div className="bg-white dark:bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-border p-5">
         {submitted ? (
           <p className="text-center text-sm text-muted-foreground py-2">
-            Thanks for your feedback! {"\u{1F64F}"}
+            Thanks for your feedback!
           </p>
         ) : (
           <>
             <p className="text-sm font-medium text-center mb-3">How was your experience?</p>
 
-            {/* Emoji row */}
-            <div className="flex justify-center gap-3 mb-3">
-              {EMOJIS.map((e) => (
-                <button
-                  key={e.value}
-                  onClick={() => setSelectedRating(e.value)}
-                  title={e.label}
-                  className={cn(
-                    "w-10 h-10 text-xl flex items-center justify-center rounded-full transition-all",
-                    selectedRating === e.value
-                      ? "scale-125 ring-2 ring-[#9747E6] ring-offset-2 dark:ring-offset-card"
-                      : "opacity-60 hover:opacity-100 hover:scale-110"
-                  )}
-                >
-                  {e.emoji}
-                </button>
-              ))}
+            {/* Star rating row */}
+            <div className="flex flex-col items-center gap-1 mb-3">
+              <div className="flex gap-1">
+                {RATINGS.map((r) => (
+                  <button
+                    key={r.value}
+                    onClick={() => setSelectedRating(r.value)}
+                    title={r.label}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={cn(
+                        "w-8 h-8",
+                        selectedRating !== null && r.value <= selectedRating
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-gray-200 dark:text-gray-600"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className={cn(
+                "text-xs text-gray-400 h-4",
+                selectedRating ? "opacity-100" : "opacity-0"
+              )}>
+                {selectedRating ? RATINGS[selectedRating - 1].label : "\u00A0"}
+              </p>
             </div>
 
             {/* Optional message after selection */}

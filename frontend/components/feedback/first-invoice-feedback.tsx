@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { PartyPopper } from "lucide-react";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { cn } from "@/lib/utils";
 
@@ -68,12 +69,12 @@ export function FirstInvoiceFeedback({ onDismiss }: FirstInvoiceFeedbackProps) {
       <div className="relative bg-card border border-border rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
         {submitted ? (
           <p className="text-center text-sm py-8">
-            Thanks for the feedback! {"\u{1F389}"}
+            Thanks for the feedback!
           </p>
         ) : (
           <>
             <div className="text-center mb-5">
-              <span className="text-3xl">{"\u{1F389}"}</span>
+              <PartyPopper className="w-8 h-8 text-[#9747E6] mx-auto" />
               <h2 className="text-base font-semibold mt-2">Your first invoice!</h2>
               <p className="text-xs text-muted-foreground mt-1">
                 Congrats! Help us improve with quick feedback.
