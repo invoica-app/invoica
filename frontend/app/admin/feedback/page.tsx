@@ -1,23 +1,22 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Star, Lightbulb, Bug, Heart } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useAdminApi } from "@/lib/hooks/use-admin-api";
 import { AdminFeedback, FeedbackStats } from "@/lib/admin-api";
+import { cn } from "@/lib/utils";
 
-const RATING_EMOJIS: Record<number, string> = {
-  1: "\u{1F621}",
-  2: "\u{1F615}",
-  3: "\u{1F610}",
-  4: "\u{1F642}",
-  5: "\u{1F60D}",
+const CATEGORY_CONFIG: Record<string, { icon: typeof Lightbulb; color: string; label: string }> = {
+  idea: { icon: Lightbulb, color: "text-[#9747E6]", label: "Idea" },
+  bug: { icon: Bug, color: "text-red-500", label: "Bug" },
+  praise: { icon: Heart, color: "text-pink-500", label: "Praise" },
 };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  idea: "\u{1F4A1}",
-  bug: "\u{1F41B}",
-  praise: "\u{1F64F}",
+const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
+  general: { label: "General", bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-600 dark:text-gray-400" },
+  first_invoice: { label: "First Invoice", bg: "bg-purple-50 dark:bg-purple-950", text: "text-purple-600 dark:text-purple-400" },
+  post_invoice: { label: "Post Invoice", bg: "bg-blue-50 dark:bg-blue-950", text: "text-blue-600 dark:text-blue-400" },
 };
 
 const TYPE_OPTIONS = [
@@ -33,6 +32,52 @@ const CATEGORY_OPTIONS = [
   { value: "bug", label: "Bug" },
   { value: "praise", label: "Praise" },
 ];
+
+function StarRating({ value, size = "w-3.5 h-3.5" }: { value: number; size?: string }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={cn(
+            size,
+            star <= value
+              ? "fill-amber-400 text-amber-400"
+              : "text-gray-200 dark:text-gray-600"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CategoryBadge({ category }: { category: string }) {
+  const config = CATEGORY_CONFIG[category];
+  if (!config) return <span className="text-muted-foreground">{category}</span>;
+  const Icon = config.icon;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Icon className={cn("w-4 h-4", config.color)} />
+      {config.label}
+    </span>
+  );
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const config = TYPE_CONFIG[type];
+  if (!config) {
+    return (
+      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+        {type}
+      </span>
+    );
+  }
+  return (
+    <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium", config.bg, config.text)}>
+      {config.label}
+    </span>
+  );
+}
 
 export default function AdminFeedbackPage() {
   const api = useAdminApi();
@@ -87,11 +132,14 @@ export default function AdminFeedbackPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-1">Average Rating</p>
-              <p className="text-xl font-semibold">
-                {stats.averageRating > 0
-                  ? `${stats.averageRating.toFixed(1)} ${RATING_EMOJIS[Math.round(stats.averageRating)] || ""}`
-                  : "—"}
-              </p>
+              {stats.averageRating > 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold">{stats.averageRating.toFixed(1)}</span>
+                  <StarRating value={Math.round(stats.averageRating)} />
+                </div>
+              ) : (
+                <p className="text-xl font-semibold">—</p>
+              )}
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-1">Total Feedback</p>
@@ -105,11 +153,15 @@ export default function AdminFeedbackPage() {
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-1">Top Category</p>
-              <p className="text-xl font-semibold">
-                {topCategory
-                  ? `${CATEGORY_ICONS[topCategory[0]] || ""} ${topCategory[0].charAt(0).toUpperCase() + topCategory[0].slice(1)}`
-                  : "—"}
-              </p>
+              {topCategory ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold">
+                    <CategoryBadge category={topCategory[0]} />
+                  </span>
+                </div>
+              ) : (
+                <p className="text-xl font-semibold">—</p>
+              )}
             </div>
           </div>
         )}
@@ -167,17 +219,15 @@ export default function AdminFeedbackPage() {
                           {new Date(fb.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
-                            {fb.type}
-                          </span>
+                          <TypeBadge type={fb.type} />
                         </td>
                         <td className="px-4 py-2.5">
-                          {fb.category
-                            ? `${CATEGORY_ICONS[fb.category] || ""} ${fb.category}`
-                            : "—"}
+                          {fb.category ? <CategoryBadge category={fb.category} /> : "—"}
                         </td>
-                        <td className="px-4 py-2.5 text-center text-lg">
-                          {fb.rating ? RATING_EMOJIS[fb.rating] || fb.rating : "—"}
+                        <td className="px-4 py-2.5">
+                          <div className="flex justify-center">
+                            {fb.rating ? <StarRating value={fb.rating} /> : <span className="text-muted-foreground">—</span>}
+                          </div>
                         </td>
                         <td className="px-4 py-2.5 max-w-[200px] truncate" title={fb.message || undefined}>
                           {fb.message || "—"}
