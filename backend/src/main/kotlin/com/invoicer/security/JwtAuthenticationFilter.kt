@@ -1,5 +1,6 @@
 package com.invoicer.security
 
+import com.invoicer.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,7 +13,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: JwtUtil,
+    private val userRepository: UserRepository
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -27,6 +29,13 @@ class JwtAuthenticationFilter(
                 val email = jwtUtil.getEmailFromToken(token)
                 val userId = jwtUtil.getUserIdFromToken(token)
                 val isGuest = jwtUtil.isGuestToken(token)
+
+                // Reject disabled users even if JWT is still valid
+                val user = userRepository.findById(userId).orElse(null)
+                if (user != null && user.isDisabled) {
+                    filterChain.doFilter(request, response)
+                    return
+                }
 
                 val isAdmin = jwtUtil.isAdminToken(token)
 

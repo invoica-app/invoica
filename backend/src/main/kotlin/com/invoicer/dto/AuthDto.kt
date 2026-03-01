@@ -1,12 +1,14 @@
 package com.invoicer.dto
 
 import com.invoicer.entity.AuthProvider
+import jakarta.validation.constraints.NotBlank
 
 data class OAuthLoginRequest(
-    val email: String,
-    val name: String,
-    val provider: AuthProvider,
-    val providerId: String
+    @field:NotBlank(message = "ID token is required")
+    val idToken: String,
+
+    @field:NotBlank(message = "Provider is required")
+    val provider: AuthProvider
 )
 
 data class GuestLoginRequest(

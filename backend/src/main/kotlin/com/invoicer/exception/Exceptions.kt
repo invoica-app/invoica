@@ -13,3 +13,9 @@ class EmailSendException(message: String, cause: Throwable? = null) : RuntimeExc
 class AiUsageExhaustedException(message: String) : RuntimeException(message)
 
 class AiAnalysisFailedException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+class AccountDisabledException(message: String) : RuntimeException(message)
+
+class OAuthAuthenticationException(message: String) : RuntimeException(message)
+
+class GuestLimitExceededException(message: String) : RuntimeException(message)

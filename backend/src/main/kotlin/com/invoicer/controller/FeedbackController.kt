@@ -2,6 +2,7 @@ package com.invoicer.controller
 
 import com.invoicer.dto.*
 import com.invoicer.service.FeedbackService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -15,7 +16,7 @@ class FeedbackController(
 
     @PostMapping
     fun submitFeedback(
-        @RequestBody request: FeedbackRequest,
+        @Valid @RequestBody request: FeedbackRequest,
         authentication: Authentication
     ): ResponseEntity<FeedbackResponse> {
         val userId = authentication.credentials as Long
@@ -51,7 +52,7 @@ class FeedbackController(
         authentication: Authentication
     ): ResponseEntity<FeedbackListResponse> {
         val email = authentication.name
-        return ResponseEntity.ok(feedbackService.getAllFeedback(email, page, size, type, category))
+        return ResponseEntity.ok(feedbackService.getAllFeedback(email, page, size.coerceAtMost(100), type, category))
     }
 
     @GetMapping("/admin/stats")
