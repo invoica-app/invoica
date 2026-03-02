@@ -82,104 +82,46 @@ export default function ReviewPage() {
   const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
-  const downloadBlob = (blob: Blob, fileName: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
-  const generateClientSidePdf = async (): Promise<Blob> => {
-    const el = pdfRef.current;
-    if (!el) throw new Error("Invoice element not found");
-
-    const { default: html2canvas } = await import("html2canvas");
-    const { jsPDF } = await import("jspdf");
-
-    const isMobile =
-      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-    const canvasPromise = html2canvas(el, {
-      scale: isMobile ? 1.5 : 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: "#ffffff",
-      logging: false,
-    });
-
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("PDF generation timed out")), 15000)
-    );
-
-    const canvas = await Promise.race([canvasPromise, timeout]);
-
-    const imgData = canvas.toDataURL("image/jpeg", 0.92);
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-    pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
-
-    return pdf.output("blob");
-  };
-
-  const generateServerSidePdf = async (): Promise<Blob> => {
-    const resolvedColor = data.primaryColor || settings.defaultColor;
-    return api.downloadPdf({
-      companyName: data.companyName,
-      companyLogo: data.companyLogo,
-      address: data.address,
-      city: data.city,
-      zipCode: data.zipCode,
-      country: data.country,
-      phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
-      companyEmail: data.companyEmail,
-      invoiceNumber: data.invoiceNumber,
-      invoiceDate: data.invoiceDate,
-      dueDate: data.dueDate,
-      primaryColor: resolvedColor,
-      fontFamily: data.fontFamily,
-      templateId: data.templateId || "modern",
-      authorizedSignature: data.authorizedSignature || null,
-      currency: data.currency || "USD",
-      clientEmail: data.clientEmail,
-      emailSubject: data.emailSubject || null,
-      emailMessage: data.emailMessage || null,
-      clientName: data.clientName || null,
-      clientCompany: data.clientCompany || null,
-      clientAddress: data.clientAddress || null,
-      clientCity: data.clientCity || null,
-      clientZip: data.clientZip || null,
-      clientCountry: data.clientCountry || null,
-      taxRate: data.taxRate || null,
-      discount: data.discount || null,
-      notes: data.notes || null,
-      lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
-        description,
-        quantity,
-        rate,
-      })),
-    });
-  };
-
   const handlePreview = async () => {
+    const el = pdfRef.current;
+    if (!el) return;
+
     setGeneratingPdf(true);
-    setError(null);
     try {
-      let blob: Blob;
-      try {
-        blob = await generateClientSidePdf();
-      } catch (clientErr) {
-        console.warn("Client-side PDF failed, falling back to server:", clientErr);
-        blob = await generateServerSidePdf();
-      }
+      const { default: html2canvas } = await import("html2canvas");
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
 
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
-      downloadBlob(blob, fileName);
+
+      // Safari (both macOS and iOS) blocks programmatic blob downloads
+      // and link clicks after an async gap. Use a blob URL in a new tab instead.
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isSafari) {
+        const blob = pdf.output("blob");
+        const blobUrl = URL.createObjectURL(blob);
+        const newTab = window.open(blobUrl, "_blank");
+        if (!newTab) {
+          // Pop-up blocked — fall back to direct navigation
+          window.location.href = blobUrl;
+        }
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      } else {
+        pdf.save(fileName);
+      }
 
       if (editingInvoiceId) {
         api.recordDownload(editingInvoiceId).catch(() => {});
@@ -499,13 +441,8 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {/* Hidden full-size invoice for PDF capture — positioned at (0,0)
-          instead of left:-9999px so html2canvas doesn't exceed iOS canvas limits */}
-      <div
-        className="fixed left-0 top-0 pointer-events-none"
-        style={{ zIndex: -9999 }}
-        aria-hidden="true"
-      >
+      {/* Hidden full-size invoice for PDF capture */}
+      <div className="fixed left-[-9999px] top-0" aria-hidden="true">
         <InvoiceFullPage ref={pdfRef} />
       </div>
 
