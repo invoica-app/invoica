@@ -91,18 +91,31 @@ export default function ReviewPage() {
       const { default: html2canvas } = await import("html2canvas");
       const { jsPDF } = await import("jspdf");
 
-      const canvas = await html2canvas(el, {
-        scale: 2,
+      // Lower scale on mobile to avoid memory issues with html2canvas
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+      const canvasPromise = html2canvas(el, {
+        scale: isMobile ? 1.5 : 2,
         useCORS: true,
+        allowTaint: false,
         backgroundColor: "#ffffff",
+        logging: false,
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      // Timeout after 15s — mobile Safari can hang silently
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("PDF generation timed out")), 15000)
+      );
+
+      const canvas = await Promise.race([canvasPromise, timeout]);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
       const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
 
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
 

@@ -3,13 +3,19 @@ package com.invoicer.service
 import com.invoicer.config.ResendConfig
 import com.invoicer.entity.Invoice
 import com.invoicer.exception.EmailSendException
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import com.resend.Resend
+import com.resend.services.emails.model.Attachment
 import com.resend.services.emails.model.CreateEmailOptions
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
+import java.util.Base64
 
 @Service
 class EmailService(
@@ -54,19 +60,60 @@ class EmailService(
 
         val htmlBody = buildInvoiceHtml(invoice)
 
-        val params = CreateEmailOptions.builder()
+        val paramsBuilder = CreateEmailOptions.builder()
             .from(config.fromEmail)
             .to(invoice.clientEmail!!)
             .replyTo(invoice.companyEmail)
             .subject(subject)
             .html(htmlBody)
-            .build()
+
+        try {
+            val pdfBytes = generateInvoicePdf(invoice)
+            val base64Content = Base64.getEncoder().encodeToString(pdfBytes)
+            val attachment = Attachment.builder()
+                .fileName("Invoice-${invoice.invoiceNumber}.pdf")
+                .content(base64Content)
+                .build()
+            paramsBuilder.addAttachment(attachment)
+            logger.info("PDF attachment generated for invoice ${invoice.invoiceNumber}")
+        } catch (e: Exception) {
+            logger.warn("Failed to generate PDF for invoice ${invoice.invoiceNumber}, sending without attachment", e)
+        }
+
+        val params = paramsBuilder.build()
 
         try {
             val response = resend.emails().send(params)
             logger.info("Invoice email sent for ${invoice.invoiceNumber}, Resend ID: ${response.id}")
         } catch (e: Exception) {
             throw EmailSendException("Failed to send invoice email for ${invoice.invoiceNumber}", e)
+        }
+    }
+
+    private fun generateInvoicePdf(invoice: Invoice): ByteArray {
+        val html = buildInvoiceHtml(invoice)
+        val doc: Document = Jsoup.parse(html)
+        doc.outputSettings()
+            .syntax(Document.OutputSettings.Syntax.xml)
+            .charset("UTF-8")
+
+        // Add print-friendly CSS: white background, A4 page margins
+        doc.head().appendElement("style").text(
+            """
+            @page { size: A4; margin: 20mm; }
+            body { background: #fff !important; }
+            """.trimIndent()
+        )
+
+        val xhtml = doc.html()
+
+        return ByteArrayOutputStream().use { os ->
+            PdfRendererBuilder()
+                .useFastMode()
+                .withHtmlContent(xhtml, null)
+                .toStream(os)
+                .run()
+            os.toByteArray()
         }
     }
 

@@ -47,6 +47,10 @@ dependencies {
     // Email
     implementation("com.resend:resend-java:3.1.0")
 
+    // PDF generation
+    implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
+    implementation("org.jsoup:jsoup:1.17.2")
+
     // Environment Variables
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
