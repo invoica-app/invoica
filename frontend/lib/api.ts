@@ -100,6 +100,24 @@ class ApiClient {
     }, token);
   }
 
+  async downloadPdf(data: CreateInvoiceRequest, token?: string): Promise<Blob> {
+    const url = `${this.baseUrl}/invoices/pdf-preview`;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`PDF generation failed: HTTP ${response.status}`);
+    }
+
+    return response.blob();
+  }
+
   // Feedback API methods
   async submitFeedback(data: FeedbackData, token?: string): Promise<FeedbackResponse> {
     return this.request<FeedbackResponse>('/feedback', {
@@ -193,6 +211,8 @@ export const invoiceApi = {
     api.deleteInvoice(id, token),
   recordDownload: (id: number, token?: string) =>
     api.recordDownload(id, token),
+  downloadPdf: (data: CreateInvoiceRequest, token?: string) =>
+    api.downloadPdf(data, token),
   uploadLogo: (file: File, token?: string) =>
     api.uploadLogo(file, token),
 };

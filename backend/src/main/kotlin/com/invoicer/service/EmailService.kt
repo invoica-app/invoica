@@ -1,7 +1,9 @@
 package com.invoicer.service
 
 import com.invoicer.config.ResendConfig
+import com.invoicer.dto.CreateInvoiceRequest
 import com.invoicer.entity.Invoice
+import com.invoicer.entity.LineItem
 import com.invoicer.exception.EmailSendException
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import com.resend.Resend
@@ -88,6 +90,47 @@ class EmailService(
         } catch (e: Exception) {
             throw EmailSendException("Failed to send invoice email for ${invoice.invoiceNumber}", e)
         }
+    }
+
+    fun generatePdfFromRequest(request: CreateInvoiceRequest): ByteArray {
+        val invoice = Invoice().apply {
+            companyName = request.companyName
+            companyEmail = request.companyEmail
+            invoiceNumber = request.invoiceNumber
+            invoiceDate = request.invoiceDate
+            dueDate = request.dueDate
+            primaryColor = request.primaryColor
+            currency = request.currency
+            clientName = request.clientName
+            clientCompany = request.clientCompany
+            clientAddress = request.clientAddress
+            clientCity = request.clientCity
+            clientZip = request.clientZip
+            clientCountry = request.clientCountry
+            taxRate = request.taxRate
+            discount = request.discount
+            notes = request.notes
+            emailMessage = request.emailMessage
+        }
+        request.lineItems.forEach { li ->
+            val amount = li.rate.multiply(BigDecimal.valueOf(li.quantity.toLong()))
+            invoice.lineItems.add(LineItem(
+                description = li.description,
+                quantity = li.quantity,
+                rate = li.rate,
+                amount = amount,
+                invoice = invoice
+            ))
+        }
+        val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
+        val discountAmount = invoice.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
+        val taxableAmount = subtotal.subtract(discountAmount)
+        val taxAmount = invoice.taxRate?.let {
+            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+        } ?: BigDecimal.ZERO
+        invoice.totalAmount = subtotal.subtract(discountAmount).add(taxAmount)
+
+        return generateInvoicePdf(invoice)
     }
 
     private fun generateInvoicePdf(invoice: Invoice): ByteArray {

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { invoiceApi, feedbackApi, FeedbackData } from "@/lib/api";
+import { CreateInvoiceRequest } from "@/lib/types";
 
 export function useAuthenticatedApi() {
   const { accessToken } = useAuth();
@@ -21,6 +22,7 @@ export function useAuthenticatedApi() {
       ) => invoiceApi.update(id, data, resend, accessToken),
       deleteInvoice: (id: number) => invoiceApi.delete(id, accessToken),
       recordDownload: (id: number) => invoiceApi.recordDownload(id, accessToken),
+      downloadPdf: (data: CreateInvoiceRequest) => invoiceApi.downloadPdf(data, accessToken),
       uploadLogo: (file: File) => invoiceApi.uploadLogo(file, accessToken),
       submitFeedback: (data: FeedbackData) => feedbackApi.submit(data, accessToken),
       checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId, accessToken),

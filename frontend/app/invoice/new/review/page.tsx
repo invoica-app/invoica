@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
@@ -9,7 +9,7 @@ import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CreateInvoiceRequest, UpdateInvoiceRequest } from "@/lib/types";
-import { InvoicePreview, InvoiceFullPage } from "@/components/invoice-preview";
+import { InvoicePreview } from "@/components/invoice-preview";
 import { formatMoney } from "@/lib/currency";
 import { useSettingsStore } from "@/lib/settings-store";
 import { Download, Send, Loader2 } from "lucide-react";
@@ -24,7 +24,6 @@ export default function ReviewPage() {
   const router = useRouter();
   const api = useAuthenticatedApi();
   const settings = useSettingsStore();
-  const pdfRef = useRef<HTMLDivElement>(null);
 
   const data = useInvoiceStore(
     useShallow((s) => ({
@@ -83,72 +82,59 @@ export default function ReviewPage() {
   const total = subtotal - discountAmount + taxAmount;
 
   const handlePreview = async () => {
-    const el = pdfRef.current;
-    if (!el) return;
-
     setGeneratingPdf(true);
+    setError(null);
     try {
-      const { default: html2canvas } = await import("html2canvas");
-      const { jsPDF } = await import("jspdf");
+      const resolvedColor = data.primaryColor || settings.defaultColor;
+      const pdfRequest = {
+        companyName: data.companyName,
+        companyLogo: data.companyLogo,
+        address: data.address,
+        city: data.city,
+        zipCode: data.zipCode,
+        country: data.country,
+        phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
+        companyEmail: data.companyEmail,
+        invoiceNumber: data.invoiceNumber,
+        invoiceDate: data.invoiceDate,
+        dueDate: data.dueDate,
+        primaryColor: resolvedColor,
+        fontFamily: data.fontFamily,
+        templateId: data.templateId || "modern",
+        authorizedSignature: data.authorizedSignature || null,
+        currency: data.currency || "USD",
+        clientEmail: data.clientEmail,
+        emailSubject: data.emailSubject || null,
+        emailMessage: data.emailMessage || null,
+        clientName: data.clientName || null,
+        clientCompany: data.clientCompany || null,
+        clientAddress: data.clientAddress || null,
+        clientCity: data.clientCity || null,
+        clientZip: data.clientZip || null,
+        clientCountry: data.clientCountry || null,
+        taxRate: data.taxRate || null,
+        discount: data.discount || null,
+        notes: data.notes || null,
+        lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
+          description,
+          quantity,
+          rate,
+        })),
+      };
 
-      const isMobile =
-        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const blob = await api.downloadPdf(pdfRequest);
+      const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      // Clone element and place at (0,0) for capture — the original sits at
-      // left:-9999px which causes html2canvas to fail on mobile Safari.
-      const clone = el.cloneNode(true) as HTMLElement;
-      clone.style.position = "fixed";
-      clone.style.left = "0";
-      clone.style.top = "0";
-      clone.style.zIndex = "-9999";
-      document.body.appendChild(clone);
-
-      try {
-        const canvasPromise = html2canvas(clone, {
-          scale: isMobile ? 1 : 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: "#ffffff",
-          logging: false,
-        });
-
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("PDF generation timed out")), 15000)
-        );
-
-        const canvas = await Promise.race([canvasPromise, timeout]);
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.92);
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-        pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
-
-        const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
-
-        // Safari blocks programmatic link clicks / blob downloads after
-        // an async gap. Use a data URI opened in a new tab instead.
-        const isSafari = /^((?!chrome|android).)*safari/i.test(
-          navigator.userAgent
-        );
-
-        if (isSafari) {
-          const dataUri = pdf.output("datauristring", { filename: fileName });
-          const newTab = window.open(dataUri, "_blank");
-          if (!newTab) {
-            window.location.href = dataUri;
-          }
-        } else {
-          pdf.save(fileName);
-        }
-
-        if (editingInvoiceId) {
-          api.recordDownload(editingInvoiceId).catch(() => {});
-        }
-      } finally {
-        document.body.removeChild(clone);
+      if (editingInvoiceId) {
+        api.recordDownload(editingInvoiceId).catch(() => {});
       }
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -463,11 +449,6 @@ export default function ReviewPage() {
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Hidden full-size invoice for PDF capture */}
-      <div className="fixed left-[-9999px] top-0" aria-hidden="true">
-        <InvoiceFullPage ref={pdfRef} />
       </div>
 
       {/* Post-invoice feedback */}
