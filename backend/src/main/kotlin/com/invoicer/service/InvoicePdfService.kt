@@ -5,8 +5,10 @@ import com.invoicer.dto.LineItemRequest
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -15,6 +17,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class InvoicePdfService {
 
+    private val log = LoggerFactory.getLogger(InvoicePdfService::class.java)
     private val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy")
 
     private val currencySymbols = mapOf(
@@ -31,13 +34,37 @@ class InvoicePdfService {
         val xhtml = doc.html()
 
         return ByteArrayOutputStream().use { os ->
-            PdfRendererBuilder()
+            val builder = PdfRendererBuilder()
                 .useFastMode()
                 .withHtmlContent(xhtml, null)
                 .toStream(os)
-                .run()
+
+            registerFonts(builder)
+
+            builder.run()
             os.toByteArray()
         }
+    }
+
+    private fun registerFonts(builder: PdfRendererBuilder) {
+        val fontPaths = listOf(
+            // Alpine (Docker)
+            "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf",
+            // Debian/Ubuntu
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            // macOS
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"
+        )
+        for (path in fontPaths) {
+            val file = File(path)
+            if (file.exists()) {
+                builder.useFont(file, "MainFont")
+                log.info("Registered PDF font from: {}", path)
+                return
+            }
+        }
+        log.warn("No system font found for PDF rendering — currency symbols may not display correctly")
     }
 
     private fun buildTemplateHtml(req: CreateInvoiceRequest): String {
@@ -95,9 +122,9 @@ class InvoicePdfService {
         }
 
         val fontFamily = when (req.fontFamily) {
-            "Georgia" -> "'Georgia', serif"
-            "Courier New" -> "'Courier New', monospace"
-            else -> "'Helvetica', 'Arial', sans-serif"
+            "Georgia" -> "'Georgia', 'MainFont', serif"
+            "Courier New" -> "'Courier New', 'MainFont', monospace"
+            else -> "'MainFont', 'Helvetica', 'Arial', sans-serif"
         }
 
         return """

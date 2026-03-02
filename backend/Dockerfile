@@ -7,6 +7,7 @@ RUN gradle bootJar --no-daemon
 
 # Stage 2: Run
 FROM eclipse-temurin:17-jre-alpine
+RUN apk add --no-cache fontconfig ttf-dejavu
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
