@@ -103,10 +103,11 @@ export default function ReviewPage() {
       </style>
       </head><body>${el.outerHTML}</body></html>`;
 
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    const newTab = window.open("", "_blank");
+    if (newTab) {
+      newTab.document.write(html);
+      newTab.document.close();
+    }
   };
 
   const handlePreview = async () => {
