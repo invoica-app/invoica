@@ -82,33 +82,63 @@ export default function ReviewPage() {
   const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
+  const openPrintablePage = () => {
+    const el = pdfRef.current;
+    if (!el) return;
+
+    // Collect all stylesheets from the current page so Tailwind classes work
+    const styles = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]')
+    )
+      .map((node) => node.outerHTML)
+      .join("\n");
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Invoice ${data.invoiceNumber || "Draft"}</title>
+      ${styles}
+      <style>
+        @media print { @page { margin: 10mm; } * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        body { margin: 0; padding: 20px; display: flex; justify-content: center; background: #fff; }
+      </style>
+      </head><body>${el.outerHTML}</body></html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
   const handlePreview = async () => {
     const el = pdfRef.current;
     if (!el) return;
+
+    // iOS Safari: html2canvas hangs silently and exhausts memory.
+    // Open the invoice as a printable HTML page instead.
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      openPrintablePage();
+      if (editingInvoiceId) {
+        api.recordDownload(editingInvoiceId).catch(() => {});
+      }
+      return;
+    }
 
     setGeneratingPdf(true);
     try {
       const { default: html2canvas } = await import("html2canvas");
       const { jsPDF } = await import("jspdf");
 
-      // Lower scale on mobile to avoid memory issues with html2canvas
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-      const canvasPromise = html2canvas(el, {
-        scale: isMobile ? 1.5 : 2,
+      const canvas = await html2canvas(el, {
+        scale: 2,
         useCORS: true,
         allowTaint: false,
         backgroundColor: "#ffffff",
         logging: false,
       });
-
-      // Timeout after 15s — mobile Safari can hang silently
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("PDF generation timed out")), 15000)
-      );
-
-      const canvas = await Promise.race([canvasPromise, timeout]);
 
       const imgData = canvas.toDataURL("image/jpeg", 0.92);
       const pdf = new jsPDF("p", "mm", "a4");
@@ -119,8 +149,7 @@ export default function ReviewPage() {
 
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
 
-      // Safari (both macOS and iOS) blocks programmatic blob downloads
-      // and link clicks after an async gap. Use a blob URL in a new tab instead.
+      // Desktop Safari blocks programmatic blob downloads after async gaps
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
       if (isSafari) {
@@ -128,7 +157,6 @@ export default function ReviewPage() {
         const blobUrl = URL.createObjectURL(blob);
         const newTab = window.open(blobUrl, "_blank");
         if (!newTab) {
-          // Pop-up blocked — fall back to direct navigation
           window.location.href = blobUrl;
         }
         setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
