@@ -82,91 +82,73 @@ export default function ReviewPage() {
   const taxAmount = ((subtotal - discountAmount) * (data.taxRate || 0)) / 100;
   const total = subtotal - discountAmount + taxAmount;
 
-  const openPrintablePage = () => {
-    const el = pdfRef.current;
-    if (!el) return;
-
-    // Collect all stylesheets from the current page so Tailwind classes work
-    const styles = Array.from(
-      document.querySelectorAll('style, link[rel="stylesheet"]')
-    )
-      .map((node) => node.outerHTML)
-      .join("\n");
-
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Invoice ${data.invoiceNumber || "Draft"}</title>
-      ${styles}
-      <style>
-        @media print { @page { margin: 10mm; } * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-        body { margin: 0; padding: 20px; display: flex; justify-content: center; background: #fff; }
-      </style>
-      </head><body>${el.outerHTML}</body></html>`;
-
-    const newTab = window.open("", "_blank");
-    if (newTab) {
-      newTab.document.write(html);
-      newTab.document.close();
-    }
-  };
-
   const handlePreview = async () => {
     const el = pdfRef.current;
     if (!el) return;
-
-    // iOS Safari: html2canvas hangs silently and exhausts memory.
-    // Open the invoice as a printable HTML page instead.
-    const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-    if (isIOS) {
-      openPrintablePage();
-      if (editingInvoiceId) {
-        api.recordDownload(editingInvoiceId).catch(() => {});
-      }
-      return;
-    }
 
     setGeneratingPdf(true);
     try {
       const { default: html2canvas } = await import("html2canvas");
       const { jsPDF } = await import("jspdf");
 
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
+      const isMobile =
+        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      // Clone element and place at (0,0) for capture — the original sits at
+      // left:-9999px which causes html2canvas to fail on mobile Safari.
+      const clone = el.cloneNode(true) as HTMLElement;
+      clone.style.position = "fixed";
+      clone.style.left = "0";
+      clone.style.top = "0";
+      clone.style.zIndex = "-9999";
+      document.body.appendChild(clone);
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
+      try {
+        const canvasPromise = html2canvas(clone, {
+          scale: isMobile ? 1 : 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
 
-      const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("PDF generation timed out")), 15000)
+        );
 
-      // Desktop Safari blocks programmatic blob downloads after async gaps
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const canvas = await Promise.race([canvasPromise, timeout]);
 
-      if (isSafari) {
-        const blob = pdf.output("blob");
-        const blobUrl = URL.createObjectURL(blob);
-        const newTab = window.open(blobUrl, "_blank");
-        if (!newTab) {
-          window.location.href = blobUrl;
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
+
+        const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
+
+        // Safari blocks programmatic link clicks / blob downloads after
+        // an async gap. Use a data URI opened in a new tab instead.
+        const isSafari = /^((?!chrome|android).)*safari/i.test(
+          navigator.userAgent
+        );
+
+        if (isSafari) {
+          const dataUri = pdf.output("datauristring", { filename: fileName });
+          const newTab = window.open(dataUri, "_blank");
+          if (!newTab) {
+            window.location.href = dataUri;
+          }
+        } else {
+          pdf.save(fileName);
         }
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      } else {
-        pdf.save(fileName);
-      }
 
-      if (editingInvoiceId) {
-        api.recordDownload(editingInvoiceId).catch(() => {});
+        if (editingInvoiceId) {
+          api.recordDownload(editingInvoiceId).catch(() => {});
+        }
+      } finally {
+        document.body.removeChild(clone);
       }
     } catch (err) {
       console.error("PDF generation failed:", err);
