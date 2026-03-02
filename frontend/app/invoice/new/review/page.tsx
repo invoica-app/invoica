@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WizardHeader } from "@/components/wizard-header";
@@ -9,7 +9,7 @@ import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CreateInvoiceRequest, UpdateInvoiceRequest } from "@/lib/types";
-import { InvoicePreview, InvoiceFullPage } from "@/components/invoice-preview";
+import { InvoicePreview } from "@/components/invoice-preview";
 import { formatMoney } from "@/lib/currency";
 import { useSettingsStore } from "@/lib/settings-store";
 import { Download, Send, Loader2 } from "lucide-react";
@@ -24,7 +24,6 @@ export default function ReviewPage() {
   const router = useRouter();
   const api = useAuthenticatedApi();
   const settings = useSettingsStore();
-  const pdfRef = useRef<HTMLDivElement>(null);
 
   const data = useInvoiceStore(
     useShallow((s) => ({
@@ -83,45 +82,55 @@ export default function ReviewPage() {
   const total = subtotal - discountAmount + taxAmount;
 
   const handlePreview = async () => {
-    const el = pdfRef.current;
-    if (!el) return;
-
     setGeneratingPdf(true);
+    setError(null);
     try {
-      const { default: html2canvas } = await import("html2canvas");
-      const { jsPDF } = await import("jspdf");
-
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
+      const resolvedColor = data.primaryColor || settings.defaultColor;
+      const blob = await api.downloadPdf({
+        companyName: data.companyName,
+        companyLogo: data.companyLogo,
+        address: data.address,
+        city: data.city,
+        zipCode: data.zipCode,
+        country: data.country,
+        phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
+        companyEmail: data.companyEmail,
+        invoiceNumber: data.invoiceNumber,
+        invoiceDate: data.invoiceDate,
+        dueDate: data.dueDate,
+        primaryColor: resolvedColor,
+        fontFamily: data.fontFamily,
+        templateId: data.templateId || "modern",
+        authorizedSignature: data.authorizedSignature || null,
+        currency: data.currency || "USD",
+        clientEmail: data.clientEmail,
+        emailSubject: data.emailSubject || null,
+        emailMessage: data.emailMessage || null,
+        clientName: data.clientName || null,
+        clientCompany: data.clientCompany || null,
+        clientAddress: data.clientAddress || null,
+        clientCity: data.clientCity || null,
+        clientZip: data.clientZip || null,
+        clientCountry: data.clientCountry || null,
+        taxRate: data.taxRate || null,
+        discount: data.discount || null,
+        notes: data.notes || null,
+        lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
+          description,
+          quantity,
+          rate,
+        })),
       });
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
-
       const fileName = `invoice-${data.invoiceNumber || "draft"}.pdf`;
-
-      // Safari (both macOS and iOS) blocks programmatic blob downloads
-      // and link clicks after an async gap. Use a blob URL in a new tab instead.
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-      if (isSafari) {
-        const blob = pdf.output("blob");
-        const blobUrl = URL.createObjectURL(blob);
-        const newTab = window.open(blobUrl, "_blank");
-        if (!newTab) {
-          // Pop-up blocked — fall back to direct navigation
-          window.location.href = blobUrl;
-        }
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      } else {
-        pdf.save(fileName);
-      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
       if (editingInvoiceId) {
         api.recordDownload(editingInvoiceId).catch(() => {});
@@ -439,11 +448,6 @@ export default function ReviewPage() {
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Hidden full-size invoice for PDF capture */}
-      <div className="fixed left-[-9999px] top-0" aria-hidden="true">
-        <InvoiceFullPage ref={pdfRef} />
       </div>
 
       {/* Post-invoice feedback */}
