@@ -20,9 +20,18 @@ class InvoicePdfService {
     private val log = LoggerFactory.getLogger(InvoicePdfService::class.java)
     private val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy")
 
+    // PDF-safe currency symbols — avoid Unicode chars outside WinAnsi (₵ U+20B5, ₦ U+20A6)
+    // which render as # in PDF core fonts. Use text fallbacks for those.
     private val currencySymbols = mapOf(
-        "USD" to "$", "GHS" to "GH₵", "EUR" to "€", "GBP" to "£",
-        "NGN" to "₦", "KES" to "KSh", "ZAR" to "R", "CAD" to "C$", "AUD" to "A$"
+        "USD" to "$",
+        "GHS" to "GH\u00a2",   // GH¢ — cent sign (U+00A2, safe in WinAnsi)
+        "EUR" to "\u20ac",       // €   — euro sign (in WinAnsi at 0x80)
+        "GBP" to "\u00a3",      // £   — pound sign (U+00A3, safe in WinAnsi)
+        "NGN" to "NGN ",         // ₦ not in WinAnsi — use text
+        "KES" to "KSh",
+        "ZAR" to "R",
+        "CAD" to "C$",
+        "AUD" to "A$"
     )
 
     fun generatePdf(request: CreateInvoiceRequest): ByteArray {
