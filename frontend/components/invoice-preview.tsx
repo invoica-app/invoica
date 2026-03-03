@@ -17,8 +17,23 @@ const TEMPLATE_MAP: Record<TemplateId, React.FC<{ data: InvoiceData }>> = {
   corporate: CorporateTemplate,
 };
 
-export function InvoicePreview() {
-  const data = useInvoiceData();
+export function InvoicePreview({
+  templateId: overrideTemplateId,
+  fontFamily: overrideFontFamily,
+  primaryColor: overridePrimaryColor,
+}: {
+  templateId?: TemplateId;
+  fontFamily?: string;
+  primaryColor?: string;
+} = {}) {
+  const storeData = useInvoiceData();
+  const data = {
+    ...storeData,
+    ...(overrideTemplateId !== undefined && { templateId: overrideTemplateId }),
+    ...(overrideFontFamily !== undefined && { fontFamily: overrideFontFamily }),
+    ...(overridePrimaryColor !== undefined && { primaryColor: overridePrimaryColor }),
+  };
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.34);
 
