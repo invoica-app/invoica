@@ -1,100 +1,140 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
+import { useState } from "react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppButtonProps {
   clientPhone?: string | null;
   clientName?: string | null;
   invoiceNumber: string;
-  currency: string;
-  totalAmount: number;
-  publicToken?: string;
   companyName: string;
-  dueDate: string;
+  /** Function that generates the PDF blob. Called on click. */
+  generatePdf: () => Promise<Blob>;
   /** Render as a small icon button (for lists) */
   iconOnly?: boolean;
   className?: string;
+  disabled?: boolean;
 }
 
 function cleanPhone(phone: string): string {
-  return phone.replace(/[\s\-()]/g, "").replace(/^(\+)/, "$1");
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  // Strip spaces, dashes, parens — keep + and digits
+  return phone.replace(/[^\d+]/g, "");
 }
 
 export function WhatsAppButton({
   clientPhone,
   clientName,
   invoiceNumber,
-  currency,
-  totalAmount,
-  publicToken,
   companyName,
-  dueDate,
+  generatePdf,
   iconOnly = false,
   className,
+  disabled = false,
 }: WhatsAppButtonProps) {
-  if (!clientPhone) return null;
+  const [sharing, setSharing] = useState(false);
+  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
 
-  const phone = cleanPhone(clientPhone);
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const invoiceUrl = publicToken ? `${baseUrl}/invoice/view/${publicToken}` : "";
+  const shareText = `Hi ${clientName || "there"}, please find your invoice attached. Thank you! — ${companyName}`;
+  const fileName = `Invoice-${invoiceNumber}.pdf`;
 
-  const message = [
-    `Hi ${clientName || "there"},`,
-    "",
-    `Here is your invoice #${invoiceNumber} for ${currency} ${totalAmount.toLocaleString()}.`,
-    "",
-    invoiceUrl ? `View your invoice here: ${invoiceUrl}` : "",
-    "",
-    `Due date: ${formatDate(dueDate)}`,
-    "",
-    "Thank you for your business!",
-    companyName,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const handleClick = async () => {
+    setSharing(true);
+    setFallbackMessage(null);
 
-  const whatsappUrl = `https://wa.me/${phone.replace("+", "")}?text=${encodeURIComponent(message)}`;
+    try {
+      const pdfBlob = await generatePdf();
+      const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
 
-  const handleClick = () => {
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      // Try Web Share API with file
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        try {
+          await navigator.share({
+            files: [pdfFile],
+            title: `Invoice ${invoiceNumber}`,
+            text: shareText,
+          });
+          // Share completed (or cancelled — either way, done)
+          return;
+        } catch (err: unknown) {
+          // AbortError = user cancelled share sheet — not an error
+          if (err instanceof DOMException && err.name === "AbortError") {
+            return;
+          }
+          // Other error — fall through to fallback
+        }
+      }
+
+      // Fallback: download PDF + open wa.me link
+      downloadBlob(pdfBlob, fileName);
+
+      if (clientPhone) {
+        const phone = cleanPhone(clientPhone).replace(/^\+/, "");
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(shareText)}`;
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+        setFallbackMessage("PDF downloaded. Attach it in the WhatsApp chat that just opened.");
+      } else {
+        setFallbackMessage("PDF downloaded. You can share it manually via WhatsApp.");
+      }
+    } catch {
+      setFallbackMessage("Failed to generate PDF. Please try again.");
+    } finally {
+      setSharing(false);
+    }
   };
 
   if (iconOnly) {
     return (
       <button
         onClick={handleClick}
-        title="Send via WhatsApp"
+        disabled={sharing || disabled}
+        title={clientPhone ? "Send via WhatsApp" : "Send invoice via WhatsApp"}
         className={cn(
-          "p-1.5 text-muted-foreground hover:text-[#25D366] transition-colors",
+          "p-1.5 text-muted-foreground hover:text-[#25D366] transition-colors disabled:opacity-50",
           className
         )}
       >
-        <MessageCircle className="w-3.5 h-3.5" />
+        {sharing ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <MessageCircle className="w-3.5 h-3.5" />
+        )}
       </button>
     );
   }
 
   return (
-    <button
-      onClick={handleClick}
-      className={cn(
-        "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-        "bg-[#25D366] text-white hover:bg-[#20BD5A]",
-        className
+    <div className="inline-flex flex-col items-start gap-1">
+      <button
+        onClick={handleClick}
+        disabled={sharing || disabled}
+        className={cn(
+          "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-60",
+          "bg-[#25D366] text-white hover:bg-[#20BD5A]",
+          className
+        )}
+      >
+        {sharing ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <MessageCircle className="w-4 h-4" />
+        )}
+        {sharing ? "Preparing..." : "Send via WhatsApp"}
+      </button>
+      {fallbackMessage && (
+        <p className="text-xs text-muted-foreground max-w-[260px]">{fallbackMessage}</p>
       )}
-    >
-      <MessageCircle className="w-4 h-4" />
-      Send via WhatsApp
-    </button>
+    </div>
   );
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

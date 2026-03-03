@@ -139,6 +139,12 @@ export default function InvoiceDetailsPage() {
     if (clientEmail.trim() && !isValidEmail(clientEmail)) {
       e.clientEmail = "Enter a valid email";
     }
+    if (clientPhone.trim()) {
+      const fullPhone = (clientPhoneCode + clientPhone).replace(/[^\d+]/g, "");
+      if (!/^\+[1-9]\d{6,14}$/.test(fullPhone)) {
+        e.clientPhone = "Enter a valid phone with country code";
+      }
+    }
     if (lineItems.length === 0) e.lineItems = "Add at least one item";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -243,14 +249,15 @@ export default function InvoiceDetailsPage() {
                   className={cn(errors.clientEmail && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
                 />
               </Field>
-              <Field label="Phone (WhatsApp)" htmlFor="clientPhone" optional>
+              <Field label="Phone (WhatsApp)" htmlFor="clientPhone" optional error={errors.clientPhone}>
                 <PhoneInput
                   id="clientPhone"
                   countryCode={findPhoneCountry(clientPhoneCode)?.iso}
                   value={clientPhone}
-                  onChange={setClientPhone}
+                  onChange={(v) => { setClientPhone(v); setErrors((p) => ({ ...p, clientPhone: "" })); }}
                   onCountryChange={(country) => setClientPhoneCode(country.dialCode)}
                   placeholder="24 123 4567"
+                  error={!!errors.clientPhone}
                 />
               </Field>
               <Field label="Address" htmlFor="clientAddress">

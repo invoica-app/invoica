@@ -17,7 +17,7 @@ const TEMPLATE_MAP: Record<TemplateId, React.FC<{ data: InvoiceData }>> = {
   corporate: CorporateTemplate,
 };
 
-function mapInvoiceToData(invoice: Invoice): InvoiceData {
+export function mapInvoiceToData(invoice: Invoice): InvoiceData {
   const { phoneCode, localNumber } = splitPhoneString(invoice.phone, invoice.country);
   return {
     companyName: invoice.companyName,

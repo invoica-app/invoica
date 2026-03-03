@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, RefreshCw, Trash2, Plus, Pencil, MessageCircle } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Plus, Pencil } from "lucide-react";
 import { NothingDey } from "@/components/nothing-dey";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -16,6 +16,8 @@ import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { HydrationGuard } from "@/components/hydration-guard";
+import { WhatsAppButton } from "@/components/ui/whatsapp-button";
+import { invoiceApi } from "@/lib/api";
 import { HistorySkeleton } from "./loading";
 
 const statusStyles: Record<string, string> = {
@@ -169,9 +171,12 @@ export default function InvoiceHistoryPage() {
                     >
                       {/* Row 1: Invoice number + amount */}
                       <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm font-semibold truncate">
+                        <Link
+                          href={`/invoice/${invoice.id}`}
+                          className="text-sm font-semibold truncate hover:underline"
+                        >
                           {invoice.invoiceNumber}
-                        </span>
+                        </Link>
                         <span className="text-sm font-semibold tabular-nums shrink-0">
                           {formatMoney(invoice.totalAmount ?? 0, invoice.currency || defaultCurrency)}
                         </span>
@@ -187,20 +192,15 @@ export default function InvoiceHistoryPage() {
                           {invoice.status || "DRAFT"}
                         </span>
                         <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                          {invoice.clientPhone && invoice.publicToken && (
-                            <button
-                              onClick={() => {
-                                const phone = invoice.clientPhone!.replace(/[\s\-()]/g, "").replace(/^\+/, "");
-                                const baseUrl = window.location.origin;
-                                const invoiceUrl = `${baseUrl}/invoice/view/${invoice.publicToken}`;
-                                const message = `Hi ${invoice.clientName || "there"},\n\nHere is your invoice #${invoice.invoiceNumber} for ${invoice.currency} ${(invoice.totalAmount ?? 0).toLocaleString()}.\n\nView your invoice here: ${invoiceUrl}\n\nDue date: ${new Date(invoice.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}\n\nThank you for your business!\n${invoice.companyName}`;
-                                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-                              }}
-                              title="Send via WhatsApp"
-                              className="p-1.5 text-muted-foreground hover:text-[#25D366] transition-colors"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                            </button>
+                          {invoice.publicToken && (
+                            <WhatsAppButton
+                              clientPhone={invoice.clientPhone}
+                              clientName={invoice.clientName}
+                              invoiceNumber={invoice.invoiceNumber}
+                              companyName={invoice.companyName}
+                              generatePdf={() => invoiceApi.downloadPublicPdf(invoice.publicToken!)}
+                              iconOnly
+                            />
                           )}
                           <button
                             onClick={() => invoice.id && handleEdit(invoice.id)}
