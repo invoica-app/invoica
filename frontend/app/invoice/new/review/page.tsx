@@ -420,9 +420,10 @@ export default function ReviewPage() {
               )}
 
               {/* Actions */}
-              <div className="flex gap-3 justify-end flex-wrap">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handlePreview}
                   disabled={sending || generatingPdf}
                   className="gap-2"
@@ -439,6 +440,8 @@ export default function ReviewPage() {
                   clientName={data.clientName}
                   invoiceNumber={data.invoiceNumber}
                   companyName={data.companyName}
+                  variant="outline"
+                  size="sm"
                   generatePdf={sentPublicToken
                     ? () => invoiceApi.downloadPublicPdf(sentPublicToken)
                     : () => api.downloadPdf({
@@ -480,14 +483,14 @@ export default function ReviewPage() {
                   }
                   disabled={sending || generatingPdf}
                 />
-                <Button onClick={handleSend} disabled={sending || generatingPdf} className="gap-2">
+                <Button size="sm" onClick={handleSend} disabled={sending || generatingPdf} className="gap-2">
                   {sending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
                   {sending
-                    ? (editingInvoiceId ? "Updating & sending..." : "Sending...")
+                    ? (editingInvoiceId ? "Updating..." : "Sending...")
                     : (editingInvoiceId ? "Update & send" : "Send invoice")}
                 </Button>
               </div>

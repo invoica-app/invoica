@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppButtonProps {
@@ -13,12 +14,14 @@ interface WhatsAppButtonProps {
   generatePdf: () => Promise<Blob>;
   /** Render as a small icon button (for lists) */
   iconOnly?: boolean;
+  /** "brand" = green WhatsApp style, "outline" = matches other buttons */
+  variant?: "brand" | "outline";
+  size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   disabled?: boolean;
 }
 
 function cleanPhone(phone: string): string {
-  // Strip spaces, dashes, parens — keep + and digits
   return phone.replace(/[^\d+]/g, "");
 }
 
@@ -29,6 +32,8 @@ export function WhatsAppButton({
   companyName,
   generatePdf,
   iconOnly = false,
+  variant = "brand",
+  size,
   className,
   disabled = false,
 }: WhatsAppButtonProps) {
@@ -46,7 +51,6 @@ export function WhatsAppButton({
       const pdfBlob = await generatePdf();
       const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
 
-      // Try Web Share API with file
       if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         try {
           await navigator.share({
@@ -54,14 +58,11 @@ export function WhatsAppButton({
             title: `Invoice ${invoiceNumber}`,
             text: shareText,
           });
-          // Share completed (or cancelled — either way, done)
           return;
         } catch (err: unknown) {
-          // AbortError = user cancelled share sheet — not an error
           if (err instanceof DOMException && err.name === "AbortError") {
             return;
           }
-          // Other error — fall through to fallback
         }
       }
 
@@ -72,12 +73,12 @@ export function WhatsAppButton({
         const phone = cleanPhone(clientPhone).replace(/^\+/, "");
         const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(shareText)}`;
         window.open(waUrl, "_blank", "noopener,noreferrer");
-        setFallbackMessage("PDF downloaded. Attach it in the WhatsApp chat that just opened.");
+        setFallbackMessage("PDF downloaded — attach it in the chat.");
       } else {
-        setFallbackMessage("PDF downloaded. You can share it manually via WhatsApp.");
+        setFallbackMessage("PDF downloaded — share it manually.");
       }
     } catch {
-      setFallbackMessage("Failed to generate PDF. Please try again.");
+      setFallbackMessage("Failed to generate PDF. Try again.");
     } finally {
       setSharing(false);
     }
@@ -88,9 +89,9 @@ export function WhatsAppButton({
       <button
         onClick={handleClick}
         disabled={sharing || disabled}
-        title={clientPhone ? "Send via WhatsApp" : "Send invoice via WhatsApp"}
+        title="Share invoice"
         className={cn(
-          "p-1.5 text-muted-foreground hover:text-[#25D366] transition-colors disabled:opacity-50",
+          "p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50",
           className
         )}
       >
@@ -103,26 +104,47 @@ export function WhatsAppButton({
     );
   }
 
+  if (variant === "outline") {
+    return (
+      <div className={cn("inline-flex flex-col gap-1", className)}>
+        <Button
+          variant="outline"
+          size={size}
+          onClick={handleClick}
+          disabled={sharing || disabled}
+          className="gap-2"
+        >
+          {sharing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Share2 className="w-4 h-4" />
+          )}
+          {sharing ? "Sharing..." : "Share"}
+        </Button>
+        {fallbackMessage && (
+          <p className="text-[11px] text-muted-foreground">{fallbackMessage}</p>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="inline-flex flex-col items-start gap-1">
-      <button
+    <div className={cn("inline-flex flex-col gap-1", className)}>
+      <Button
+        size={size}
         onClick={handleClick}
         disabled={sharing || disabled}
-        className={cn(
-          "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-60",
-          "bg-[#25D366] text-white hover:bg-[#20BD5A]",
-          className
-        )}
+        className="gap-2 bg-[#25D366] text-white hover:bg-[#20BD5A]"
       >
         {sharing ? (
           <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
           <Share2 className="w-4 h-4" />
         )}
-        {sharing ? "Preparing..." : "Send via WhatsApp"}
-      </button>
+        {sharing ? "Sharing..." : "Share"}
+      </Button>
       {fallbackMessage && (
-        <p className="text-xs text-muted-foreground max-w-[260px]">{fallbackMessage}</p>
+        <p className="text-[11px] text-muted-foreground">{fallbackMessage}</p>
       )}
     </div>
   );

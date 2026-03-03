@@ -224,7 +224,8 @@ export default function InvoiceDetailPage() {
               invoiceNumber={invoice.invoiceNumber}
               companyName={invoice.companyName}
               generatePdf={generatePdfForShare}
-              iconOnly
+              variant="outline"
+              size="sm"
             />
           </div>
         </div>
