@@ -59,6 +59,10 @@ data class CreateInvoiceRequest(
     val clientCity: String? = null,
     val clientZip: String? = null,
     val clientCountry: String? = null,
+    @field:Pattern(
+        regexp = "^\\+[1-9]\\d{6,14}$",
+        message = "Client phone must include country code (e.g. +233241234567)"
+    )
     val clientPhone: String? = null,
 
     // Tax, Discount, Notes
@@ -110,6 +114,10 @@ data class UpdateInvoiceRequest(
     val clientCity: String? = null,
     val clientZip: String? = null,
     val clientCountry: String? = null,
+    @field:Pattern(
+        regexp = "^\\+[1-9]\\d{6,14}$",
+        message = "Client phone must include country code (e.g. +233241234567)"
+    )
     val clientPhone: String? = null,
     // Tax, Discount, Notes
     @field:Min(value = 0, message = "Tax rate cannot be negative")
