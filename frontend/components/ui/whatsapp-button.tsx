@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, MessageCircle } from "lucide-react";
+import { Loader2, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppButtonProps {
@@ -97,7 +97,7 @@ export function WhatsAppButton({
         {sharing ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
-          <MessageCircle className="w-3.5 h-3.5" />
+          <Share2 className="w-3.5 h-3.5" />
         )}
       </button>
     );
@@ -117,7 +117,7 @@ export function WhatsAppButton({
         {sharing ? (
           <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
-          <MessageCircle className="w-4 h-4" />
+          <Share2 className="w-4 h-4" />
         )}
         {sharing ? "Preparing..." : "Send via WhatsApp"}
       </button>

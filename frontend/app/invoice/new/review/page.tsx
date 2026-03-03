@@ -434,16 +434,52 @@ export default function ReviewPage() {
                   )}
                   {generatingPdf ? "Generating..." : "Download PDF"}
                 </Button>
-                {sentPublicToken && (
-                  <WhatsAppButton
-                    clientPhone={clientPhoneFull || undefined}
-                    clientName={data.clientName}
-                    invoiceNumber={data.invoiceNumber}
-                    companyName={data.companyName}
-                    generatePdf={() => invoiceApi.downloadPublicPdf(sentPublicToken!)}
-                    disabled={sending || generatingPdf}
-                  />
-                )}
+                <WhatsAppButton
+                  clientPhone={clientPhoneFull || undefined}
+                  clientName={data.clientName}
+                  invoiceNumber={data.invoiceNumber}
+                  companyName={data.companyName}
+                  generatePdf={sentPublicToken
+                    ? () => invoiceApi.downloadPublicPdf(sentPublicToken)
+                    : () => api.downloadPdf({
+                        companyName: data.companyName,
+                        companyLogo: data.companyLogo,
+                        address: data.address,
+                        city: data.city,
+                        zipCode: data.zipCode,
+                        country: data.country,
+                        phone: [data.phoneCode, data.phone].filter(Boolean).join(" "),
+                        companyEmail: data.companyEmail,
+                        invoiceNumber: data.invoiceNumber,
+                        invoiceDate: data.invoiceDate,
+                        dueDate: data.dueDate,
+                        primaryColor: data.primaryColor || settings.defaultColor,
+                        fontFamily: data.fontFamily,
+                        templateId: data.templateId || "modern",
+                        authorizedSignature: data.authorizedSignature || null,
+                        currency: data.currency || "USD",
+                        clientEmail: data.clientEmail,
+                        emailSubject: data.emailSubject || null,
+                        emailMessage: data.emailMessage || null,
+                        clientName: data.clientName || null,
+                        clientCompany: data.clientCompany || null,
+                        clientAddress: data.clientAddress || null,
+                        clientCity: data.clientCity || null,
+                        clientZip: data.clientZip || null,
+                        clientCountry: data.clientCountry || null,
+                        taxRate: data.taxRate || null,
+                        discount: data.discount || null,
+                        notes: data.notes || null,
+                        clientPhone: clientPhoneFull || null,
+                        lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
+                          description,
+                          quantity,
+                          rate,
+                        })),
+                      })
+                  }
+                  disabled={sending || generatingPdf}
+                />
                 <Button onClick={handleSend} disabled={sending || generatingPdf} className="gap-2">
                   {sending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
