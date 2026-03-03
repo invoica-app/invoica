@@ -13,6 +13,8 @@ import java.time.LocalDateTime
 
 @Repository
 interface InvoiceRepository : JpaRepository<Invoice, Long> {
+    fun findByPublicToken(publicToken: String): Invoice?
+
     fun findByInvoiceNumber(invoiceNumber: String): Invoice?
 
     fun findByStatus(status: InvoiceStatus): List<Invoice>

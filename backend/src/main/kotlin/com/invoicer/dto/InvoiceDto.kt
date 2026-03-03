@@ -59,6 +59,7 @@ data class CreateInvoiceRequest(
     val clientCity: String? = null,
     val clientZip: String? = null,
     val clientCountry: String? = null,
+    val clientPhone: String? = null,
 
     // Tax, Discount, Notes
     @field:Min(value = 0, message = "Tax rate cannot be negative")
@@ -109,6 +110,7 @@ data class UpdateInvoiceRequest(
     val clientCity: String? = null,
     val clientZip: String? = null,
     val clientCountry: String? = null,
+    val clientPhone: String? = null,
     // Tax, Discount, Notes
     @field:Min(value = 0, message = "Tax rate cannot be negative")
     @field:Max(value = 100, message = "Tax rate cannot exceed 100%")
@@ -164,6 +166,7 @@ data class InvoiceResponse(
     val clientCity: String?,
     val clientZip: String?,
     val clientCountry: String?,
+    val clientPhone: String?,
     // Tax, Discount, Notes
     val taxRate: Double?,
     val discount: Double?,
@@ -176,6 +179,43 @@ data class InvoiceResponse(
     val status: InvoiceStatus,
     val downloadCount: Int,
     val lastDownloadedAt: LocalDateTime?,
+    val publicToken: String,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)
+
+data class PublicInvoiceResponse(
+    val id: Long,
+    val companyName: String,
+    val companyLogo: String?,
+    val address: String,
+    val city: String,
+    val zipCode: String,
+    val country: String,
+    val phone: String,
+    val companyEmail: String,
+    val invoiceNumber: String,
+    val invoiceDate: LocalDate,
+    val dueDate: LocalDate,
+    val primaryColor: String,
+    val fontFamily: String,
+    val templateId: String,
+    val authorizedSignature: String?,
+    val currency: String,
+    val clientName: String?,
+    val clientCompany: String?,
+    val clientAddress: String?,
+    val clientCity: String?,
+    val clientZip: String?,
+    val clientCountry: String?,
+    val clientPhone: String?,
+    val clientEmail: String?,
+    val taxRate: Double?,
+    val discount: Double?,
+    val notes: String?,
+    val lineItems: List<LineItemResponse>,
+    val totalAmount: BigDecimal,
+    val publicToken: String,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

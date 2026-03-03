@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CountrySelect } from "@/components/ui/country-select";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { PaymentMethod } from "@/components/ui/payment-method";
+import { findPhoneCountry } from "@/lib/phone-countries";
 import { useInvoiceStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/lib/settings-store";
@@ -67,6 +69,8 @@ export default function InvoiceDetailsPage() {
       clientCity: s.clientCity,
       clientZip: s.clientZip,
       clientCountry: s.clientCountry,
+      clientPhoneCode: s.clientPhoneCode,
+      clientPhone: s.clientPhone,
       taxRate: s.taxRate,
       discount: s.discount,
       notes: s.notes,
@@ -109,6 +113,8 @@ export default function InvoiceDetailsPage() {
   const [clientCity, setClientCity] = useState(storeData.clientCity);
   const [clientZip, setClientZip] = useState(storeData.clientZip);
   const [clientCountry, setClientCountry] = useState(storeData.clientCountry);
+  const [clientPhoneCode, setClientPhoneCode] = useState(storeData.clientPhoneCode);
+  const [clientPhone, setClientPhone] = useState(storeData.clientPhone);
 
   const [taxRate, setTaxRate] = useState(storeData.taxRate);
   const [discount, setDiscount] = useState(storeData.discount);
@@ -144,6 +150,7 @@ export default function InvoiceDetailsPage() {
     updateClient({
       clientName, clientCompany, clientEmail,
       clientAddress, clientCity, clientZip, clientCountry,
+      clientPhoneCode, clientPhone,
     });
     updateInvoice({ taxRate, discount, notes });
     router.push("/invoice/new/design");
@@ -234,6 +241,16 @@ export default function InvoiceDetailsPage() {
                   onChange={(e) => { setClientEmail(e.target.value); setErrors((p) => ({ ...p, clientEmail: "" })); }}
                   placeholder="client@example.com"
                   className={cn(errors.clientEmail && "border-red-400/50 focus-visible:border-red-400/50 focus-visible:ring-red-400/10")}
+                />
+              </Field>
+              <Field label="Phone (WhatsApp)" htmlFor="clientPhone" optional>
+                <PhoneInput
+                  id="clientPhone"
+                  countryCode={findPhoneCountry(clientPhoneCode)?.iso}
+                  value={clientPhone}
+                  onChange={setClientPhone}
+                  onCountryChange={(country) => setClientPhoneCode(country.dialCode)}
+                  placeholder="24 123 4567"
                 />
               </Field>
               <Field label="Address" htmlFor="clientAddress">

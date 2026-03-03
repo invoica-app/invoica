@@ -2,6 +2,7 @@ package com.invoicer.controller
 
 import com.invoicer.dto.CreateInvoiceRequest
 import com.invoicer.dto.InvoiceResponse
+import com.invoicer.dto.PublicInvoiceResponse
 import com.invoicer.dto.UpdateInvoiceRequest
 import com.invoicer.entity.InvoiceStatus
 import com.invoicer.service.InvoiceService
@@ -16,6 +17,12 @@ import org.springframework.web.bind.annotation.*
 class InvoiceController(
     private val invoiceService: InvoiceService
 ) {
+
+    @GetMapping("/public/{publicToken}")
+    fun getPublicInvoice(@PathVariable publicToken: String): ResponseEntity<PublicInvoiceResponse> {
+        val invoice = invoiceService.getPublicInvoice(publicToken)
+        return ResponseEntity.ok(invoice)
+    }
 
     @PostMapping
     fun createInvoice(

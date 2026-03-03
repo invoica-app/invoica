@@ -12,7 +12,7 @@ import { CreateInvoiceRequest, UpdateInvoiceRequest } from "@/lib/types";
 import { InvoicePreview } from "@/components/invoice-preview";
 import { formatMoney } from "@/lib/currency";
 import { useSettingsStore } from "@/lib/settings-store";
-import { Download, Send, Loader2 } from "lucide-react";
+import { Download, Send, Loader2, MessageCircle } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { HydrationGuard } from "@/components/hydration-guard";
 import { useAuth } from "@/lib/auth";
@@ -52,6 +52,8 @@ export default function ReviewPage() {
       clientCity: s.clientCity,
       clientZip: s.clientZip,
       clientCountry: s.clientCountry,
+      clientPhoneCode: s.clientPhoneCode,
+      clientPhone: s.clientPhone,
       taxRate: s.taxRate,
       discount: s.discount,
       notes: s.notes,
@@ -67,7 +69,10 @@ export default function ReviewPage() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentInvoiceId, setSentInvoiceId] = useState<number | null>(null);
+  const [sentPublicToken, setSentPublicToken] = useState<string | null>(null);
   const [showFirstInvoice, setShowFirstInvoice] = useState(false);
+
+  const clientPhoneFull = [data.clientPhoneCode, data.clientPhone].filter(Boolean).join("");
 
   const dismissFeedback = useCallback(() => {
     setSentInvoiceId(null);
@@ -115,6 +120,7 @@ export default function ReviewPage() {
         taxRate: data.taxRate || null,
         discount: data.discount || null,
         notes: data.notes || null,
+        clientPhone: clientPhoneFull || null,
         lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
           description,
           quantity,
@@ -195,6 +201,7 @@ export default function ReviewPage() {
           taxRate: data.taxRate || null,
           discount: data.discount || null,
           notes: data.notes || null,
+          clientPhone: clientPhoneFull || null,
           lineItems: data.lineItems.map(({ description, quantity, rate, amount }) => ({
             description,
             quantity,
@@ -205,6 +212,7 @@ export default function ReviewPage() {
         const updatedInvoice = await api.updateInvoice(editingInvoiceId, updateRequest, true);
         if (isAuthenticated && !isGuest && updatedInvoice.id) {
           setSentInvoiceId(updatedInvoice.id);
+          setSentPublicToken(updatedInvoice.publicToken ?? null);
           reset();
           setSending(false);
           return;
@@ -239,6 +247,7 @@ export default function ReviewPage() {
           taxRate: data.taxRate || null,
           discount: data.discount || null,
           notes: data.notes || null,
+          clientPhone: clientPhoneFull || null,
           lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
             description,
             quantity,
@@ -246,6 +255,7 @@ export default function ReviewPage() {
           })),
         };
         const createdInvoice = await api.createInvoice(request);
+        setSentPublicToken(createdInvoice.publicToken ?? null);
         settings.updateSettings({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 });
 
         if (isAuthenticated && !isGuest) {
@@ -408,7 +418,7 @@ export default function ReviewPage() {
               )}
 
               {/* Actions */}
-              <div className="flex gap-3 justify-end">
+              <div className="flex gap-3 justify-end flex-wrap">
                 <Button
                   variant="outline"
                   onClick={handlePreview}
@@ -422,6 +432,22 @@ export default function ReviewPage() {
                   )}
                   {generatingPdf ? "Generating..." : "Download PDF"}
                 </Button>
+                {clientPhoneFull && sentPublicToken && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const phone = clientPhoneFull.replace(/[\s\-()]/g, "").replace(/^\+/, "");
+                      const baseUrl = window.location.origin;
+                      const invoiceUrl = `${baseUrl}/invoice/view/${sentPublicToken}`;
+                      const message = `Hi ${data.clientName || "there"},\n\nHere is your invoice #${data.invoiceNumber} for ${currency} ${total.toLocaleString()}.\n\nView your invoice here: ${invoiceUrl}\n\nDue date: ${new Date(data.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}\n\nThank you for your business!\n${data.companyName}`;
+                      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+                    }}
+                    className="gap-2 bg-[#25D366] text-white hover:bg-[#20BD5A] border-[#25D366] hover:border-[#20BD5A]"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Send via WhatsApp
+                  </Button>
+                )}
                 <Button onClick={handleSend} disabled={sending || generatingPdf} className="gap-2">
                   {sending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

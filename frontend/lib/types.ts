@@ -58,6 +58,7 @@ export interface Invoice {
   clientCity?: string | null;
   clientZip?: string | null;
   clientCountry?: string | null;
+  clientPhone?: string | null;
   // Tax, Discount, Notes
   taxRate?: number | null;
   discount?: number | null;
@@ -79,6 +80,8 @@ export interface Invoice {
   totalAmount?: number;
   // Status
   status?: InvoiceStatus;
+  // Public sharing
+  publicToken?: string;
   // Download tracking
   downloadCount?: number;
   lastDownloadedAt?: string | null;
@@ -114,6 +117,7 @@ export interface CreateInvoiceRequest {
   clientCity?: string | null;
   clientZip?: string | null;
   clientCountry?: string | null;
+  clientPhone?: string | null;
   // Tax, Discount, Notes
   taxRate?: number | null;
   discount?: number | null;
@@ -148,6 +152,7 @@ export interface UpdateInvoiceRequest {
   clientCity?: string | null;
   clientZip?: string | null;
   clientCountry?: string | null;
+  clientPhone?: string | null;
   // Tax, Discount, Notes
   taxRate?: number | null;
   discount?: number | null;

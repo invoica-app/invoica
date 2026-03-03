@@ -73,6 +73,7 @@ class Invoice(
     var clientCity: String? = null,
     var clientZip: String? = null,
     var clientCountry: String? = null,
+    var clientPhone: String? = null,
 
     // Tax, Discount, Notes
     var taxRate: Double? = null,
@@ -109,6 +110,10 @@ class Invoice(
     // Download tracking
     var downloadCount: Int = 0,
     var lastDownloadedAt: LocalDateTime? = null,
+
+    // Public sharing
+    @Column(nullable = false, unique = true)
+    var publicToken: String = java.util.UUID.randomUUID().toString(),
 
     // Owner
     val userId: Long? = null,

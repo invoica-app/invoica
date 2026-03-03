@@ -37,6 +37,8 @@ interface InvoiceStore {
   clientCity: string;
   clientZip: string;
   clientCountry: string;
+  clientPhoneCode: string;
+  clientPhone: string;
 
   // Tax, Discount, Notes
   taxRate: number;
@@ -125,6 +127,8 @@ function getInitialState() {
     clientCity: "",
     clientZip: "",
     clientCountry: "",
+    clientPhoneCode: "+233",
+    clientPhone: "",
     // Tax, Discount, Notes
     taxRate: 0,
     discount: 0,
@@ -228,6 +232,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
 
       loadFromInvoice: (invoice: Invoice, id: number) => {
         const { phoneCode, localNumber } = splitPhoneString(invoice.phone, invoice.country);
+        const clientPhoneSplit = invoice.clientPhone ? splitPhoneString(invoice.clientPhone) : { phoneCode: "+233", localNumber: "" };
         return set({
           editingInvoiceId: id,
           editingInvoiceStatus: invoice.status || "DRAFT",
@@ -257,6 +262,8 @@ export const useInvoiceStore = create<InvoiceStore>()(
           clientCity: invoice.clientCity ?? "",
           clientZip: invoice.clientZip ?? "",
           clientCountry: invoice.clientCountry ?? "",
+          clientPhoneCode: clientPhoneSplit.phoneCode,
+          clientPhone: clientPhoneSplit.localNumber,
           taxRate: invoice.taxRate ?? 0,
           discount: invoice.discount ?? 0,
           notes: invoice.notes ?? "",

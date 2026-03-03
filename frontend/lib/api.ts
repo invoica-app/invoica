@@ -134,6 +134,24 @@ class ApiClient {
     return this.request<{ count: number }>('/feedback/count', {}, token);
   }
 
+  async getPublicInvoice(publicToken: string): Promise<Invoice> {
+    const url = `${this.baseUrl}/invoices/public/${publicToken}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Invoice not found: HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async downloadPublicPdf(publicToken: string): Promise<Blob> {
+    const url = `${this.baseUrl}/invoices/public/${publicToken}/pdf`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`PDF download failed: HTTP ${response.status}`);
+    }
+    return response.blob();
+  }
+
   async uploadLogo(file: File, token?: string): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
@@ -215,4 +233,8 @@ export const invoiceApi = {
     api.downloadPdf(data, token),
   uploadLogo: (file: File, token?: string) =>
     api.uploadLogo(file, token),
+  getPublicInvoice: (publicToken: string) =>
+    api.getPublicInvoice(publicToken),
+  downloadPublicPdf: (publicToken: string) =>
+    api.downloadPublicPdf(publicToken),
 };

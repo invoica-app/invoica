@@ -33,6 +33,7 @@ class SecurityConfig(
                     // Public endpoints
                     .requestMatchers("/api/health").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/invoices/public/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

@@ -51,6 +51,7 @@ class InvoiceService(
             clientCity = request.clientCity,
             clientZip = request.clientZip,
             clientCountry = request.clientCountry,
+            clientPhone = request.clientPhone,
             taxRate = request.taxRate,
             discount = request.discount,
             notes = request.notes,
@@ -138,6 +139,7 @@ class InvoiceService(
         request.clientCity?.let { invoice.clientCity = it }
         request.clientZip?.let { invoice.clientZip = it }
         request.clientCountry?.let { invoice.clientCountry = it }
+        request.clientPhone?.let { invoice.clientPhone = it }
         request.taxRate?.let { invoice.taxRate = it }
         request.discount?.let { invoice.discount = it }
         request.notes?.let { invoice.notes = it }
@@ -204,6 +206,13 @@ class InvoiceService(
         return invoiceRepository.findByUserIdAndStatus(userId, status).map { it.toResponse() }
     }
 
+    @Transactional(readOnly = true)
+    fun getPublicInvoice(publicToken: String): PublicInvoiceResponse {
+        val invoice = invoiceRepository.findByPublicToken(publicToken)
+            ?: throw InvoiceNotFoundException("Invoice not found")
+        return invoice.toPublicResponse()
+    }
+
     private fun verifyOwnership(invoice: Invoice, userId: Long) {
         if (invoice.userId != userId) {
             throw InvoiceAccessDeniedException("You do not have access to this invoice")
@@ -243,6 +252,7 @@ class InvoiceService(
         clientCity = clientCity,
         clientZip = clientZip,
         clientCountry = clientCountry,
+        clientPhone = clientPhone,
         taxRate = taxRate,
         discount = discount,
         notes = notes,
@@ -254,6 +264,43 @@ class InvoiceService(
         status = status,
         downloadCount = downloadCount,
         lastDownloadedAt = lastDownloadedAt,
+        publicToken = publicToken,
+        createdAt = createdAt,
+        updatedAt = updatedAt
+    )
+
+    private fun Invoice.toPublicResponse() = PublicInvoiceResponse(
+        id = id!!,
+        companyName = companyName,
+        companyLogo = companyLogo,
+        address = address,
+        city = city,
+        zipCode = zipCode,
+        country = country,
+        phone = phone,
+        companyEmail = companyEmail,
+        invoiceNumber = invoiceNumber,
+        invoiceDate = invoiceDate,
+        dueDate = dueDate,
+        primaryColor = primaryColor,
+        fontFamily = fontFamily,
+        templateId = templateId,
+        authorizedSignature = authorizedSignature,
+        currency = currency,
+        clientName = clientName,
+        clientCompany = clientCompany,
+        clientAddress = clientAddress,
+        clientCity = clientCity,
+        clientZip = clientZip,
+        clientCountry = clientCountry,
+        clientPhone = clientPhone,
+        clientEmail = clientEmail,
+        taxRate = taxRate,
+        discount = discount,
+        notes = notes,
+        lineItems = lineItems.map { it.toResponse() },
+        totalAmount = totalAmount,
+        publicToken = publicToken,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
