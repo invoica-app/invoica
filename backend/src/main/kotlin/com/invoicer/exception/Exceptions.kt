@@ -9,3 +9,7 @@ class InvoiceAccessDeniedException(message: String) : RuntimeException(message)
 class AdminAccessDeniedException(message: String) : RuntimeException(message)
 
 class EmailSendException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+class AiUsageExhaustedException(message: String) : RuntimeException(message)
+
+class AiAnalysisFailedException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

@@ -5,5 +5,6 @@ export const config = {
     "/invoice/new/:path*",
     "/invoice/:id(\\d+)",
     "/admin/:path*",
+    "/ai-replicator",
   ],
 };
