@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.*
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 import java.util.Base64
 
@@ -139,9 +141,15 @@ class ClaudeVisionService(
             return extractAnalysisJson(responseBody)
         } catch (ex: AiAnalysisFailedException) {
             throw ex
+        } catch (ex: HttpClientErrorException) {
+            logger.error("Claude API client error [${ex.statusCode}]: ${ex.responseBodyAsString}", ex)
+            throw AiAnalysisFailedException("AI analysis is temporarily unavailable. Please try again later.", ex)
+        } catch (ex: HttpServerErrorException) {
+            logger.error("Claude API server error [${ex.statusCode}]: ${ex.responseBodyAsString}", ex)
+            throw AiAnalysisFailedException("AI analysis is temporarily unavailable. Please try again later.", ex)
         } catch (ex: Exception) {
             logger.error("Claude API call failed", ex)
-            throw AiAnalysisFailedException("Failed to analyze invoice image: ${ex.message}", ex)
+            throw AiAnalysisFailedException("Something went wrong during analysis. Please try again.", ex)
         }
     }
 
