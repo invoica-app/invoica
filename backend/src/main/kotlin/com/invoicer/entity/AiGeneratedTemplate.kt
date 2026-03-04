@@ -1,6 +1,11 @@
 package com.invoicer.entity
 
 import jakarta.persistence.*
+<<<<<<< Updated upstream
+=======
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+>>>>>>> Stashed changes
 import java.time.LocalDateTime
 
 @Entity
@@ -16,6 +21,10 @@ class AiGeneratedTemplate(
     @Column(nullable = false, length = 255)
     var name: String = "",
 
+<<<<<<< Updated upstream
+=======
+    @JdbcTypeCode(SqlTypes.JSON)
+>>>>>>> Stashed changes
     @Column(name = "analysis_json", nullable = false, columnDefinition = "jsonb")
     var analysisJson: String = "",
 
