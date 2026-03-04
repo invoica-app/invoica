@@ -1,11 +1,8 @@
 package com.invoicer.entity
 
 import jakarta.persistence.*
-<<<<<<< Updated upstream
-=======
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
->>>>>>> Stashed changes
 import java.time.LocalDateTime
 
 @Entity
@@ -24,10 +21,7 @@ class AiFeatureUsage(
     @Column(name = "sample_image_url", columnDefinition = "TEXT")
     var sampleImageUrl: String? = null,
 
-<<<<<<< Updated upstream
-=======
     @JdbcTypeCode(SqlTypes.JSON)
->>>>>>> Stashed changes
     @Column(name = "analysis_result", columnDefinition = "jsonb")
     var analysisResult: String? = null,
 

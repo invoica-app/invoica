@@ -222,10 +222,10 @@ export function WizardSidebar() {
           />
 
           <SidebarLink
-            href="/ai-replicator"
+            href="/invoice/new/ai-replicator"
             icon={Sparkles}
             label="AI Replicator"
-            active={pathname === "/ai-replicator"}
+            active={pathname === "/invoice/new/ai-replicator"}
             collapsed={collapsed}
           />
 
