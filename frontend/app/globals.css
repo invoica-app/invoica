@@ -191,12 +191,12 @@
 }
 
 .auth-bg-day {
-  background-image: url('/images/auth/day.png');
+  background-image: url('/images/auth/day.webp');
   opacity: 1;
 }
 
 .auth-bg-night {
-  background-image: url('/images/auth/night.png');
+  background-image: url('/images/auth/night.webp');
   opacity: 0;
 }
 
