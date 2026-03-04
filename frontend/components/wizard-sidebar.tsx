@@ -42,6 +42,7 @@ const wizardSteps = [
 const mobileNavItems = [
   { href: "/invoice/new/history", label: "History", icon: ClipboardList },
   { href: "/invoice/new/company", label: "Create", icon: Plus },
+  { href: "/invoice/new/ai-replicator", label: "AI", icon: Sparkles },
   { href: "/invoice/new/review", label: "Send", icon: Send },
   { href: "/invoice/new/settings", label: "Settings", icon: Settings },
 ];
