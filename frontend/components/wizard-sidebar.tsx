@@ -23,6 +23,7 @@ import {
   PanelLeftOpen,
   Shield,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -217,6 +218,14 @@ export function WizardSidebar() {
             icon={Settings}
             label="Settings"
             active={pathname === "/invoice/new/settings"}
+            collapsed={collapsed}
+          />
+
+          <SidebarLink
+            href="/ai-replicator"
+            icon={Sparkles}
+            label="AI Replicator"
+            active={pathname === "/ai-replicator"}
             collapsed={collapsed}
           />
 
