@@ -1,0 +1,16 @@
+import { WizardSidebar } from "@/components/wizard-sidebar";
+
+export default function AiReplicatorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-screen">
+      <WizardSidebar />
+      <main className="flex-1 flex flex-col pb-16 md:pb-0 overflow-x-hidden">
+        <div className="flex-1 flex flex-col">{children}</div>
+      </main>
+    </div>
+  );
+}

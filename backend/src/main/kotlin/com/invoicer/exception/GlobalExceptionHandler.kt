@@ -72,6 +72,26 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
     }
 
+    @ExceptionHandler(AiUsageExhaustedException::class)
+    fun handleAiUsageExhausted(ex: AiUsageExhaustedException): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.PAYMENT_REQUIRED.value(),
+            error = "Payment Required",
+            message = ex.message ?: "AI usage limit exhausted"
+        )
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(error)
+    }
+
+    @ExceptionHandler(AiAnalysisFailedException::class)
+    fun handleAiAnalysisFailed(ex: AiAnalysisFailedException): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.UNPROCESSABLE_ENTITY.value(),
+            error = "Unprocessable Entity",
+            message = ex.message ?: "AI analysis failed"
+        )
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error)
+    }
+
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
         val error = ErrorResponse(

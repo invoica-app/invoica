@@ -5,6 +5,9 @@ import {
   InvoiceStatus,
   ApiError,
   FileUploadResponse,
+  AiAnalysisResponse,
+  AiUsageResponse,
+  AiTemplateResponse,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -152,6 +155,48 @@ class ApiClient {
     return response.blob();
   }
 
+  // AI API methods
+  async analyzeInvoice(file: File, token?: string): Promise<AiAnalysisResponse> {
+    const url = `${this.baseUrl}/ai/analyze-invoice`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw Object.assign(new Error(error.message || `Analysis failed: HTTP ${response.status}`), {
+        status: response.status,
+      });
+    }
+
+    return response.json();
+  }
+
+  async getAiUsage(token?: string): Promise<AiUsageResponse> {
+    return this.request<AiUsageResponse>('/ai/usage', {}, token);
+  }
+
+  async saveAiTemplate(data: { name: string; analysisJson: string; sampleImageUrl?: string | null }, token?: string): Promise<AiTemplateResponse> {
+    return this.request<AiTemplateResponse>('/ai/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token);
+  }
+
+  async getAiTemplates(token?: string): Promise<AiTemplateResponse[]> {
+    return this.request<AiTemplateResponse[]>('/ai/templates', {}, token);
+  }
+
   async uploadLogo(file: File, token?: string): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
@@ -214,6 +259,17 @@ export const feedbackApi = {
     api.checkFeedback(invoiceId, token),
   getCount: (token?: string) =>
     api.getFeedbackCount(token),
+};
+
+export const aiApi = {
+  analyzeInvoice: (file: File, token?: string) =>
+    api.analyzeInvoice(file, token),
+  getUsage: (token?: string) =>
+    api.getAiUsage(token),
+  saveTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }, token?: string) =>
+    api.saveAiTemplate(data, token),
+  getTemplates: (token?: string) =>
+    api.getAiTemplates(token),
 };
 
 export const invoiceApi = {

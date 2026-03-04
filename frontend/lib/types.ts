@@ -179,3 +179,93 @@ export interface ApiError {
   message: string;
   details?: string[];
 }
+
+// AI Invoice Analysis Types
+export interface AiColorScheme {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  text: string;
+  tableHeader: string;
+  tableStripe: string;
+}
+
+export interface AiLayout {
+  style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'creative';
+  colorScheme: AiColorScheme;
+  hasHeaderBar: boolean;
+  headerBarColor: string | null;
+  logoPosition: 'left' | 'right' | 'center';
+  alignment: 'left' | 'center';
+}
+
+export interface AiSection {
+  type: 'header' | 'companyInfo' | 'billTo' | 'invoiceMeta' | 'lineItems' | 'totals' | 'notes' | 'footer' | 'signature';
+  position: 'top' | 'middle' | 'bottom';
+  layout: 'full-width' | 'two-column' | 'right-aligned';
+}
+
+export interface AiTypography {
+  headingFont: 'sans-serif' | 'serif' | 'monospace';
+  bodyFont: 'sans-serif' | 'serif' | 'monospace';
+  headingSize: 'large' | 'medium' | 'small';
+  headingWeight: 'bold' | 'normal' | 'light';
+  bodySize: 'medium' | 'small';
+  uppercase: boolean;
+}
+
+export interface AiTableStyle {
+  hasHeader: boolean;
+  headerBackground: string;
+  headerTextColor: string;
+  hasBorders: boolean;
+  borderColor: string;
+  hasAlternatingRows: boolean;
+  alternatingRowColor: string;
+  cellPadding: 'compact' | 'normal' | 'spacious';
+}
+
+export interface AiSpecialFeatures {
+  hasWatermark: boolean;
+  hasSignatureLine: boolean;
+  hasFooterBar: boolean;
+  footerBarColor: string | null;
+  amountBoxStyle: 'none' | 'bordered' | 'filled';
+  amountBoxColor: string | null;
+  hasDividers: boolean;
+  dividerStyle: 'solid' | 'dashed' | 'dotted';
+  borderRadius: 'none' | 'small' | 'medium' | 'large';
+}
+
+export interface AiInvoiceAnalysis {
+  layout: AiLayout;
+  sections: AiSection[];
+  typography: AiTypography;
+  tableStyle: AiTableStyle;
+  detectedCurrency: string;
+  specialFeatures: AiSpecialFeatures;
+}
+
+export interface AiAnalysisResponse {
+  analysisJson: string;
+  sampleImageUrl: string;
+  usageCount: number;
+  maxFreeUses: number;
+}
+
+export interface AiUsageResponse {
+  usageCount: number;
+  maxFreeUses: number;
+  remaining: number;
+  isExhausted: boolean;
+}
+
+export interface AiTemplateResponse {
+  id: number;
+  name: string;
+  analysisJson: string;
+  sampleImageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
