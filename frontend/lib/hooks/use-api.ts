@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
-import { invoiceApi, feedbackApi, FeedbackData } from "@/lib/api";
+import { invoiceApi, feedbackApi, aiApi, FeedbackData } from "@/lib/api";
 import { CreateInvoiceRequest } from "@/lib/types";
 
 export function useAuthenticatedApi() {
@@ -27,6 +27,12 @@ export function useAuthenticatedApi() {
       submitFeedback: (data: FeedbackData) => feedbackApi.submit(data, accessToken),
       checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId, accessToken),
       getFeedbackCount: () => feedbackApi.getCount(accessToken),
+      // AI API
+      analyzeInvoice: (file: File) => aiApi.analyzeInvoice(file, accessToken),
+      getAiUsage: () => aiApi.getUsage(accessToken),
+      saveAiTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
+        aiApi.saveTemplate(data, accessToken),
+      getAiTemplates: () => aiApi.getTemplates(accessToken),
     }),
     [accessToken]
   );
