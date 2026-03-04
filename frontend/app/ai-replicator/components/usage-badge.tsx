@@ -14,23 +14,19 @@ export function UsageBadge() {
 
   if (!usage) return null;
 
-  const isLow = usage.remaining <= 1 && !usage.isExhausted;
-
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
         usage.isExhausted
-          ? "bg-red-50 text-red-700 border border-red-200"
-          : isLow
-          ? "bg-amber-50 text-amber-700 border border-amber-200"
-          : "bg-blue-50 text-blue-700 border border-blue-200"
+          ? "bg-destructive/10 text-destructive"
+          : usage.remaining <= 1
+          ? "bg-amber-500/10 text-amber-600"
+          : "bg-muted text-muted-foreground"
       }`}
     >
-      <span>
-        {usage.isExhausted
-          ? "No free uses remaining"
-          : `${usage.remaining}/${usage.maxFreeUses} free uses remaining`}
-      </span>
-    </div>
+      {usage.isExhausted
+        ? "No free analyses remaining"
+        : `${usage.remaining} of ${usage.maxFreeUses} free analyses remaining`}
+    </span>
   );
 }

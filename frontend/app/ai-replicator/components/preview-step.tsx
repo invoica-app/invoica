@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Download, Save, Pencil, RotateCcw, Check } from "lucide-react";
 import { AiDynamicTemplate } from "@/components/ai-dynamic-template";
 import type { AiInvoiceFormData } from "@/components/ai-dynamic-template";
 import type { AiInvoiceAnalysis } from "@/lib/types";
@@ -92,78 +93,83 @@ export function PreviewStep({
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Preview your invoice</h1>
-        <p className="text-sm text-muted-foreground">
-          Compare your generated invoice with the original sample.
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button onClick={handleDownloadPdf} disabled={downloading}>
-          {downloading ? "Generating PDF..." : "Download PDF"}
-        </Button>
-        {!saved && !showSaveForm && (
-          <Button variant="outline" onClick={() => setShowSaveForm(true)}>
-            Save as Template
-          </Button>
-        )}
-        {showSaveForm && (
-          <div className="flex gap-2 items-center">
-            <Input
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              placeholder="Template name"
-              className="w-48"
-            />
-            <Button size="sm" onClick={handleSaveTemplate} disabled={saving || !templateName.trim()}>
-              {saving ? "Saving..." : "Save"}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setShowSaveForm(false)}>
-              Cancel
-            </Button>
-          </div>
-        )}
-        {saved && (
-          <span className="inline-flex items-center text-sm text-green-600 font-medium px-3">
-            Template saved!
-          </span>
-        )}
-        <Button variant="outline" onClick={onEdit}>
-          Edit
-        </Button>
-        <Button variant="ghost" onClick={onStartOver}>
-          Start Over
-        </Button>
-      </div>
-
-      {/* Side by side preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Generated Invoice */}
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-            Generated Invoice
-          </h3>
-          <div className="border border-border rounded-lg shadow-sm overflow-hidden bg-white">
-            <div ref={invoiceRef} style={{ width: "800px", transform: "scale(0.5)", transformOrigin: "top left", height: "fit-content" }}>
-              <AiDynamicTemplate analysis={analysis} data={formData} />
+          <h1 className="text-lg font-semibold">Preview</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Compare your generated invoice with the original.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+            <Download className="w-4 h-4 mr-1.5" />
+            {downloading ? "Generating..." : "Download PDF"}
+          </Button>
+
+          {!saved && !showSaveForm && (
+            <Button variant="outline" size="sm" onClick={() => setShowSaveForm(true)}>
+              <Save className="w-4 h-4 mr-1.5" />
+              Save Template
+            </Button>
+          )}
+
+          {saved && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 px-2">
+              <Check className="w-3.5 h-3.5" />
+              Saved
+            </span>
+          )}
+
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            <Pencil className="w-4 h-4 mr-1.5" />
+            Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onStartOver}>
+            <RotateCcw className="w-4 h-4 mr-1.5" />
+            Start Over
+          </Button>
+        </div>
+      </div>
+
+      {/* Save form inline */}
+      {showSaveForm && (
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+          <Input
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            placeholder="Template name"
+            className="max-w-xs"
+            autoFocus
+            onKeyDown={(e) => e.key === "Enter" && handleSaveTemplate()}
+          />
+          <Button size="sm" onClick={handleSaveTemplate} disabled={saving || !templateName.trim()}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setShowSaveForm(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {/* Side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Generated</p>
+          <div className="border border-border rounded-lg overflow-hidden bg-white">
+            <div className="overflow-auto" style={{ maxHeight: "70vh" }}>
+              <div ref={invoiceRef} style={{ width: "800px", transformOrigin: "top left" }}>
+                <AiDynamicTemplate analysis={analysis} data={formData} />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Original Sample */}
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-            Original Sample
-          </h3>
-          <div className="border border-border rounded-lg shadow-sm overflow-hidden">
-            <img
-              src={sampleImageUrl}
-              alt="Original sample invoice"
-              className="w-full"
-            />
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Original</p>
+          <div className="border border-border rounded-lg overflow-hidden">
+            <img src={sampleImageUrl} alt="Original sample" className="w-full" />
           </div>
         </div>
       </div>
