@@ -68,7 +68,7 @@ export default function AiReplicatorPage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -78,10 +78,16 @@ export default function AiReplicatorPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="flex-1 px-6 py-8 max-w-6xl mx-auto w-full">
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
           {error}
+          <button
+            onClick={() => setError(null)}
+            className="ml-2 text-destructive/60 hover:text-destructive"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
 
 interface PaywallModalProps {
   open: boolean;
@@ -11,9 +12,9 @@ interface PaywallModalProps {
 export function PaywallModal({ open, onClose }: PaywallModalProps) {
   useEffect(() => {
     if (!open) return;
-    function handleKey(e: KeyboardEvent) {
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-    }
+    };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
@@ -22,22 +23,19 @@ export function PaywallModal({ open, onClose }: PaywallModalProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-card border border-border rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
-        <div className="text-3xl mb-3">&#9889;</div>
-        <h2 className="text-lg font-semibold mb-2">Free Uses Exhausted</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-          You&apos;ve used all 3 free AI invoice analyses. Upgrade to a paid
-          plan for unlimited analyses.
-        </p>
-        <div className="flex justify-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Dismiss
-          </Button>
+        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-5 h-5 text-muted-foreground" />
         </div>
+        <h2 className="text-sm font-semibold mb-1.5">Free analyses used</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+          You&apos;ve used all 3 free AI invoice analyses.
+          Paid plans with unlimited analyses are coming soon.
+        </p>
+        <Button variant="outline" size="sm" onClick={onClose} className="w-full">
+          Got it
+        </Button>
       </div>
     </div>
   );
