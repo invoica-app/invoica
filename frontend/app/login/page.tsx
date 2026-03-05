@@ -277,7 +277,7 @@ export default function LoginPage() {
         <footer className="shrink-0 border-t border-border bg-background px-6 py-4 lg:px-16">
           <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between">
             <ThemeSwitcher />
-            <p className="text-[11px] text-muted-foreground">&copy; 2025 Invoica</p>
+            <p className="text-[11px] text-muted-foreground">&copy; 2026 Invoica</p>
           </div>
         </footer>
       </div>

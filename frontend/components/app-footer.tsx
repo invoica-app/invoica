@@ -9,7 +9,7 @@ export function AppFooter() {
       <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between">
         <HealthStatus />
         <ThemeSwitcher />
-        <p className="text-[11px] text-muted-foreground">&copy; 2025 Invoica</p>
+        <p className="text-[11px] text-muted-foreground">&copy; 2026 Invoica</p>
       </div>
     </footer>
   );
