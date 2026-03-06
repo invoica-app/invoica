@@ -10,7 +10,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/lib/auth";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { useInvoiceStore } from "@/lib/store";
-import { Invoice } from "@/lib/types";
+import { Invoice, UserDashboardStats } from "@/lib/types";
+import { RevenueChart } from "@/components/charts/revenue-chart";
+import { InvoiceStatusChart } from "@/components/charts/invoice-status-chart";
+import { CollectionsChart } from "@/components/charts/collections-chart";
 import { WizardHeader } from "@/components/wizard-header";
 import { useSettingsStore } from "@/lib/settings-store";
 import { formatMoney } from "@/lib/currency";
@@ -38,6 +41,7 @@ export default function InvoiceHistoryPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<UserDashboardStats | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
@@ -47,8 +51,12 @@ export default function InvoiceHistoryPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getAllInvoices();
-      setInvoices(data);
+      const [invoiceData, statsData] = await Promise.all([
+        api.getAllInvoices(),
+        api.getDashboardStats(),
+      ]);
+      setInvoices(invoiceData);
+      setDashboardStats(statsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load invoices.");
     } finally {
@@ -131,6 +139,42 @@ export default function InvoiceHistoryPage() {
 
           {error && (
             <ErrorBanner message={error} onRetry={fetchInvoices} className="mb-5" />
+          )}
+
+          {/* Dashboard charts */}
+          {!loading && !authLoading && dashboardStats && (
+            <div className="mb-6 space-y-3">
+              <RevenueChart
+                data={dashboardStats.revenueByMonth}
+                currencies={dashboardStats.availableCurrencies}
+              />
+              <div className="grid md:grid-cols-2 gap-3">
+                <InvoiceStatusChart data={dashboardStats.statusBreakdown} />
+                <CollectionsChart data={dashboardStats.collections} />
+              </div>
+            </div>
+          )}
+
+          {/* Chart skeletons */}
+          {(loading || authLoading) && (
+            <div className="mb-6 space-y-3">
+              <div className="rounded-lg border bg-card p-4">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse mb-4" />
+                <div className="h-[220px] bg-muted/50 rounded animate-pulse" />
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="h-4 w-24 bg-muted rounded animate-pulse mb-4" />
+                  <div className="flex justify-center">
+                    <div className="w-[160px] h-[160px] rounded-full bg-muted/50 animate-pulse" />
+                  </div>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="h-4 w-20 bg-muted rounded animate-pulse mb-4" />
+                  <div className="h-[170px] bg-muted/50 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Loading skeleton */}

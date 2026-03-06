@@ -207,6 +207,41 @@ class InvoiceService(
     }
 
     @Transactional(readOnly = true)
+    fun getDashboardStats(userId: Long): UserDashboardStatsResponse {
+        val since = LocalDateTime.now().minusMonths(6)
+        val currencies = invoiceRepository.findDistinctCurrenciesByUserId(userId)
+        val primaryCurrency = currencies.firstOrNull() ?: "USD"
+
+        val revenueByMonth = invoiceRepository.sumRevenueByMonthAndCurrency(userId, since).map { row ->
+            RevenueByMonthEntry(
+                month = row[0] as String,
+                currency = row[1] as String,
+                total = row[2] as BigDecimal
+            )
+        }
+
+        val statusBreakdown = invoiceRepository.countByStatusForUser(userId).associate { row ->
+            (row[0] as InvoiceStatus).name to (row[1] as Long)
+        }
+
+        val currentMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
+        val collected = invoiceRepository.sumCollectedByUserAndCurrency(userId, primaryCurrency, currentMonth)
+        val outstanding = invoiceRepository.sumOutstandingByUserAndCurrency(userId, primaryCurrency, currentMonth)
+
+        return UserDashboardStatsResponse(
+            revenueByMonth = revenueByMonth,
+            statusBreakdown = statusBreakdown,
+            collections = CollectionsData(
+                collected = collected,
+                outstanding = outstanding,
+                currency = primaryCurrency,
+                period = currentMonth.toLocalDate().toString().substring(0, 7)
+            ),
+            availableCurrencies = currencies
+        )
+    }
+
+    @Transactional(readOnly = true)
     fun getPublicInvoice(publicToken: String): PublicInvoiceResponse {
         val invoice = invoiceRepository.findByPublicToken(publicToken)
             ?: throw InvoiceNotFoundException("Invoice not found")

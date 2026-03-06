@@ -8,6 +8,7 @@ import {
   AiAnalysisResponse,
   AiUsageResponse,
   AiTemplateResponse,
+  UserDashboardStats,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -95,6 +96,10 @@ class ApiClient {
     return this.request<void>(`/invoices/${id}`, {
       method: 'DELETE',
     }, token);
+  }
+
+  async getDashboardStats(token?: string): Promise<UserDashboardStats> {
+    return this.request<UserDashboardStats>('/invoices/dashboard-stats', {}, token);
   }
 
   async recordDownload(id: number, token?: string): Promise<void> {
@@ -273,6 +278,8 @@ export const aiApi = {
 };
 
 export const invoiceApi = {
+  getDashboardStats: (token?: string) =>
+    api.getDashboardStats(token),
   create: (data: CreateInvoiceRequest, token?: string) =>
     api.createInvoice(data, token),
   getAll: (status?: InvoiceStatus, token?: string) =>

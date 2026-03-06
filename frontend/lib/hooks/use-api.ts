@@ -10,6 +10,7 @@ export function useAuthenticatedApi() {
 
   return useMemo(
     () => ({
+      getDashboardStats: () => invoiceApi.getDashboardStats(accessToken),
       createInvoice: (data: Parameters<typeof invoiceApi.create>[0]) =>
         invoiceApi.create(data, accessToken),
       getAllInvoices: (status?: Parameters<typeof invoiceApi.getAll>[0]) =>

@@ -4,6 +4,7 @@ import com.invoicer.dto.CreateInvoiceRequest
 import com.invoicer.dto.InvoiceResponse
 import com.invoicer.dto.PublicInvoiceResponse
 import com.invoicer.dto.UpdateInvoiceRequest
+import com.invoicer.dto.UserDashboardStatsResponse
 import com.invoicer.entity.InvoiceStatus
 import com.invoicer.service.InvoiceService
 import jakarta.validation.Valid
@@ -22,6 +23,13 @@ class InvoiceController(
     fun getPublicInvoice(@PathVariable publicToken: String): ResponseEntity<PublicInvoiceResponse> {
         val invoice = invoiceService.getPublicInvoice(publicToken)
         return ResponseEntity.ok(invoice)
+    }
+
+    @GetMapping("/dashboard-stats")
+    fun getDashboardStats(authentication: Authentication): ResponseEntity<UserDashboardStatsResponse> {
+        val userId = authentication.credentials as Long
+        val stats = invoiceService.getDashboardStats(userId)
+        return ResponseEntity.ok(stats)
     }
 
     @PostMapping

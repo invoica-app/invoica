@@ -269,3 +269,24 @@ export interface AiTemplateResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+// Dashboard analytics
+export interface RevenueByMonthEntry {
+  month: string;
+  currency: string;
+  total: number;
+}
+
+export interface CollectionsData {
+  collected: number;
+  outstanding: number;
+  currency: string;
+  period: string;
+}
+
+export interface UserDashboardStats {
+  revenueByMonth: RevenueByMonthEntry[];
+  statusBreakdown: Record<string, number>;
+  collections: CollectionsData;
+  availableCurrencies: string[];
+}

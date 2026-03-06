@@ -69,4 +69,20 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
 
     @Query("SELECT FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM') AS month, COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.createdAt >= :since GROUP BY FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM') ORDER BY month")
     fun sumRevenueByMonth(since: LocalDateTime): List<Array<Any>>
+
+    // User-scoped dashboard queries
+    @Query("SELECT FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM') AS month, i.currency, COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.userId = :userId AND i.createdAt >= :since GROUP BY FUNCTION('TO_CHAR', i.createdAt, 'YYYY-MM'), i.currency ORDER BY month")
+    fun sumRevenueByMonthAndCurrency(userId: Long, since: LocalDateTime): List<Array<Any>>
+
+    @Query("SELECT i.status, COUNT(i) FROM Invoice i WHERE i.userId = :userId GROUP BY i.status")
+    fun countByStatusForUser(userId: Long): List<Array<Any>>
+
+    @Query("SELECT DISTINCT i.currency FROM Invoice i WHERE i.userId = :userId")
+    fun findDistinctCurrenciesByUserId(userId: Long): List<String>
+
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.userId = :userId AND i.status = 'PAID' AND i.currency = :currency AND i.createdAt >= :since")
+    fun sumCollectedByUserAndCurrency(userId: Long, currency: String, since: LocalDateTime): BigDecimal
+
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE i.userId = :userId AND i.status != 'PAID' AND i.currency = :currency AND i.createdAt >= :since")
+    fun sumOutstandingByUserAndCurrency(userId: Long, currency: String, since: LocalDateTime): BigDecimal
 }

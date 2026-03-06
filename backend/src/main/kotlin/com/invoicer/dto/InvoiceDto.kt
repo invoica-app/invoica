@@ -235,3 +235,23 @@ data class LineItemResponse(
     val rate: BigDecimal,
     val amount: BigDecimal
 )
+
+data class RevenueByMonthEntry(
+    val month: String,
+    val currency: String,
+    val total: BigDecimal
+)
+
+data class CollectionsData(
+    val collected: BigDecimal,
+    val outstanding: BigDecimal,
+    val currency: String,
+    val period: String
+)
+
+data class UserDashboardStatsResponse(
+    val revenueByMonth: List<RevenueByMonthEntry>,
+    val statusBreakdown: Map<String, Long>,
+    val collections: CollectionsData,
+    val availableCurrencies: List<String>
+)
