@@ -45,11 +45,25 @@ class ApiClient {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        const error: ApiError = await response.json();
-        // Include validation details if present (e.g. "invoiceNumber: Invoice number is required")
-        const message = error.details?.length
-          ? `${error.message}: ${error.details.join(", ")}`
-          : error.message || `HTTP ${response.status}: ${response.statusText}`;
+        // Expired or invalid token — sign out and redirect to login
+        if (response.status === 401) {
+          if (typeof window !== 'undefined') {
+            const { signOut } = await import('next-auth/react');
+            signOut({ callbackUrl: '/login' });
+          }
+          throw new Error('Session expired');
+        }
+
+        // Try to parse JSON error body; fall back to status text if body is empty/non-JSON
+        let message = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const error: ApiError = await response.json();
+          message = error.details?.length
+            ? `${error.message}: ${error.details.join(", ")}`
+            : error.message || message;
+        } catch {
+          // Response body wasn't valid JSON — use the default status message
+        }
         throw new Error(message);
       }
 

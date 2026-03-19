@@ -103,6 +103,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours — match backend JWT expiration
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
