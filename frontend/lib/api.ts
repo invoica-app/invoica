@@ -46,7 +46,7 @@ class ApiClient {
 
       if (!response.ok) {
         // Expired or invalid token — sign out and redirect to login
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
           if (typeof window !== 'undefined') {
             const { signOut } = await import('next-auth/react');
             signOut({ callbackUrl: '/login' });
