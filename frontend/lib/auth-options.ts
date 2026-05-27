@@ -63,6 +63,8 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!response.ok) {
+            const errorBody = await response.text().catch(() => "no body");
+            console.error(`OAuth login failed: ${response.status} ${response.statusText}`, errorBody);
             return false;
           }
 
@@ -98,6 +100,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
