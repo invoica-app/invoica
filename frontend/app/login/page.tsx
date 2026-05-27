@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Copy, ExternalLink, Check, AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -22,10 +22,20 @@ function useIsSnapchat() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const isSnapchat = useIsSnapchat();
+
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (urlError === "AccessDenied") {
+      setError("Sign in failed. Please try again or use a different method.");
+    } else if (urlError) {
+      setError("Something went wrong. Please try again.");
+    }
+  }, [searchParams]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading("google");
