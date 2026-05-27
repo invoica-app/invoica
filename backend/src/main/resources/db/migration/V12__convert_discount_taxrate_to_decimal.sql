@@ -1,0 +1,2 @@
+ALTER TABLE invoices ALTER COLUMN tax_rate TYPE NUMERIC(10, 4) USING tax_rate::NUMERIC(10, 4);
+ALTER TABLE invoices ALTER COLUMN discount TYPE NUMERIC(19, 2) USING discount::NUMERIC(19, 2);

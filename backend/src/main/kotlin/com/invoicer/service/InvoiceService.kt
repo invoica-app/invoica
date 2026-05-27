@@ -9,10 +9,11 @@ import com.invoicer.exception.InvoiceNotFoundException
 import com.invoicer.exception.DuplicateInvoiceNumberException
 import com.invoicer.repository.InvoiceRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDateTime
 
 @Service
@@ -23,7 +24,7 @@ class InvoiceService(
 ) {
     private val logger = LoggerFactory.getLogger(InvoiceService::class.java)
 
-    fun createInvoice(request: CreateInvoiceRequest, userId: Long): InvoiceResponse {
+    fun createInvoice(request: CreateInvoiceRequest, userId: Long, sendEmail: Boolean = true): InvoiceResponse {
         if (invoiceRepository.existsByInvoiceNumberAndUserId(request.invoiceNumber, userId)) {
             throw DuplicateInvoiceNumberException("Invoice number ${request.invoiceNumber} already exists")
         }
@@ -58,6 +59,16 @@ class InvoiceService(
             clientEmail = request.clientEmail,
             emailSubject = request.emailSubject,
             emailMessage = request.emailMessage,
+            paymentMethod = request.paymentMethod,
+            momoProvider = request.momoProvider,
+            momoAccountName = request.momoAccountName,
+            momoNumber = request.momoNumber,
+            momoCountryCode = request.momoCountryCode,
+            bankName = request.bankName,
+            bankAccountName = request.bankAccountName,
+            bankAccountNumber = request.bankAccountNumber,
+            bankBranch = request.bankBranch,
+            bankSwiftCode = request.bankSwiftCode,
             userId = userId
         )
 
@@ -75,17 +86,19 @@ class InvoiceService(
             subtotal = subtotal.add(amount)
         }
 
-        invoice.totalAmount = calculateTotal(subtotal, request.discount, request.taxRate)
+        invoice.totalAmount = InvoiceCalculator.calculateTotal(subtotal, request.discount, request.taxRate)
 
         val savedInvoice = invoiceRepository.save(invoice)
 
-        try {
-            emailService.sendInvoiceEmail(savedInvoice)
-            savedInvoice.status = InvoiceStatus.SENT
-            savedInvoice.updatedAt = LocalDateTime.now()
-            invoiceRepository.save(savedInvoice)
-        } catch (e: Exception) {
-            logger.warn("Failed to send invoice email for ${savedInvoice.invoiceNumber}, invoice saved as DRAFT", e)
+        if (sendEmail) {
+            try {
+                emailService.sendInvoiceEmail(savedInvoice)
+                savedInvoice.status = InvoiceStatus.SENT
+                savedInvoice.updatedAt = LocalDateTime.now()
+                invoiceRepository.save(savedInvoice)
+            } catch (e: Exception) {
+                logger.warn("Failed to send invoice email for ${savedInvoice.invoiceNumber}, invoice saved as DRAFT", e)
+            }
         }
 
         return savedInvoice.toResponse()
@@ -93,20 +106,20 @@ class InvoiceService(
 
     @Transactional(readOnly = true)
     fun getInvoice(id: Long, userId: Long): InvoiceResponse {
-        val invoice = invoiceRepository.findById(id)
-            .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        val invoice = invoiceRepository.findByIdWithLineItems(id)
+            ?: throw InvoiceNotFoundException("Invoice not found with id: $id")
         verifyOwnership(invoice, userId)
         return invoice.toResponse()
     }
 
     @Transactional(readOnly = true)
-    fun getAllInvoices(userId: Long): List<InvoiceResponse> {
-        return invoiceRepository.findByUserId(userId).map { it.toResponse() }
+    fun getAllInvoices(userId: Long, pageable: Pageable): Page<InvoiceResponse> {
+        return invoiceRepository.findByUserId(userId, pageable).map { it.toResponse() }
     }
 
     fun updateInvoice(id: Long, request: UpdateInvoiceRequest, userId: Long, resend: Boolean = false): InvoiceResponse {
-        val invoice = invoiceRepository.findById(id)
-            .orElseThrow { InvoiceNotFoundException("Invoice not found with id: $id") }
+        val invoice = invoiceRepository.findByIdWithLineItems(id)
+            ?: throw InvoiceNotFoundException("Invoice not found with id: $id")
         verifyOwnership(invoice, userId)
 
         if (request.invoiceNumber != null &&
@@ -146,6 +159,16 @@ class InvoiceService(
         request.clientEmail?.let { invoice.clientEmail = it }
         request.emailSubject?.let { invoice.emailSubject = it }
         request.emailMessage?.let { invoice.emailMessage = it }
+        request.paymentMethod?.let { invoice.paymentMethod = it }
+        request.momoProvider?.let { invoice.momoProvider = it }
+        request.momoAccountName?.let { invoice.momoAccountName = it }
+        request.momoNumber?.let { invoice.momoNumber = it }
+        request.momoCountryCode?.let { invoice.momoCountryCode = it }
+        request.bankName?.let { invoice.bankName = it }
+        request.bankAccountName?.let { invoice.bankAccountName = it }
+        request.bankAccountNumber?.let { invoice.bankAccountNumber = it }
+        request.bankBranch?.let { invoice.bankBranch = it }
+        request.bankSwiftCode?.let { invoice.bankSwiftCode = it }
         request.status?.let { invoice.status = it }
         invoice.updatedAt = LocalDateTime.now()
 
@@ -166,8 +189,8 @@ class InvoiceService(
         }
 
         // Recalculate total from current line items
-        val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
-        invoice.totalAmount = calculateTotal(subtotal, invoice.discount, invoice.taxRate)
+        val subtotal = InvoiceCalculator.subtotal(invoice.lineItems)
+        invoice.totalAmount = InvoiceCalculator.calculateTotal(subtotal, invoice.discount, invoice.taxRate)
 
         val savedInvoice = invoiceRepository.save(invoice)
 
@@ -202,8 +225,8 @@ class InvoiceService(
     }
 
     @Transactional(readOnly = true)
-    fun getInvoicesByStatus(status: InvoiceStatus, userId: Long): List<InvoiceResponse> {
-        return invoiceRepository.findByUserIdAndStatus(userId, status).map { it.toResponse() }
+    fun getInvoicesByStatus(status: InvoiceStatus, userId: Long, pageable: Pageable): Page<InvoiceResponse> {
+        return invoiceRepository.findByUserIdAndStatus(userId, status, pageable).map { it.toResponse() }
     }
 
     @Transactional(readOnly = true)
@@ -254,15 +277,6 @@ class InvoiceService(
         }
     }
 
-    private fun calculateTotal(subtotal: BigDecimal, discount: Double?, taxRate: Double?): BigDecimal {
-        val discountAmount = discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
-        val taxableAmount = subtotal.subtract(discountAmount)
-        val taxAmount = taxRate?.let {
-            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
-        } ?: BigDecimal.ZERO
-        return subtotal.subtract(discountAmount).add(taxAmount)
-    }
-
     private fun Invoice.toResponse() = InvoiceResponse(
         id = id!!,
         companyName = companyName,
@@ -294,6 +308,16 @@ class InvoiceService(
         clientEmail = clientEmail,
         emailSubject = emailSubject,
         emailMessage = emailMessage,
+        paymentMethod = paymentMethod,
+        momoProvider = momoProvider,
+        momoAccountName = momoAccountName,
+        momoNumber = momoNumber,
+        momoCountryCode = momoCountryCode,
+        bankName = bankName,
+        bankAccountName = bankAccountName,
+        bankAccountNumber = bankAccountNumber,
+        bankBranch = bankBranch,
+        bankSwiftCode = bankSwiftCode,
         lineItems = lineItems.map { it.toResponse() },
         totalAmount = totalAmount,
         status = status,
@@ -333,6 +357,16 @@ class InvoiceService(
         taxRate = taxRate,
         discount = discount,
         notes = notes,
+        paymentMethod = paymentMethod,
+        momoProvider = momoProvider,
+        momoAccountName = momoAccountName,
+        momoNumber = momoNumber,
+        momoCountryCode = momoCountryCode,
+        bankName = bankName,
+        bankAccountName = bankAccountName,
+        bankAccountNumber = bankAccountNumber,
+        bankBranch = bankBranch,
+        bankSwiftCode = bankSwiftCode,
         lineItems = lineItems.map { it.toResponse() },
         totalAmount = totalAmount,
         publicToken = publicToken,

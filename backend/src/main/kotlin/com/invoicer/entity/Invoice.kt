@@ -76,8 +76,10 @@ class Invoice(
     var clientPhone: String? = null,
 
     // Tax, Discount, Notes
-    var taxRate: Double? = null,
-    var discount: Double? = null,
+    @Column(precision = 10, scale = 4)
+    var taxRate: BigDecimal? = null,
+    @Column(precision = 19, scale = 2)
+    var discount: BigDecimal? = null,
     @Column(length = 2000)
     var notes: String? = null,
 
@@ -88,6 +90,18 @@ class Invoice(
 
     @Column(length = 2000)
     var emailMessage: String? = null,
+
+    // Payment Info
+    var paymentMethod: String? = null,
+    var momoProvider: String? = null,
+    var momoAccountName: String? = null,
+    var momoNumber: String? = null,
+    var momoCountryCode: String? = null,
+    var bankName: String? = null,
+    var bankAccountName: String? = null,
+    var bankAccountNumber: String? = null,
+    var bankBranch: String? = null,
+    var bankSwiftCode: String? = null,
 
     // Line Items
     @OneToMany(

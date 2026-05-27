@@ -1,0 +1,10 @@
+ALTER TABLE invoices ADD COLUMN payment_method VARCHAR(20);
+ALTER TABLE invoices ADD COLUMN momo_provider VARCHAR(20);
+ALTER TABLE invoices ADD COLUMN momo_account_name VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN momo_number VARCHAR(30);
+ALTER TABLE invoices ADD COLUMN momo_country_code VARCHAR(10);
+ALTER TABLE invoices ADD COLUMN bank_name VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN bank_account_name VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN bank_account_number VARCHAR(50);
+ALTER TABLE invoices ADD COLUMN bank_branch VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN bank_swift_code VARCHAR(20);

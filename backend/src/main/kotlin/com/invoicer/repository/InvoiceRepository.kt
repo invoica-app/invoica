@@ -13,6 +13,10 @@ import java.time.LocalDateTime
 
 @Repository
 interface InvoiceRepository : JpaRepository<Invoice, Long> {
+    @Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.lineItems WHERE i.id = :id")
+    fun findByIdWithLineItems(id: Long): Invoice?
+
+    @Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.lineItems WHERE i.publicToken = :publicToken")
     fun findByPublicToken(publicToken: String): Invoice?
 
     fun findByInvoiceNumber(invoiceNumber: String): Invoice?
@@ -30,7 +34,19 @@ interface InvoiceRepository : JpaRepository<Invoice, Long> {
 
     fun findByUserId(userId: Long): List<Invoice>
 
+    @Query(
+        value = "SELECT i FROM Invoice i LEFT JOIN FETCH i.lineItems WHERE i.userId = :userId",
+        countQuery = "SELECT COUNT(i) FROM Invoice i WHERE i.userId = :userId"
+    )
+    fun findByUserId(userId: Long, pageable: Pageable): Page<Invoice>
+
     fun findByUserIdAndStatus(userId: Long, status: InvoiceStatus): List<Invoice>
+
+    @Query(
+        value = "SELECT i FROM Invoice i LEFT JOIN FETCH i.lineItems WHERE i.userId = :userId AND i.status = :status",
+        countQuery = "SELECT COUNT(i) FROM Invoice i WHERE i.userId = :userId AND i.status = :status"
+    )
+    fun findByUserIdAndStatus(userId: Long, status: InvoiceStatus, pageable: Pageable): Page<Invoice>
 
     fun countByStatus(status: InvoiceStatus): Long
 

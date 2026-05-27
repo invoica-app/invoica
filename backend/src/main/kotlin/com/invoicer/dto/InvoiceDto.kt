@@ -66,12 +66,12 @@ data class CreateInvoiceRequest(
     val clientPhone: String? = null,
 
     // Tax, Discount, Notes
-    @field:Min(value = 0, message = "Tax rate cannot be negative")
-    @field:Max(value = 100, message = "Tax rate cannot exceed 100%")
-    val taxRate: Double? = null,
+    @field:DecimalMin(value = "0", message = "Tax rate cannot be negative")
+    @field:DecimalMax(value = "100", message = "Tax rate cannot exceed 100%")
+    val taxRate: BigDecimal? = null,
 
     @field:DecimalMin(value = "0.0", message = "Discount cannot be negative")
-    val discount: Double? = null,
+    val discount: BigDecimal? = null,
 
     val notes: String? = null,
 
@@ -82,6 +82,18 @@ data class CreateInvoiceRequest(
 
     val emailSubject: String? = null,
     val emailMessage: String? = null,
+
+    // Payment Info
+    val paymentMethod: String? = null,
+    val momoProvider: String? = null,
+    val momoAccountName: String? = null,
+    val momoNumber: String? = null,
+    val momoCountryCode: String? = null,
+    val bankName: String? = null,
+    val bankAccountName: String? = null,
+    val bankAccountNumber: String? = null,
+    val bankBranch: String? = null,
+    val bankSwiftCode: String? = null,
 
     // Line Items
     @field:Valid
@@ -120,18 +132,30 @@ data class UpdateInvoiceRequest(
     )
     val clientPhone: String? = null,
     // Tax, Discount, Notes
-    @field:Min(value = 0, message = "Tax rate cannot be negative")
-    @field:Max(value = 100, message = "Tax rate cannot exceed 100%")
-    val taxRate: Double? = null,
+    @field:DecimalMin(value = "0", message = "Tax rate cannot be negative")
+    @field:DecimalMax(value = "100", message = "Tax rate cannot exceed 100%")
+    val taxRate: BigDecimal? = null,
 
     @field:DecimalMin(value = "0.0", message = "Discount cannot be negative")
-    val discount: Double? = null,
+    val discount: BigDecimal? = null,
 
     val notes: String? = null,
     @field:Email(message = "Invalid client email")
     val clientEmail: String? = null,
     val emailSubject: String? = null,
     val emailMessage: String? = null,
+    // Payment Info
+    val paymentMethod: String? = null,
+    val momoProvider: String? = null,
+    val momoAccountName: String? = null,
+    val momoNumber: String? = null,
+    val momoCountryCode: String? = null,
+    val bankName: String? = null,
+    val bankAccountName: String? = null,
+    val bankAccountNumber: String? = null,
+    val bankBranch: String? = null,
+    val bankSwiftCode: String? = null,
+
     val lineItems: List<LineItemRequest>? = null,
     val status: InvoiceStatus? = null
 )
@@ -176,12 +200,24 @@ data class InvoiceResponse(
     val clientCountry: String?,
     val clientPhone: String?,
     // Tax, Discount, Notes
-    val taxRate: Double?,
-    val discount: Double?,
+    val taxRate: BigDecimal?,
+    val discount: BigDecimal?,
     val notes: String?,
     val clientEmail: String?,
     val emailSubject: String?,
     val emailMessage: String?,
+    // Payment Info
+    val paymentMethod: String?,
+    val momoProvider: String?,
+    val momoAccountName: String?,
+    val momoNumber: String?,
+    val momoCountryCode: String?,
+    val bankName: String?,
+    val bankAccountName: String?,
+    val bankAccountNumber: String?,
+    val bankBranch: String?,
+    val bankSwiftCode: String?,
+
     val lineItems: List<LineItemResponse>,
     val totalAmount: BigDecimal,
     val status: InvoiceStatus,
@@ -218,9 +254,21 @@ data class PublicInvoiceResponse(
     val clientCountry: String?,
     val clientPhone: String?,
     val clientEmail: String?,
-    val taxRate: Double?,
-    val discount: Double?,
+    val taxRate: BigDecimal?,
+    val discount: BigDecimal?,
     val notes: String?,
+    // Payment Info
+    val paymentMethod: String?,
+    val momoProvider: String?,
+    val momoAccountName: String?,
+    val momoNumber: String?,
+    val momoCountryCode: String?,
+    val bankName: String?,
+    val bankAccountName: String?,
+    val bankAccountNumber: String?,
+    val bankBranch: String?,
+    val bankSwiftCode: String?,
+
     val lineItems: List<LineItemResponse>,
     val totalAmount: BigDecimal,
     val publicToken: String,

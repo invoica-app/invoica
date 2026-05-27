@@ -21,7 +21,8 @@ import java.util.Base64
 
 @Service
 class EmailService(
-    private val config: ResendConfig
+    private val config: ResendConfig,
+    private val resend: Resend?
 ) {
     private val logger = LoggerFactory.getLogger(EmailService::class.java)
     private val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
@@ -45,7 +46,7 @@ class EmailService(
     }
 
     fun sendInvoiceEmail(invoice: Invoice) {
-        if (config.apiKey.isBlank()) {
+        if (resend == null) {
             logger.debug("Resend API key not configured, skipping email send")
             return
         }
@@ -54,8 +55,6 @@ class EmailService(
             logger.debug("No client email on invoice ${invoice.invoiceNumber}, skipping email send")
             return
         }
-
-        val resend = Resend(config.apiKey)
 
         val subject = invoice.emailSubject?.takeIf { it.isNotBlank() }
             ?: "Invoice ${invoice.invoiceNumber} from ${invoice.companyName}"
@@ -111,6 +110,16 @@ class EmailService(
             discount = request.discount
             notes = request.notes
             emailMessage = request.emailMessage
+            paymentMethod = request.paymentMethod
+            momoProvider = request.momoProvider
+            momoAccountName = request.momoAccountName
+            momoNumber = request.momoNumber
+            momoCountryCode = request.momoCountryCode
+            bankName = request.bankName
+            bankAccountName = request.bankAccountName
+            bankAccountNumber = request.bankAccountNumber
+            bankBranch = request.bankBranch
+            bankSwiftCode = request.bankSwiftCode
         }
         request.lineItems.forEach { li ->
             val amount = li.rate.multiply(BigDecimal.valueOf(li.quantity.toLong()))
@@ -122,13 +131,8 @@ class EmailService(
                 invoice = invoice
             ))
         }
-        val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
-        val discountAmount = invoice.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
-        val taxableAmount = subtotal.subtract(discountAmount)
-        val taxAmount = invoice.taxRate?.let {
-            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
-        } ?: BigDecimal.ZERO
-        invoice.totalAmount = subtotal.subtract(discountAmount).add(taxAmount)
+        val subtotal = InvoiceCalculator.subtotal(invoice.lineItems)
+        invoice.totalAmount = InvoiceCalculator.calculateTotal(subtotal, invoice.discount, invoice.taxRate)
 
         return generateInvoicePdf(invoice)
     }
@@ -163,11 +167,11 @@ class EmailService(
     private fun buildInvoiceHtml(invoice: Invoice): String {
         val color = invoice.primaryColor
         val cur = invoice.currency
-        val subtotal = invoice.lineItems.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.amount) }
-        val discountAmount = invoice.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
+        val subtotal = InvoiceCalculator.subtotal(invoice.lineItems)
+        val discountAmount = invoice.discount ?: BigDecimal.ZERO
         val taxableAmount = subtotal.subtract(discountAmount)
         val taxAmount = invoice.taxRate?.let {
-            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+            taxableAmount.multiply(it).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
         } ?: BigDecimal.ZERO
 
         val lineItemsHtml = invoice.lineItems.joinToString("") { item ->
@@ -202,6 +206,8 @@ class EmailService(
             </tr>
             """.trimIndent()
         } else ""
+
+        val paymentHtml = buildPaymentHtml(invoice, color)
 
         val notesHtml = invoice.notes?.takeIf { it.isNotBlank() }?.let {
             """
@@ -275,6 +281,8 @@ class EmailService(
                             </tr>
                         </table>
 
+                        $paymentHtml
+
                         $notesHtml
                     </div>
 
@@ -288,6 +296,54 @@ class EmailService(
             </div>
         </body>
         </html>
+        """.trimIndent()
+    }
+
+    private val momoLabels = mapOf(
+        "mtn" to "MTN Mobile Money",
+        "telecel" to "Telecel Cash",
+        "airteltigo" to "AirtelTigo Money",
+    )
+
+    private val momoDialCodes = mapOf(
+        "GH" to "+233",
+        "NG" to "+234",
+        "KE" to "+254",
+        "ZA" to "+27",
+    )
+
+    private fun buildPaymentHtml(invoice: Invoice, color: String): String {
+        val method = invoice.paymentMethod ?: return ""
+
+        val details = if (method == "momo") {
+            val name = invoice.momoAccountName
+            val number = invoice.momoNumber
+            if (name.isNullOrBlank() && number.isNullOrBlank()) return ""
+            val provider = momoLabels[invoice.momoProvider] ?: invoice.momoProvider ?: "Mobile Money"
+            val dialCode = momoDialCodes[invoice.momoCountryCode] ?: "+233"
+            buildString {
+                append("<p style=\"margin: 0 0 2px 0; font-weight: 600; color: #333;\">${escapeHtml(provider)}</p>")
+                if (!name.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px;\">${escapeHtml(name)}</p>")
+                if (!number.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px;\">$dialCode ${escapeHtml(number)}</p>")
+            }
+        } else {
+            val accountName = invoice.bankAccountName
+            val accountNumber = invoice.bankAccountNumber
+            if (accountName.isNullOrBlank() && accountNumber.isNullOrBlank()) return ""
+            buildString {
+                if (!invoice.bankName.isNullOrBlank()) append("<p style=\"margin: 0 0 2px 0; font-weight: 600; color: #333;\">${escapeHtml(invoice.bankName!!)}</p>")
+                if (!accountName.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px;\">${escapeHtml(accountName)}</p>")
+                if (!accountNumber.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px; font-family: monospace;\">${escapeHtml(accountNumber)}</p>")
+                if (!invoice.bankBranch.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px;\">Branch: ${escapeHtml(invoice.bankBranch!!)}</p>")
+                if (!invoice.bankSwiftCode.isNullOrBlank()) append("<p style=\"margin: 0; color: #555; font-size: 14px;\">SWIFT: ${escapeHtml(invoice.bankSwiftCode!!)}</p>")
+            }
+        }
+
+        return """
+        <div style="margin-top: 32px; padding: 16px; border-left: 3px solid $color; background: #fafafa; border-radius: 4px;">
+            <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Payment Details</p>
+            $details
+        </div>
         """.trimIndent()
     }
 

@@ -8,6 +8,9 @@ import com.invoicer.dto.UserDashboardStatsResponse
 import com.invoicer.entity.InvoiceStatus
 import com.invoicer.service.InvoiceService
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -35,23 +38,27 @@ class InvoiceController(
     @PostMapping
     fun createInvoice(
         @Valid @RequestBody request: CreateInvoiceRequest,
+        @RequestParam(defaultValue = "true") sendEmail: Boolean,
         authentication: Authentication
     ): ResponseEntity<InvoiceResponse> {
         val userId = authentication.credentials as Long
-        val invoice = invoiceService.createInvoice(request, userId)
+        val invoice = invoiceService.createInvoice(request, userId, sendEmail)
         return ResponseEntity.status(HttpStatus.CREATED).body(invoice)
     }
 
     @GetMapping
     fun getAllInvoices(
         @RequestParam(required = false) status: InvoiceStatus?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
         authentication: Authentication
-    ): ResponseEntity<List<InvoiceResponse>> {
+    ): ResponseEntity<Page<InvoiceResponse>> {
         val userId = authentication.credentials as Long
+        val pageable = PageRequest.of(page, size.coerceAtMost(100), Sort.by("createdAt").descending())
         val invoices = if (status != null) {
-            invoiceService.getInvoicesByStatus(status, userId)
+            invoiceService.getInvoicesByStatus(status, userId, pageable)
         } else {
-            invoiceService.getAllInvoices(userId)
+            invoiceService.getAllInvoices(userId, pageable)
         }
         return ResponseEntity.ok(invoices)
     }
