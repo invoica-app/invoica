@@ -48,7 +48,7 @@ function avatarUrl(seed: string, size = 28): string {
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [showPopover, setShowPopover] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -224,11 +224,15 @@ export function AdminSidebar() {
             )}
             title={collapsed ? (user?.name || "Admin") : undefined}
           >
-            <img
-              src={avatarUrl(seed)}
-              alt={user?.name || "Admin"}
-              className="w-7 h-7 rounded-full shrink-0"
-            />
+            {authLoading ? (
+              <div className="w-7 h-7 rounded-full bg-muted animate-pulse shrink-0" />
+            ) : (
+              <img
+                src={avatarUrl(seed)}
+                alt={user?.name || "Admin"}
+                className="w-7 h-7 rounded-full shrink-0"
+              />
+            )}
             {expanded && (
               <>
                 <div className="flex-1 text-left min-w-0">

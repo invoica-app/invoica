@@ -63,7 +63,7 @@ function hasDraftData(state: ReturnType<typeof useInvoiceStore.getState>): boole
 export function WizardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isGuest, isAdmin } = useAuth();
+  const { user, isGuest, isAdmin, isLoading: authLoading } = useAuth();
   const reset = useInvoiceStore((state) => state.reset);
   const [showPopover, setShowPopover] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
@@ -311,11 +311,15 @@ export function WizardSidebar() {
             )}
             title={collapsed ? (user?.name || "Guest") : undefined}
           >
-            <img
-              src={avatarUrl(seed)}
-              alt={user?.name || "Guest"}
-              className="w-7 h-7 rounded-full shrink-0"
-            />
+            {authLoading ? (
+              <div className="w-7 h-7 rounded-full bg-muted animate-pulse shrink-0" />
+            ) : (
+              <img
+                src={avatarUrl(seed)}
+                alt={user?.name || "Guest"}
+                className="w-7 h-7 rounded-full shrink-0"
+              />
+            )}
             {expanded && (
               <>
                 <div className="flex-1 text-left min-w-0">

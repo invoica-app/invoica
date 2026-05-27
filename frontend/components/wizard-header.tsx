@@ -20,7 +20,7 @@ function parseStep(label: string): { current: number; total: number } | null {
 
 export function WizardHeader({ stepLabel = "Start" }: WizardHeaderProps) {
   const lastSaved = useInvoiceStore((state) => state.lastSaved);
-  const { user, isGuest } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const seed = user?.email || user?.name || "guest";
   const step = parseStep(stepLabel);
@@ -35,11 +35,15 @@ export function WizardHeader({ stepLabel = "Start" }: WizardHeaderProps) {
           <span className="hidden sm:inline text-xs text-muted-foreground">
             Saved {formatDistanceToNow(lastSaved)}
           </span>
-          <img
-            src={avatarUrl(seed)}
-            alt={user?.name || "Guest"}
-            className="w-7 h-7 rounded-full"
-          />
+          {authLoading ? (
+            <div className="w-7 h-7 rounded-full bg-muted animate-pulse" />
+          ) : (
+            <img
+              src={avatarUrl(seed)}
+              alt={user?.name || "Guest"}
+              className="w-7 h-7 rounded-full"
+            />
+          )}
         </div>
       </div>
 
