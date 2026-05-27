@@ -55,7 +55,7 @@ export default function InvoiceHistoryPage() {
         api.getAllInvoices(),
         api.getDashboardStats(),
       ]);
-      setInvoices(invoicePage.content);
+      setInvoices(Array.isArray(invoicePage) ? invoicePage : (invoicePage.content ?? []));
       setDashboardStats(statsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load invoices.");
