@@ -59,7 +59,7 @@ class ApiClient {
             const { signOut } = await import('next-auth/react');
             signOut({ callbackUrl: '/login' });
           }
-          throw new Error('Session expired');
+          throw new Error('Session expired. Please log in again.');
         }
 
         let message = `HTTP ${response.status}: ${response.statusText}`;

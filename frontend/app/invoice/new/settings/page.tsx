@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSettingsStore } from "@/lib/settings-store";
 import { useAuth } from "@/lib/auth";
-import { signOut } from "next-auth/react";
+import { handleSignOut } from "@/lib/sign-out";
 import { useTheme } from "next-themes";
 import { CURRENCIES } from "@/lib/currency";
 import { LogOut, Sun, Moon, Monitor, Check, MessageSquare } from "lucide-react";
@@ -230,7 +230,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => signOut({ callbackUrl: "/login" })}
+                onClick={handleSignOut}
                 className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10"
               >
                 <LogOut className="w-3.5 h-3.5" />

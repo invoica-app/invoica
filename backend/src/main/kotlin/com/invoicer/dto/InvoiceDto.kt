@@ -44,6 +44,7 @@ data class CreateInvoiceRequest(
     val dueDate: LocalDate,
 
     // Design
+    @field:Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "Primary color must be a valid hex color")
     val primaryColor: String = "#9747E6",
     val fontFamily: String = "Inter",
     val templateId: String = "modern",

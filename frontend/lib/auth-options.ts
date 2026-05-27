@@ -57,10 +57,8 @@ export const authOptions: NextAuthOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: user.email,
-              name: user.name,
+              idToken: account.id_token,
               provider: account.provider === "google" ? "GOOGLE" : "MICROSOFT",
-              providerId: account.providerAccountId,
             }),
           });
 

@@ -22,13 +22,14 @@ class FileUploadController(
             throw IllegalArgumentException("File is empty")
         }
 
-        val allowedTypes = listOf("image/png", "image/jpeg")
-        if (file.contentType !in allowedTypes) {
-            throw IllegalArgumentException("Only PNG and JPEG files are allowed")
-        }
-
         if (file.size > 5 * 1024 * 1024) {
             throw IllegalArgumentException("File size must be less than 5MB")
+        }
+
+        // Validate actual file content via magic bytes, not client-supplied Content-Type
+        val bytes = file.bytes
+        if (!isValidImage(bytes)) {
+            throw IllegalArgumentException("Only PNG and JPEG files are allowed")
         }
 
         val url = storageService.uploadFile(file, "logos")
@@ -39,5 +40,16 @@ class FileUploadController(
                 fileName = file.originalFilename ?: "logo"
             )
         )
+    }
+
+    private fun isValidImage(bytes: ByteArray): Boolean {
+        if (bytes.size < 4) return false
+        // PNG: 89 50 4E 47
+        val isPng = bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() &&
+                bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte()
+        // JPEG: FF D8 FF
+        val isJpeg = bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() &&
+                bytes[2] == 0xFF.toByte()
+        return isPng || isJpeg
     }
 }
