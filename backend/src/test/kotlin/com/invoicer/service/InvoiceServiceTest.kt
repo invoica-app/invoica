@@ -10,6 +10,7 @@ import com.invoicer.exception.DuplicateInvoiceNumberException
 import com.invoicer.exception.InvoiceAccessDeniedException
 import com.invoicer.exception.InvoiceNotFoundException
 import com.invoicer.repository.InvoiceRepository
+import com.invoicer.repository.UserRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,23 +24,30 @@ class InvoiceServiceTest {
 
     private lateinit var invoiceRepository: InvoiceRepository
     private lateinit var emailService: EmailService
+    private lateinit var userRepository: UserRepository
     private lateinit var service: InvoiceService
 
     private val userId = 1L
     private val otherUserId = 2L
+    private var nextInvoiceId = 1L
+    private var nextLineItemId = 1L
 
     @BeforeEach
     fun setUp() {
         invoiceRepository = mock()
         emailService = mock()
-        service = InvoiceService(invoiceRepository, emailService)
+        userRepository = mock()
+        nextInvoiceId = 1L
+        nextLineItemId = 1L
+        whenever(userRepository.findById(any())).thenReturn(Optional.empty())
+        service = InvoiceService(invoiceRepository, emailService, userRepository)
     }
 
     @Test
     fun `createInvoice saves and returns response`() {
         val request = createRequest()
         whenever(invoiceRepository.existsByInvoiceNumberAndUserId("INV-001", userId)).thenReturn(false)
-        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] as Invoice }
+        mockSaveInvoice()
         doNothing().whenever(emailService).sendInvoiceEmail(any())
 
         val response = service.createInvoice(request, userId)
@@ -64,7 +72,7 @@ class InvoiceServiceTest {
     fun `createInvoice skips email when sendEmail is false`() {
         val request = createRequest()
         whenever(invoiceRepository.existsByInvoiceNumberAndUserId("INV-001", userId)).thenReturn(false)
-        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] as Invoice }
+        mockSaveInvoice()
 
         val response = service.createInvoice(request, userId, sendEmail = false)
 
@@ -77,7 +85,7 @@ class InvoiceServiceTest {
     fun `createInvoice saves as DRAFT when email fails`() {
         val request = createRequest()
         whenever(invoiceRepository.existsByInvoiceNumberAndUserId("INV-001", userId)).thenReturn(false)
-        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] as Invoice }
+        mockSaveInvoice()
         doThrow(RuntimeException("SMTP down")).whenever(emailService).sendInvoiceEmail(any())
 
         val response = service.createInvoice(request, userId)
@@ -140,7 +148,7 @@ class InvoiceServiceTest {
         val invoice = testInvoice(userId)
         assertEquals(0, invoice.downloadCount)
         whenever(invoiceRepository.findById(1L)).thenReturn(Optional.of(invoice))
-        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] as Invoice }
+        mockSaveInvoice()
 
         service.recordDownload(1L, userId)
 
@@ -152,7 +160,7 @@ class InvoiceServiceTest {
     fun `updateInvoice recalculates total with new line items`() {
         val invoice = testInvoice(userId)
         whenever(invoiceRepository.findByIdWithLineItems(1L)).thenReturn(invoice)
-        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] as Invoice }
+        mockSaveInvoice()
 
         val updateRequest = UpdateInvoiceRequest(
             lineItems = listOf(
@@ -196,6 +204,31 @@ class InvoiceServiceTest {
             LineItemRequest(description = "Consulting", quantity = 1, rate = BigDecimal("100.00"))
         ),
     )
+
+    private fun mockSaveInvoice() {
+        whenever(invoiceRepository.save(any<Invoice>())).thenAnswer {
+            persist(it.arguments[0] as Invoice)
+        }
+    }
+
+    private fun persist(invoice: Invoice): Invoice {
+        if (invoice.id == null) {
+            setField(invoice, "id", nextInvoiceId++)
+        }
+        invoice.lineItems.forEach { lineItem ->
+            if (lineItem.id == null) {
+                setField(lineItem, "id", nextLineItemId++)
+            }
+        }
+        return invoice
+    }
+
+    private fun setField(target: Any, fieldName: String, value: Long) {
+        target.javaClass.getDeclaredField(fieldName).apply {
+            isAccessible = true
+            set(target, value)
+        }
+    }
 
     private fun testInvoice(ownerUserId: Long): Invoice {
         val invoice = Invoice(
