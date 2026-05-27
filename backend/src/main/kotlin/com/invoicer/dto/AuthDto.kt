@@ -2,12 +2,13 @@ package com.invoicer.dto
 
 import com.invoicer.entity.AuthProvider
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 data class OAuthLoginRequest(
     @field:NotBlank(message = "ID token is required")
     val idToken: String,
 
-    @field:NotBlank(message = "Provider is required")
+    @field:NotNull(message = "Provider is required")
     val provider: AuthProvider
 )
 
