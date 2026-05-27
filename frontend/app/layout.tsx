@@ -20,6 +20,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -34,6 +39,13 @@ export const metadata: Metadata = {
   ),
   icons: {
     icon: "/icon.svg",
+    apple: "/apple-icon",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Invoica",
   },
   keywords: [
     "invoice",
@@ -94,6 +106,11 @@ export default function RootLayout({
             {children}
           </SessionProvider>
         </ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}`,
+          }}
+        />
       </body>
     </html>
   );

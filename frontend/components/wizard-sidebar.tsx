@@ -343,7 +343,7 @@ export function WizardSidebar() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border px-2 py-1">
+      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border px-2 py-1 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href ||
