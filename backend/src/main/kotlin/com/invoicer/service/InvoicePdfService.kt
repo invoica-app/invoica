@@ -111,7 +111,17 @@ class InvoicePdfService {
             subtotal = subtotal,
             discountAmount = discountAmount,
             taxAmount = taxAmount,
-            total = total
+            total = total,
+            paymentMethod = req.paymentMethod,
+            momoProvider = req.momoProvider,
+            momoAccountName = req.momoAccountName,
+            momoNumber = req.momoNumber,
+            momoCountryCode = req.momoCountryCode,
+            bankName = req.bankName,
+            bankAccountName = req.bankAccountName,
+            bankAccountNumber = req.bankAccountNumber,
+            bankBranch = req.bankBranch,
+            bankSwiftCode = req.bankSwiftCode
         )
 
         val body = when (req.templateId) {
@@ -274,6 +284,7 @@ class InvoicePdfService {
             <tr>
                 <td style="width: 55%;">
                     ${notesBlock(d.notes)}
+                    ${paymentBlock(d)}
                 </td>
                 <td style="width: 45%;" class="text-right">
                     <div style="margin-left: auto; width: 224px;">
@@ -338,6 +349,7 @@ class InvoicePdfService {
                 <tr>
                     <td style="width: 55%;">
                         ${notesBlock(d.notes, italic = true, labelClass = "text-xs font-bold tracking-widest text-gray-500 uppercase mb-2")}
+                        ${paymentBlock(d)}
                     </td>
                     <td style="width: 45%;" class="text-right">
                         <div style="margin-left: auto; width: 224px;">
@@ -428,6 +440,7 @@ class InvoicePdfService {
             <tr>
                 <td style="width: 55%;">
                     ${notesBlock(d.notes)}
+                    ${paymentBlock(d)}
                     <!-- Signature -->
                     <div class="mt-8 pt-4">
                         <div style="border-top: 1px solid #d1d5db; width: 192px; padding-top: 8px;">
@@ -522,6 +535,7 @@ class InvoicePdfService {
                         <p class="text-xs text-gray-500 whitespace-pre-line" style="margin: 0;">${e(d.notes!!)}</p>
                     </div>
                     """ else ""}
+                    ${paymentBlock(d)}
                 </td>
                 <td style="width: 50%;" class="text-right">
                     <div style="margin-left: auto; width: 224px;">
@@ -628,6 +642,7 @@ class InvoicePdfService {
             <tr>
                 <td style="width: 55%; vertical-align: bottom;">
                     ${notesBlock(d.notes)}
+                    ${paymentBlock(d)}
                 </td>
                 <td style="width: 45%; vertical-align: bottom;" class="text-center">
                     <!-- Signature block -->
@@ -783,6 +798,40 @@ class InvoicePdfService {
         </tr></table>"""
     }
 
+    private val momoLabels = mapOf(
+        "mtn" to "MTN Mobile Money",
+        "telecel" to "Telecel Cash",
+        "airteltigo" to "AirtelTigo Money"
+    )
+
+    private fun paymentBlock(d: TemplateData): String {
+        val isMomo = d.paymentMethod == "momo"
+        val hasPayment = if (isMomo) !d.momoAccountName.isNullOrBlank() || !d.momoNumber.isNullOrBlank()
+                         else !d.bankAccountName.isNullOrBlank() || !d.bankAccountNumber.isNullOrBlank()
+        if (!hasPayment) return ""
+
+        val lines = mutableListOf<String>()
+        if (isMomo) {
+            val label = momoLabels[d.momoProvider] ?: "Mobile Money"
+            lines.add("<div class=\"text-xs text-gray-700 font-medium\">${e(label)}</div>")
+            d.momoAccountName?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\">${e(it)}</div>") }
+            d.momoNumber?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\">${e(it)}</div>") }
+        } else {
+            d.bankName?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-700 font-medium\">${e(it)}</div>") }
+            d.bankAccountName?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\">${e(it)}</div>") }
+            d.bankAccountNumber?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\" style=\"font-family: monospace;\">${e(it)}</div>") }
+            d.bankBranch?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\">Branch: ${e(it)}</div>") }
+            d.bankSwiftCode?.takeIf { it.isNotBlank() }?.let { lines.add("<div class=\"text-xs text-gray-500\">SWIFT: ${e(it)}</div>") }
+        }
+
+        return """
+            <div class="mt-4">
+                <div class="label" style="margin-bottom: 6px;">Payment Details</div>
+                ${lines.joinToString("")}
+            </div>
+        """.trimIndent()
+    }
+
     private fun notesBlock(
         notes: String?,
         italic: Boolean = false,
@@ -893,6 +942,11 @@ class InvoicePdfService {
         val clientAddress: String?, val clientCity: String?, val clientZip: String?, val clientCountry: String?,
         val notes: String?, val authorizedSignature: String?, val taxRate: BigDecimal?,
         val items: List<ItemData>,
-        val subtotal: BigDecimal, val discountAmount: BigDecimal, val taxAmount: BigDecimal, val total: BigDecimal
+        val subtotal: BigDecimal, val discountAmount: BigDecimal, val taxAmount: BigDecimal, val total: BigDecimal,
+        val paymentMethod: String? = null,
+        val momoProvider: String? = null, val momoAccountName: String? = null,
+        val momoNumber: String? = null, val momoCountryCode: String? = null,
+        val bankName: String? = null, val bankAccountName: String? = null,
+        val bankAccountNumber: String? = null, val bankBranch: String? = null, val bankSwiftCode: String? = null
     )
 }

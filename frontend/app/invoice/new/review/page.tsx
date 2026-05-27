@@ -133,6 +133,16 @@ export default function ReviewPage() {
         discount: data.discount || null,
         notes: data.notes || null,
         clientPhone: clientPhoneFull || null,
+        paymentMethod: data.paymentMethod || null,
+        momoProvider: data.momoProvider || null,
+        momoAccountName: data.momoAccountName || null,
+        momoNumber: data.momoNumber || null,
+        momoCountryCode: data.momoCountryCode || null,
+        bankName: data.bankName || null,
+        bankAccountName: data.bankAccountName || null,
+        bankAccountNumber: data.bankAccountNumber || null,
+        bankBranch: data.bankBranch || null,
+        bankSwiftCode: data.bankSwiftCode || null,
         lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
           description,
           quantity,
@@ -337,9 +347,9 @@ export default function ReviewPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Summary */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6">
               {/* Amount + date */}
               <div className="flex justify-between items-start">
                 <div>
@@ -504,6 +514,16 @@ export default function ReviewPage() {
                         discount: data.discount || null,
                         notes: data.notes || null,
                         clientPhone: clientPhoneFull || null,
+                        paymentMethod: data.paymentMethod || null,
+                        momoProvider: data.momoProvider || null,
+                        momoAccountName: data.momoAccountName || null,
+                        momoNumber: data.momoNumber || null,
+                        momoCountryCode: data.momoCountryCode || null,
+                        bankName: data.bankName || null,
+                        bankAccountName: data.bankAccountName || null,
+                        bankAccountNumber: data.bankAccountNumber || null,
+                        bankBranch: data.bankBranch || null,
+                        bankSwiftCode: data.bankSwiftCode || null,
                         lineItems: data.lineItems.map(({ description, quantity, rate }) => ({
                           description,
                           quantity,
