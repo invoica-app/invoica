@@ -236,8 +236,17 @@ export function AdminSidebar() {
             {expanded && (
               <>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="text-sm font-medium truncate leading-tight">{user?.name || "Admin"}</p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Admin</p>
+                  {authLoading ? (
+                    <>
+                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                      <div className="h-3 w-10 bg-muted/60 rounded animate-pulse mt-1" />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium truncate leading-tight">{user?.name || "Admin"}</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">Admin</p>
+                    </>
+                  )}
                 </div>
                 <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               </>
