@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { api, invoiceApi, feedbackApi, aiApi } from "@/lib/api";
 import type { FeedbackData } from "@/lib/api";
@@ -13,7 +13,7 @@ export function useAuthenticatedApi() {
     api.setTokenProvider(() => accessToken);
   }, [accessToken]);
 
-  return {
+  return useMemo(() => ({
     getDashboardStats: () => invoiceApi.getDashboardStats(),
     createInvoice: (data: CreateInvoiceRequest, sendEmail?: boolean) => invoiceApi.create(data, sendEmail),
     getAllInvoices: (status?: InvoiceStatus, page?: number, size?: number) =>
@@ -33,5 +33,5 @@ export function useAuthenticatedApi() {
     saveAiTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
       aiApi.saveTemplate(data),
     getAiTemplates: () => aiApi.getTemplates(),
-  };
+  }), []);
 }
