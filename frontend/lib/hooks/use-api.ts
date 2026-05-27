@@ -1,40 +1,37 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { invoiceApi, feedbackApi, aiApi, FeedbackData } from "@/lib/api";
-import { CreateInvoiceRequest } from "@/lib/types";
+import { api, invoiceApi, feedbackApi, aiApi } from "@/lib/api";
+import type { FeedbackData } from "@/lib/api";
+import { CreateInvoiceRequest, InvoiceStatus, UpdateInvoiceRequest } from "@/lib/types";
 
 export function useAuthenticatedApi() {
   const { accessToken } = useAuth();
 
-  return useMemo(
-    () => ({
-      getDashboardStats: () => invoiceApi.getDashboardStats(accessToken),
-      createInvoice: (data: Parameters<typeof invoiceApi.create>[0]) =>
-        invoiceApi.create(data, accessToken),
-      getAllInvoices: (status?: Parameters<typeof invoiceApi.getAll>[0]) =>
-        invoiceApi.getAll(status, accessToken),
-      getInvoiceById: (id: number) => invoiceApi.getById(id, accessToken),
-      updateInvoice: (
-        id: number,
-        data: Parameters<typeof invoiceApi.update>[1],
-        resend?: boolean
-      ) => invoiceApi.update(id, data, resend, accessToken),
-      deleteInvoice: (id: number) => invoiceApi.delete(id, accessToken),
-      recordDownload: (id: number) => invoiceApi.recordDownload(id, accessToken),
-      downloadPdf: (data: CreateInvoiceRequest) => invoiceApi.downloadPdf(data, accessToken),
-      uploadLogo: (file: File) => invoiceApi.uploadLogo(file, accessToken),
-      submitFeedback: (data: FeedbackData) => feedbackApi.submit(data, accessToken),
-      checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId, accessToken),
-      getFeedbackCount: () => feedbackApi.getCount(accessToken),
-      // AI API
-      analyzeInvoice: (file: File) => aiApi.analyzeInvoice(file, accessToken),
-      getAiUsage: () => aiApi.getUsage(accessToken),
-      saveAiTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
-        aiApi.saveTemplate(data, accessToken),
-      getAiTemplates: () => aiApi.getTemplates(accessToken),
-    }),
-    [accessToken]
-  );
+  useEffect(() => {
+    api.setTokenProvider(() => accessToken);
+  }, [accessToken]);
+
+  return {
+    getDashboardStats: () => invoiceApi.getDashboardStats(),
+    createInvoice: (data: CreateInvoiceRequest, sendEmail?: boolean) => invoiceApi.create(data, sendEmail),
+    getAllInvoices: (status?: InvoiceStatus, page?: number, size?: number) =>
+      invoiceApi.getAll(status, page, size),
+    getInvoiceById: (id: number) => invoiceApi.getById(id),
+    updateInvoice: (id: number, data: UpdateInvoiceRequest, resend?: boolean) =>
+      invoiceApi.update(id, data, resend),
+    deleteInvoice: (id: number) => invoiceApi.delete(id),
+    recordDownload: (id: number) => invoiceApi.recordDownload(id),
+    downloadPdf: (data: CreateInvoiceRequest) => invoiceApi.downloadPdf(data),
+    uploadLogo: (file: File) => invoiceApi.uploadLogo(file),
+    submitFeedback: (data: FeedbackData) => feedbackApi.submit(data),
+    checkFeedback: (invoiceId: number) => feedbackApi.check(invoiceId),
+    getFeedbackCount: () => feedbackApi.getCount(),
+    analyzeInvoice: (file: File) => aiApi.analyzeInvoice(file),
+    getAiUsage: () => aiApi.getUsage(),
+    saveAiTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
+      aiApi.saveTemplate(data),
+    getAiTemplates: () => aiApi.getTemplates(),
+  };
 }

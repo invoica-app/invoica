@@ -74,6 +74,17 @@ export interface Invoice {
   clientEmail: string;
   emailSubject?: string | null;
   emailMessage?: string | null;
+  // Payment Info
+  paymentMethod?: string | null;
+  momoProvider?: string | null;
+  momoAccountName?: string | null;
+  momoNumber?: string | null;
+  momoCountryCode?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwiftCode?: string | null;
   // Line Items
   lineItems: LineItem[];
   // Calculated
@@ -122,6 +133,17 @@ export interface CreateInvoiceRequest {
   taxRate?: number | null;
   discount?: number | null;
   notes?: string | null;
+  // Payment Info
+  paymentMethod?: string | null;
+  momoProvider?: string | null;
+  momoAccountName?: string | null;
+  momoNumber?: string | null;
+  momoCountryCode?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwiftCode?: string | null;
   lineItems: LineItemRequest[];
 }
 
@@ -157,6 +179,17 @@ export interface UpdateInvoiceRequest {
   taxRate?: number | null;
   discount?: number | null;
   notes?: string | null;
+  // Payment Info
+  paymentMethod?: string | null;
+  momoProvider?: string | null;
+  momoAccountName?: string | null;
+  momoNumber?: string | null;
+  momoCountryCode?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwiftCode?: string | null;
   lineItems?: LineItem[];
   status?: InvoiceStatus;
 }
@@ -282,6 +315,16 @@ export interface CollectionsData {
   outstanding: number;
   currency: string;
   period: string;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
 export interface UserDashboardStats {

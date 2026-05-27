@@ -9,32 +9,41 @@ import {
   AiUsageResponse,
   AiTemplateResponse,
   UserDashboardStats,
+  Page,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
+type TokenProvider = () => string | undefined;
+
 class ApiClient {
   private baseUrl: string;
+  private getToken: TokenProvider = () => undefined;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
+  setTokenProvider(provider: TokenProvider) {
+    this.getToken = provider;
+  }
+
+  private authHeaders(): Record<string, string> {
+    const token = this.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
-    token?: string
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      ...this.authHeaders(),
       ...(options.headers as Record<string, string>),
     };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const config: RequestInit = {
       ...options,
@@ -45,7 +54,6 @@ class ApiClient {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        // Expired or invalid token — sign out and redirect to login
         if (response.status === 401 || response.status === 403) {
           if (typeof window !== 'undefined') {
             const { signOut } = await import('next-auth/react');
@@ -54,7 +62,6 @@ class ApiClient {
           throw new Error('Session expired');
         }
 
-        // Try to parse JSON error body; fall back to status text if body is empty/non-JSON
         let message = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const error: ApiError = await response.json();
@@ -62,12 +69,11 @@ class ApiClient {
             ? `${error.message}: ${error.details.join(", ")}`
             : error.message || message;
         } catch {
-          // Response body wasn't valid JSON — use the default status message
+          // Response body wasn't valid JSON
         }
         throw new Error(message);
       }
 
-      // Handle 204 No Content
       if (response.status === 204) {
         return {} as T;
       }
@@ -82,50 +88,56 @@ class ApiClient {
   }
 
   // Invoice API methods
-  async createInvoice(data: CreateInvoiceRequest, token?: string): Promise<Invoice> {
-    return this.request<Invoice>('/invoices', {
+  async createInvoice(data: CreateInvoiceRequest, sendEmail = true): Promise<Invoice> {
+    const query = sendEmail ? '' : '?sendEmail=false';
+    return this.request<Invoice>(`/invoices${query}`, {
       method: 'POST',
       body: JSON.stringify(data),
-    }, token);
+    });
   }
 
-  async getAllInvoices(status?: InvoiceStatus, token?: string): Promise<Invoice[]> {
-    const query = status ? `?status=${status}` : '';
-    return this.request<Invoice[]>(`/invoices${query}`, {}, token);
+  async getAllInvoices(status?: InvoiceStatus, page = 0, size = 20): Promise<Page<Invoice>> {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    params.set('page', String(page));
+    params.set('size', String(size));
+    return this.request<Page<Invoice>>(`/invoices?${params}`);
   }
 
-  async getInvoiceById(id: number, token?: string): Promise<Invoice> {
-    return this.request<Invoice>(`/invoices/${id}`, {}, token);
+  async getInvoiceById(id: number): Promise<Invoice> {
+    return this.request<Invoice>(`/invoices/${id}`);
   }
 
-  async updateInvoice(id: number, data: UpdateInvoiceRequest, resend = false, token?: string): Promise<Invoice> {
+  async updateInvoice(id: number, data: UpdateInvoiceRequest, resend = false): Promise<Invoice> {
     const query = resend ? '?resend=true' : '';
     return this.request<Invoice>(`/invoices/${id}${query}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    }, token);
+    });
   }
 
-  async deleteInvoice(id: number, token?: string): Promise<void> {
+  async deleteInvoice(id: number): Promise<void> {
     return this.request<void>(`/invoices/${id}`, {
       method: 'DELETE',
-    }, token);
+    });
   }
 
-  async getDashboardStats(token?: string): Promise<UserDashboardStats> {
-    return this.request<UserDashboardStats>('/invoices/dashboard-stats', {}, token);
+  async getDashboardStats(): Promise<UserDashboardStats> {
+    return this.request<UserDashboardStats>('/invoices/dashboard-stats');
   }
 
-  async recordDownload(id: number, token?: string): Promise<void> {
+  async recordDownload(id: number): Promise<void> {
     return this.request<void>(`/invoices/${id}/download`, {
       method: 'POST',
-    }, token);
+    });
   }
 
-  async downloadPdf(data: CreateInvoiceRequest, token?: string): Promise<Blob> {
+  async downloadPdf(data: CreateInvoiceRequest): Promise<Blob> {
     const url = `${this.baseUrl}/invoices/pdf-preview`;
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...this.authHeaders(),
+    };
 
     const response = await fetch(url, {
       method: 'POST',
@@ -141,19 +153,19 @@ class ApiClient {
   }
 
   // Feedback API methods
-  async submitFeedback(data: FeedbackData, token?: string): Promise<FeedbackResponse> {
+  async submitFeedback(data: FeedbackData): Promise<FeedbackResponse> {
     return this.request<FeedbackResponse>('/feedback', {
       method: 'POST',
       body: JSON.stringify(data),
-    }, token);
+    });
   }
 
-  async checkFeedback(invoiceId: number, token?: string): Promise<{ feedbackGiven: boolean }> {
-    return this.request<{ feedbackGiven: boolean }>(`/feedback/check/${invoiceId}`, {}, token);
+  async checkFeedback(invoiceId: number): Promise<{ feedbackGiven: boolean }> {
+    return this.request<{ feedbackGiven: boolean }>(`/feedback/check/${invoiceId}`);
   }
 
-  async getFeedbackCount(token?: string): Promise<{ count: number }> {
-    return this.request<{ count: number }>('/feedback/count', {}, token);
+  async getFeedbackCount(): Promise<{ count: number }> {
+    return this.request<{ count: number }>('/feedback/count');
   }
 
   async getPublicInvoice(publicToken: string): Promise<Invoice> {
@@ -175,19 +187,14 @@ class ApiClient {
   }
 
   // AI API methods
-  async analyzeInvoice(file: File, token?: string): Promise<AiAnalysisResponse> {
+  async analyzeInvoice(file: File): Promise<AiAnalysisResponse> {
     const url = `${this.baseUrl}/ai/analyze-invoice`;
     const formData = new FormData();
     formData.append('file', file);
 
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: this.authHeaders(),
       body: formData,
     });
 
@@ -201,34 +208,29 @@ class ApiClient {
     return response.json();
   }
 
-  async getAiUsage(token?: string): Promise<AiUsageResponse> {
-    return this.request<AiUsageResponse>('/ai/usage', {}, token);
+  async getAiUsage(): Promise<AiUsageResponse> {
+    return this.request<AiUsageResponse>('/ai/usage');
   }
 
-  async saveAiTemplate(data: { name: string; analysisJson: string; sampleImageUrl?: string | null }, token?: string): Promise<AiTemplateResponse> {
+  async saveAiTemplate(data: { name: string; analysisJson: string; sampleImageUrl?: string | null }): Promise<AiTemplateResponse> {
     return this.request<AiTemplateResponse>('/ai/templates', {
       method: 'POST',
       body: JSON.stringify(data),
-    }, token);
+    });
   }
 
-  async getAiTemplates(token?: string): Promise<AiTemplateResponse[]> {
-    return this.request<AiTemplateResponse[]>('/ai/templates', {}, token);
+  async getAiTemplates(): Promise<AiTemplateResponse[]> {
+    return this.request<AiTemplateResponse[]>('/ai/templates');
   }
 
-  async uploadLogo(file: File, token?: string): Promise<FileUploadResponse> {
+  async uploadLogo(file: File): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
     formData.append('file', file);
 
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: this.authHeaders(),
       body: formData,
     });
 
@@ -241,8 +243,7 @@ class ApiClient {
   }
 }
 
-// Single reusable instance — token passed per-request, no allocation per call
-const api = new ApiClient(API_BASE_URL);
+export const api = new ApiClient(API_BASE_URL);
 
 export interface FeedbackData {
   type: string;
@@ -272,46 +273,31 @@ export interface FeedbackResponse {
 }
 
 export const feedbackApi = {
-  submit: (data: FeedbackData, token?: string) =>
-    api.submitFeedback(data, token),
-  check: (invoiceId: number, token?: string) =>
-    api.checkFeedback(invoiceId, token),
-  getCount: (token?: string) =>
-    api.getFeedbackCount(token),
+  submit: (data: FeedbackData) => api.submitFeedback(data),
+  check: (invoiceId: number) => api.checkFeedback(invoiceId),
+  getCount: () => api.getFeedbackCount(),
 };
 
 export const aiApi = {
-  analyzeInvoice: (file: File, token?: string) =>
-    api.analyzeInvoice(file, token),
-  getUsage: (token?: string) =>
-    api.getAiUsage(token),
-  saveTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }, token?: string) =>
-    api.saveAiTemplate(data, token),
-  getTemplates: (token?: string) =>
-    api.getAiTemplates(token),
+  analyzeInvoice: (file: File) => api.analyzeInvoice(file),
+  getUsage: () => api.getAiUsage(),
+  saveTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
+    api.saveAiTemplate(data),
+  getTemplates: () => api.getAiTemplates(),
 };
 
 export const invoiceApi = {
-  getDashboardStats: (token?: string) =>
-    api.getDashboardStats(token),
-  create: (data: CreateInvoiceRequest, token?: string) =>
-    api.createInvoice(data, token),
-  getAll: (status?: InvoiceStatus, token?: string) =>
-    api.getAllInvoices(status, token),
-  getById: (id: number, token?: string) =>
-    api.getInvoiceById(id, token),
-  update: (id: number, data: UpdateInvoiceRequest, resend?: boolean, token?: string) =>
-    api.updateInvoice(id, data, resend, token),
-  delete: (id: number, token?: string) =>
-    api.deleteInvoice(id, token),
-  recordDownload: (id: number, token?: string) =>
-    api.recordDownload(id, token),
-  downloadPdf: (data: CreateInvoiceRequest, token?: string) =>
-    api.downloadPdf(data, token),
-  uploadLogo: (file: File, token?: string) =>
-    api.uploadLogo(file, token),
-  getPublicInvoice: (publicToken: string) =>
-    api.getPublicInvoice(publicToken),
-  downloadPublicPdf: (publicToken: string) =>
-    api.downloadPublicPdf(publicToken),
+  getDashboardStats: () => api.getDashboardStats(),
+  create: (data: CreateInvoiceRequest, sendEmail?: boolean) => api.createInvoice(data, sendEmail),
+  getAll: (status?: InvoiceStatus, page?: number, size?: number) =>
+    api.getAllInvoices(status, page, size),
+  getById: (id: number) => api.getInvoiceById(id),
+  update: (id: number, data: UpdateInvoiceRequest, resend?: boolean) =>
+    api.updateInvoice(id, data, resend),
+  delete: (id: number) => api.deleteInvoice(id),
+  recordDownload: (id: number) => api.recordDownload(id),
+  downloadPdf: (data: CreateInvoiceRequest) => api.downloadPdf(data),
+  uploadLogo: (file: File) => api.uploadLogo(file),
+  getPublicInvoice: (publicToken: string) => api.getPublicInvoice(publicToken),
+  downloadPublicPdf: (publicToken: string) => api.downloadPublicPdf(publicToken),
 };

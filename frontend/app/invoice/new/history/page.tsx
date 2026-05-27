@@ -51,11 +51,11 @@ export default function InvoiceHistoryPage() {
     setLoading(true);
     setError(null);
     try {
-      const [invoiceData, statsData] = await Promise.all([
+      const [invoicePage, statsData] = await Promise.all([
         api.getAllInvoices(),
         api.getDashboardStats(),
       ]);
-      setInvoices(invoiceData);
+      setInvoices(invoicePage.content);
       setDashboardStats(statsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load invoices.");
