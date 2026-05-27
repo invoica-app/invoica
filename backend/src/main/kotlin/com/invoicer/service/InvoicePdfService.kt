@@ -76,10 +76,10 @@ class InvoicePdfService {
             ItemData(li.description, li.quantity, li.rate, li.rate.multiply(BigDecimal.valueOf(li.quantity.toLong())))
         }
         val subtotal = items.fold(BigDecimal.ZERO) { acc, it -> acc.add(it.amount) }
-        val discountAmount = req.discount?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
+        val discountAmount = req.discount ?: BigDecimal.ZERO
         val taxableAmount = subtotal.subtract(discountAmount)
         val taxAmount = req.taxRate?.let {
-            taxableAmount.multiply(BigDecimal.valueOf(it)).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
+            taxableAmount.multiply(it).divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
         } ?: BigDecimal.ZERO
         val total = subtotal.subtract(discountAmount).add(taxAmount)
 
@@ -760,7 +760,7 @@ class InvoicePdfService {
         if (d.discountAmount > BigDecimal.ZERO) {
             parts.add(totalRow("Discount", "-${money(d.discountAmount, d.currency)}"))
         }
-        if ((d.taxRate ?: 0.0) > 0) {
+        if ((d.taxRate ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
             parts.add(totalRow("Tax (${d.taxRate}%)", money(d.taxAmount, d.currency)))
         }
         if (showTotal) {
@@ -891,7 +891,7 @@ class InvoicePdfService {
         val color: String, val currency: String,
         val clientName: String?, val clientCompany: String?, val clientEmail: String?,
         val clientAddress: String?, val clientCity: String?, val clientZip: String?, val clientCountry: String?,
-        val notes: String?, val authorizedSignature: String?, val taxRate: Double?,
+        val notes: String?, val authorizedSignature: String?, val taxRate: BigDecimal?,
         val items: List<ItemData>,
         val subtotal: BigDecimal, val discountAmount: BigDecimal, val taxAmount: BigDecimal, val total: BigDecimal
     )
