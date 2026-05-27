@@ -42,14 +42,8 @@ const mobileNavItems = [
   { href: "/admin/health", label: "Health", icon: Activity },
 ];
 
-function getInitials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+function avatarUrl(seed: string, size = 28): string {
+  return `https://api.navii.dev/avatar/${encodeURIComponent(seed)}?size=${size}`;
 }
 
 export function AdminSidebar() {
@@ -64,7 +58,7 @@ export function AdminSidebar() {
 
   useEffect(() => setMounted(true), []);
 
-  const initials = getInitials(user?.name);
+  const seed = user?.email || user?.name || "admin";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -230,9 +224,11 @@ export function AdminSidebar() {
             )}
             title={collapsed ? (user?.name || "Admin") : undefined}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-[11px] shrink-0">
-              {initials}
-            </div>
+            <img
+              src={avatarUrl(seed)}
+              alt={user?.name || "Admin"}
+              className="w-7 h-7 rounded-full shrink-0"
+            />
             {expanded && (
               <>
                 <div className="flex-1 text-left min-w-0">

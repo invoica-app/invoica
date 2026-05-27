@@ -8,14 +8,8 @@ interface WizardHeaderProps {
   stepLabel?: string;
 }
 
-function getInitials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+function avatarUrl(seed: string, size = 28): string {
+  return `https://api.navii.dev/avatar/${encodeURIComponent(seed)}?size=${size}`;
 }
 
 function parseStep(label: string): { current: number; total: number } | null {
@@ -28,7 +22,7 @@ export function WizardHeader({ stepLabel = "Start" }: WizardHeaderProps) {
   const lastSaved = useInvoiceStore((state) => state.lastSaved);
   const { user, isGuest } = useAuth();
 
-  const initials = getInitials(user?.name);
+  const seed = user?.email || user?.name || "guest";
   const step = parseStep(stepLabel);
 
   return (
@@ -41,15 +35,11 @@ export function WizardHeader({ stepLabel = "Start" }: WizardHeaderProps) {
           <span className="hidden sm:inline text-xs text-muted-foreground">
             Saved {formatDistanceToNow(lastSaved)}
           </span>
-          {isGuest ? (
-            <div className="px-2 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-medium">
-              Guest
-            </div>
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-semibold text-[11px]">
-              {initials}
-            </div>
-          )}
+          <img
+            src={avatarUrl(seed)}
+            alt={user?.name || "Guest"}
+            className="w-7 h-7 rounded-full"
+          />
         </div>
       </div>
 
