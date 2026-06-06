@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WizardHeader } from "@/components/wizard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,23 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSettingsStore } from "@/lib/settings-store";
 import { useAuth } from "@/lib/auth";
 import { handleSignOut } from "@/lib/sign-out";
-import { useTheme } from "next-themes";
 import { CURRENCIES } from "@/lib/currency";
 import {
   LogOut,
-  Sun,
-  Moon,
-  Monitor,
   Check,
   MessageSquare,
   Building2,
   Hash,
   Mail,
   Palette,
-  UserCircle,
   ChevronRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { AppFooter } from "@/components/app-footer";
 import { HydrationGuard } from "@/components/hydration-guard";
 import { FeedbackModal } from "@/components/feedback/feedback-modal";
@@ -36,12 +30,6 @@ const fonts = [
   { value: "Helvetica", label: "Helvetica" },
   { value: "Georgia", label: "Georgia" },
   { value: "Courier New", label: "Courier New" },
-];
-
-const themeOptions = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
 ];
 
 function avatarUrl(seed: string, size = 40): string {
@@ -102,19 +90,16 @@ function Field({
 export default function SettingsPage() {
   const settings = useSettingsStore();
   const { user, isLoading: authLoading } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   const seed = user?.email || user?.name || "guest";
 
   return (
     <HydrationGuard fallback={<SettingsSkeleton />}>
+      <div className="flex flex-col h-full">
       <WizardHeader stepLabel="Settings" />
 
-      <div className="flex-1 p-4 md:p-6 overflow-auto">
+      <div className="flex-1 min-h-0 p-4 md:p-6 overflow-auto">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <h1 className="text-lg font-semibold mb-0.5">Settings</h1>
@@ -162,33 +147,6 @@ export default function SettingsPage() {
                 </div>
               </div>
             </section>
-
-            {/* Theme */}
-            <Section icon={Sun} title="Appearance">
-              {mounted && (
-                <div className="flex gap-2">
-                  {themeOptions.map((option) => {
-                    const Icon = option.icon;
-                    const isActive = theme === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        onClick={() => setTheme(option.value)}
-                        className={cn(
-                          "flex-1 flex flex-col items-center gap-2 px-4 py-3 rounded-lg border text-sm transition-all",
-                          isActive
-                            ? "border-primary bg-primary/5 text-foreground font-medium shadow-sm"
-                            : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                        )}
-                      >
-                        <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </Section>
 
             {/* Invoice theme */}
             <Section icon={Palette} title="Invoice Theme" description="Colors and fonts for your invoices">
@@ -322,7 +280,10 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <AppFooter />
+      <div className="hidden md:block shrink-0">
+        <AppFooter />
+      </div>
+      </div>
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </HydrationGuard>

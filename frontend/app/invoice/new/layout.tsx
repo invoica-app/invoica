@@ -6,10 +6,10 @@ export default function InvoiceNewLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <WizardSidebar />
-      <main className="flex-1 flex flex-col pb-16 md:pb-0 overflow-x-hidden">
-        <div className="flex-1 flex flex-col">{children}</div>
+      <main className="flex-1 flex flex-col pb-16 md:pb-0 min-h-0">
+        <div className="flex-1 flex flex-col min-h-0">{children}</div>
       </main>
     </div>
   );

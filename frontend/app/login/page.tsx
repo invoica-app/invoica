@@ -292,11 +292,72 @@ export default function LoginPage() {
         </footer>
       </div>
 
-      {/* Right panel — Illustration (desktop only) */}
-      <div className="hidden md:block md:w-[40%] relative">
+      {/* Right panel — Gradient (desktop only) */}
+      <div className="hidden md:block md:w-[40%] relative" style={{ background: 'var(--auth-bg)' }}>
         <div className="sticky top-0 h-screen overflow-hidden">
-          <div className="auth-bg auth-bg-day" role="img" aria-label="Illustrated sky with warm Kente-patterned clouds" />
-          <div className="auth-bg auth-bg-night" role="img" aria-label="Illustrated night sky with purple Kente-patterned clouds and crescent moon" />
+          <svg
+            className="absolute inset-0 w-full h-full"
+            viewBox="0 0 1438 1117"
+            preserveAspectRatio="xMaxYMid slice"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect width="1438" height="1117" fill="var(--auth-bg)" />
+            <g filter="url(#af0)">
+              <rect x="502" y="545.065" width="961" height="620.462" fill="var(--auth-c1)" />
+            </g>
+            <g filter="url(#af1)">
+              <g filter="url(#af2)">
+                <path d="M959 -39.9066C636.2 -70.2567 431.833 130.2 370 234.223L438.5 778.81H1462V314.381C1274.4 74.518 1048.5 -21.7537 959 -39.9066Z" fill="var(--auth-c2)" />
+              </g>
+              <g filter="url(#af3)">
+                <path d="M991 147.946C777 131.302 564.5 311.526 485 403.718V679.683L1461 694.98V553.021C1280.6 239.241 1072.5 152.229 991 147.946Z" fill="var(--auth-c3)" />
+              </g>
+              <g filter="url(#af4)">
+                <path d="M1000.5 268.489C772.9 241.566 554.5 485.712 502.5 562.811V726.799H1463C1403.8 432.11 1123.5 291.945 1000.5 268.489Z" fill="var(--auth-c4)" />
+              </g>
+              <g filter="url(#af5)">
+                <path d="M1014.16 404.226C705.858 366.956 544.261 556.25 502 655.555V1142.28H1474V773.251L1421.68 655.555C1315.82 475.579 1105.89 413.013 1014.16 404.226Z" fill="var(--auth-c1)" />
+              </g>
+            </g>
+            <defs>
+              <filter id="af0" x="433" y="476.065" width="1099" height="758.462" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                <feGaussianBlur stdDeviation="34.5" result="effect1_foregroundBlur" />
+              </filter>
+              <filter id="af1" x="366" y="-43" width="1112" height="1193.28" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+                <feOffset dy="4" />
+                <feGaussianBlur stdDeviation="2" />
+                <feComposite in2="hardAlpha" operator="out" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+                <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+              </filter>
+              <filter id="af2" x="0" y="-413" width="1832" height="1561.81" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                <feGaussianBlur stdDeviation="185" result="effect1_foregroundBlur" />
+              </filter>
+              <filter id="af3" x="115" y="-223.132" width="1716" height="1288.11" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                <feGaussianBlur stdDeviation="185" result="effect1_foregroundBlur" />
+              </filter>
+              <filter id="af4" x="132.5" y="-103.574" width="1700.5" height="1200.37" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                <feGaussianBlur stdDeviation="185" result="effect1_foregroundBlur" />
+              </filter>
+              <filter id="af5" x="132" y="29.4346" width="1712" height="1482.84" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                <feGaussianBlur stdDeviation="185" result="effect1_foregroundBlur" />
+              </filter>
+            </defs>
+          </svg>
         </div>
       </div>
       </div>

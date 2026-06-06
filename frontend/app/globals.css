@@ -185,37 +185,21 @@
   80% { transform: rotate(4deg); }
 }
 
-/* Auth illustration */
-@keyframes slowZoom {
-  from { transform: scale(1); }
-  to { transform: scale(1.05); }
+/* Auth gradient panel */
+:root {
+  --auth-bg: #1a0500;
+  --auth-c1: #1A3E18;
+  --auth-c2: #760000;
+  --auth-c3: #B98800;
+  --auth-c4: #19611A;
 }
 
-.auth-bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  animation: slowZoom 30s ease infinite alternate;
-  transition: opacity 0.7s ease;
-}
-
-.auth-bg-day {
-  background-image: url('/images/auth/day.webp');
-  opacity: 1;
-}
-
-.auth-bg-night {
-  background-image: url('/images/auth/night.webp');
-  opacity: 0;
-}
-
-.dark .auth-bg-day {
-  opacity: 0;
-}
-
-.dark .auth-bg-night {
-  opacity: 1;
+.dark {
+  --auth-bg: #000000;
+  --auth-c1: #000000;
+  --auth-c2: #8546ED;
+  --auth-c3: #9909DD;
+  --auth-c4: #3F0B93;
 }
 
 /* Dialog */

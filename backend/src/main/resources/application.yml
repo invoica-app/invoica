@@ -69,3 +69,8 @@ logging:
   level:
     com.invoicer: INFO
     org.springframework.security: WARN
+
+stripe:
+  subscription:
+    monthly-price-id: ${STRIPE_MONTHLY_PRICE_ID:price_xxxxx}
+    yearly-price-id: ${STRIPE_YEARLY_PRICE_ID:price_xxxxx}
