@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Sparkles } from "lucide-react";
+import { Upload, X, Sparkles, FileText } from "lucide-react";
 import { UsageBadge } from "./usage-badge";
 
 interface UploadStepProps {
@@ -10,7 +10,7 @@ interface UploadStepProps {
   isLoading: boolean;
 }
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
 const MAX_SIZE = 5 * 1024 * 1024;
 
 export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
@@ -23,7 +23,7 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
   const validateAndSetFile = useCallback((f: File) => {
     setError(null);
     if (!ALLOWED_TYPES.includes(f.type)) {
-      setError("Only PNG, JPG, and WebP images are supported.");
+      setError("Only PNG, JPG, WebP, and PDF files are supported.");
       return;
     }
     if (f.size > MAX_SIZE) {
@@ -31,7 +31,11 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
       return;
     }
     setFile(f);
-    setPreview(URL.createObjectURL(f));
+    if (f.type === "application/pdf") {
+      setPreview("pdf");
+    } else {
+      setPreview(URL.createObjectURL(f));
+    }
   }, []);
 
   const handleDrop = useCallback(
@@ -82,7 +86,7 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
         <input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept="image/png,image/jpeg,image/webp,application/pdf"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -98,11 +102,18 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
             >
               <X className="w-3.5 h-3.5" />
             </button>
-            <img
-              src={preview}
-              alt="Sample invoice"
-              className="max-h-72 mx-auto rounded-md"
-            />
+            {preview === "pdf" ? (
+              <div className="flex flex-col items-center py-8">
+                <FileText className="w-12 h-12 text-primary/60 mb-2" />
+                <p className="text-sm font-medium">PDF uploaded</p>
+              </div>
+            ) : (
+              <img
+                src={preview}
+                alt="Sample invoice"
+                className="max-h-72 mx-auto rounded-md"
+              />
+            )}
             <p className="text-xs text-muted-foreground text-center mt-3">
               {file?.name}
               <span className="mx-1.5 text-border">|</span>
@@ -115,10 +126,10 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
               <Upload className="w-5 h-5 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium mb-1">
-              Drop an invoice image here, or click to browse
+              Drop an invoice here, or click to browse
             </p>
             <p className="text-xs text-muted-foreground">
-              PNG, JPG, or WebP — max 5MB
+              PNG, JPG, WebP, or PDF — max 5MB
             </p>
           </div>
         )}

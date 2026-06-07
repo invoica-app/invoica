@@ -52,6 +52,7 @@ dependencies {
 
     // PDF generation
     implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
+    implementation("org.apache.pdfbox:pdfbox:2.0.31")
     implementation("org.jsoup:jsoup:1.17.2")
 
     // Environment Variables

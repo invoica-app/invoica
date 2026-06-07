@@ -14,9 +14,13 @@ import com.invoicer.entity.UserPlan
 import com.invoicer.repository.AiFeatureUsageRepository
 import com.invoicer.repository.AiGeneratedTemplateRepository
 import com.invoicer.repository.UserRepository
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.rendering.PDFRenderer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 @Service
 class AiFeatureService(
@@ -33,7 +37,8 @@ class AiFeatureService(
     companion object {
         private const val FEATURE_NAME = "invoice_analysis"
         private val ALLOWED_CONTENT_TYPES = setOf(
-            "image/png", "image/jpeg", "image/jpg", "image/webp"
+            "image/png", "image/jpeg", "image/jpg", "image/webp",
+            "application/pdf"
         )
         private const val MAX_FILE_SIZE = 5 * 1024 * 1024L // 5MB
     }
@@ -73,8 +78,13 @@ class AiFeatureService(
         )
 
         try {
-            // Call Claude Vision API
-            val analysisJson = claudeVisionService.analyzeInvoiceImage(file.bytes, file.contentType)
+            // Convert PDF to image if needed, then call Claude Vision API
+            val (imageBytes, imageContentType) = if (contentType == "application/pdf") {
+                convertPdfToImage(file.bytes)
+            } else {
+                file.bytes to file.contentType
+            }
+            val analysisJson = claudeVisionService.analyzeInvoiceImage(imageBytes, imageContentType)
 
             // Mark as successful
             usage.analysisResult = analysisJson
@@ -132,6 +142,21 @@ class AiFeatureService(
 
     fun mapTemplate(analysisJson: String): AiTemplateMappingResponse {
         return templateMappingService.mapTemplate(analysisJson)
+    }
+
+    private fun convertPdfToImage(pdfBytes: ByteArray): Pair<ByteArray, String> {
+        try {
+            PDDocument.load(pdfBytes).use { document ->
+                val renderer = PDFRenderer(document)
+                val image = renderer.renderImageWithDPI(0, 200f)
+                val outputStream = ByteArrayOutputStream()
+                ImageIO.write(image, "png", outputStream)
+                return outputStream.toByteArray() to "image/png"
+            }
+        } catch (ex: Exception) {
+            logger.error("Failed to convert PDF to image", ex)
+            throw AiAnalysisFailedException("Failed to process PDF file: ${ex.message}", ex)
+        }
     }
 
     private fun toTemplateResponse(template: AiGeneratedTemplate): AiTemplateResponse {
