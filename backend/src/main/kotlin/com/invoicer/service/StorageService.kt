@@ -38,6 +38,29 @@ class StorageService(
         return getPublicUrl(path)
     }
 
+    fun uploadBytes(bytes: ByteArray, contentType: String, originalFileName: String, folder: String = "logos"): String {
+        val fileName = generateFileName(originalFileName)
+        val path = "$folder/$fileName"
+
+        val url = "${config.url}/storage/v1/object/${config.storageBucket}/$path"
+
+        val headers = HttpHeaders().apply {
+            setBearerAuth(config.serviceKey)
+            this.contentType = MediaType.parseMediaType(contentType)
+        }
+
+        val entity = HttpEntity(bytes, headers)
+
+        val response = restTemplate.exchange(url, HttpMethod.POST, entity, String::class.java)
+
+        if (!response.statusCode.is2xxSuccessful) {
+            logger.error("Supabase upload failed: ${response.body}")
+            throw RuntimeException("Failed to upload file to Supabase Storage")
+        }
+
+        return getPublicUrl(path)
+    }
+
     fun deleteFile(fileUrl: String) {
         val path = extractPathFromUrl(fileUrl)
 

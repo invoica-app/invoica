@@ -62,9 +62,16 @@ class AiFeatureService(
             }
         }
 
-        // Upload sample image to Supabase
+        // Convert PDF to image if needed
+        val (imageBytes, imageContentType) = if (contentType == "application/pdf") {
+            convertPdfToImage(file.bytes)
+        } else {
+            file.bytes to (file.contentType ?: "image/png")
+        }
+
+        // Upload the image (converted if PDF) to Supabase
         val sampleImageUrl = try {
-            storageService.uploadFile(file, "ai-samples")
+            storageService.uploadBytes(imageBytes, imageContentType, file.originalFilename?.replace(".pdf", ".png") ?: "invoice.png", "ai-samples")
         } catch (ex: Exception) {
             logger.error("Failed to upload sample image", ex)
             throw AiAnalysisFailedException("Failed to upload sample image: ${ex.message}", ex)
@@ -78,12 +85,6 @@ class AiFeatureService(
         )
 
         try {
-            // Convert PDF to image if needed, then call Claude Vision API
-            val (imageBytes, imageContentType) = if (contentType == "application/pdf") {
-                convertPdfToImage(file.bytes)
-            } else {
-                file.bytes to file.contentType
-            }
             val analysisJson = claudeVisionService.analyzeInvoiceImage(imageBytes, imageContentType)
 
             // Mark as successful
