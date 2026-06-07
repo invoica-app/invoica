@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Eye, Plus, X } from "lucide-react";
+import { ArrowLeft, Eye, Plus, X, Upload, Loader2 } from "lucide-react";
+import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CURRENCIES } from "@/lib/currency";
 import type { AiInvoiceAnalysis } from "@/lib/types";
 import type { AiInvoiceFormData } from "@/components/ai-dynamic-template";
@@ -29,6 +30,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormStepProps) {
+  const api = useAuthenticatedApi();
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const today = new Date().toISOString().split("T")[0];
   const due = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
 
@@ -56,6 +59,51 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
     notes: "",
     currency: analysis.detectedCurrency || "USD",
   });
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg"].includes(file.type)) {
+      setUploadError("Only PNG and JPEG files are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("File must be smaller than 5MB.");
+      return;
+    }
+
+    setUploadError(null);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setLogoUrl(base64);
+      setFormData((prev) => ({ ...prev, companyLogo: base64 }));
+    };
+    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const result = await api.uploadLogo(file);
+      setLogoUrl(result.url);
+      setFormData((prev) => ({ ...prev, companyLogo: result.url }));
+    } catch {
+      // base64 fallback already set
+    } finally {
+      setUploading(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl(null);
+    setFormData((prev) => ({ ...prev, companyLogo: null }));
+  };
 
   const set = (field: keyof AiInvoiceFormData, value: string | number) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -112,7 +160,49 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
           <section>
             <SectionTitle>Your Business</SectionTitle>
             <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+              <div>
+                <Label>Company Logo</Label>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
+                {logoUrl ? (
+                  <div className="relative border border-border rounded-lg p-4 flex items-center justify-center bg-card h-[100px]">
+                    <img src={logoUrl} alt="Company logo" className="object-contain max-h-16 max-w-full" />
+                    {uploading && (
+                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => !uploading && logoInputRef.current?.click()}
+                    className="border border-dashed border-border rounded-lg h-[100px] flex flex-col items-center justify-center hover:border-muted-foreground/40 transition-colors cursor-pointer"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-4 h-4 mb-1 text-primary animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mb-1 text-muted-foreground" />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {uploading ? "Uploading..." : "Upload logo"}
+                    </p>
+                  </div>
+                )}
+                {uploadError && <p className="mt-1 text-[11px] text-red-400/80">{uploadError}</p>}
+              </div>
+              <div>
                 <Label>Company Name</Label>
                 <Input value={formData.companyName} onChange={(e) => set("companyName", e.target.value)} placeholder="Your company name" />
               </div>
