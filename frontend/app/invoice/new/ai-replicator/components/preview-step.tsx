@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Save, Pencil, RotateCcw, Check, Wand2 } from "lucide-react";
+import { Download, Save, Pencil, RotateCcw, Check, Wand2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useInvoiceStore } from "@/lib/store";
 import type { TemplateId } from "@/lib/types";
@@ -117,54 +117,60 @@ export function PreviewStep({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-lg font-semibold">Preview</h1>
+          <h1 className="text-base font-semibold">Compare & apply</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Compare your generated invoice with the original.
+            Review the AI-generated invoice against your original.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleDownloadPdf} disabled={downloading}>
-            <Download className="w-4 h-4 mr-1.5" />
-            {downloading ? "Generating..." : "Download PDF"}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            <Pencil className="w-3.5 h-3.5 mr-1.5" />
+            Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onStartOver}>
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+            Restart
+          </Button>
+
+          <div className="w-px h-5 bg-border hidden sm:block" />
+
+          <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+            {downloading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1.5" />}
+            {downloading ? "Generating..." : "PDF"}
           </Button>
 
           {!saved && !showSaveForm && (
             <Button variant="outline" size="sm" onClick={() => setShowSaveForm(true)}>
-              <Save className="w-4 h-4 mr-1.5" />
-              Save Template
+              <Save className="w-3.5 h-3.5 mr-1.5" />
+              Save
             </Button>
           )}
 
           {saved && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 px-2">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 px-2">
               <Check className="w-3.5 h-3.5" />
               Saved
             </span>
           )}
 
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Pencil className="w-4 h-4 mr-1.5" />
-            Edit
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onStartOver}>
-            <RotateCcw className="w-4 h-4 mr-1.5" />
-            Start Over
-          </Button>
-          <Button size="sm" onClick={handleApplyTemplate} disabled={applying}>
-            <Wand2 className="w-4 h-4 mr-1.5" />
+          <Button size="sm" onClick={handleApplyTemplate} disabled={applying} className="shadow-sm">
+            {applying ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5 mr-1.5" />}
             {applying ? "Applying..." : "Use This Template"}
           </Button>
         </div>
       </div>
 
+      {/* Save form */}
       {showSaveForm && (
-        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+        <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-card border border-border">
           <Input
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
-            placeholder="Template name"
+            placeholder="Give your template a name"
             className="max-w-xs"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && handleSaveTemplate()}
@@ -178,21 +184,25 @@ export function PreviewStep({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Generated</p>
-          <div className="border border-border rounded-lg overflow-hidden bg-white">
-            <div className="overflow-auto" style={{ maxHeight: "70vh" }}>
-              <div ref={invoiceRef} style={{ width: "800px", transformOrigin: "top left" }}>
-                <AiDynamicTemplate analysis={analysis} data={formData} />
-              </div>
+      {/* Comparison grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Generated</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 font-medium">AI</span>
+          </div>
+          <div className="overflow-auto bg-white" style={{ maxHeight: "70vh" }}>
+            <div ref={invoiceRef} style={{ width: "800px", transformOrigin: "top left" }}>
+              <AiDynamicTemplate analysis={analysis} data={formData} />
             </div>
           </div>
         </div>
 
-        <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Original</p>
-          <div className="border border-border rounded-lg overflow-hidden">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-border bg-muted/30">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Original</span>
+          </div>
+          <div className="overflow-auto" style={{ maxHeight: "70vh" }}>
             <img src={sampleImageUrl} alt="Original sample" className="w-full" />
           </div>
         </div>

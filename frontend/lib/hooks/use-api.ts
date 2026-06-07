@@ -34,5 +34,8 @@ export function useAuthenticatedApi() {
       aiApi.saveTemplate(data),
     getAiTemplates: () => aiApi.getTemplates(),
     mapTemplate: (analysisJson: string) => aiApi.mapTemplate(analysisJson),
+    initializeSubscription: () => api.initializeSubscription(),
+    verifySubscription: (reference: string) => api.verifySubscription(reference),
+    getSubscriptionConfig: () => api.getSubscriptionConfig(),
   }), []);
 }

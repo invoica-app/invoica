@@ -231,6 +231,19 @@ class ApiClient {
     });
   }
 
+  // Subscription / Paystack
+  async initializeSubscription(): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
+    return this.request('/subscription/initialize', { method: 'POST' });
+  }
+
+  async verifySubscription(reference: string): Promise<{ status: string; reference: string }> {
+    return this.request(`/subscription/verify/${reference}`);
+  }
+
+  async getSubscriptionConfig(): Promise<{ publicKey: string; amount: number; currency: string }> {
+    return this.request('/subscription/config');
+  }
+
   async uploadLogo(file: File): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();

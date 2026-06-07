@@ -70,7 +70,10 @@ logging:
     com.invoicer: INFO
     org.springframework.security: WARN
 
-stripe:
-  subscription:
-    monthly-price-id: ${STRIPE_MONTHLY_PRICE_ID:price_xxxxx}
-    yearly-price-id: ${STRIPE_YEARLY_PRICE_ID:price_xxxxx}
+# Paystack Configuration
+paystack:
+  secret-key: ${PAYSTACK_SECRET_KEY:}
+  public-key: ${PAYSTACK_PUBLIC_KEY:}
+  pro-plan-amount: ${PAYSTACK_PRO_PLAN_AMOUNT:999}
+  currency: ${PAYSTACK_CURRENCY:GHS}
+  callback-url: ${PAYSTACK_CALLBACK_URL:http://localhost:3000/upgrade/verify}

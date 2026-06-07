@@ -37,6 +37,7 @@ class SecurityConfig(
                     .requestMatchers("/api/health").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/invoices/public/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/subscription/webhook").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                     // Admin endpoints require ROLE_ADMIN

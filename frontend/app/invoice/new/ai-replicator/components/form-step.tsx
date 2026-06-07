@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Eye, Plus, X, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Eye, Plus, X, Upload, Loader2, Building2, User, FileText, StickyNote } from "lucide-react";
 import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { CURRENCIES } from "@/lib/currency";
 import type { AiInvoiceAnalysis } from "@/lib/types";
@@ -22,11 +22,21 @@ function uid() {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-xs font-medium text-muted-foreground mb-1">{children}</label>;
+  return <label className="block text-[11px] font-medium text-muted-foreground mb-1 uppercase tracking-wider">{children}</label>;
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{children}</h3>;
+function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Icon className="w-3.5 h-3.5 text-primary" />
+        </div>
+        <h3 className="text-sm font-semibold">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormStepProps) {
@@ -136,11 +146,12 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-lg font-semibold">Invoice details</h1>
+          <h1 className="text-base font-semibold">Fill in your invoice details</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            The detected style will be applied when you preview.
+            The AI-detected style will be applied on preview.
           </p>
         </div>
         <div className="flex gap-2">
@@ -148,59 +159,41 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
             <ArrowLeft className="w-4 h-4 mr-1.5" />
             Back
           </Button>
-          <Button size="sm" onClick={() => onPreview(formData)}>
+          <Button size="sm" onClick={() => onPreview(formData)} className="shadow-sm">
             <Eye className="w-4 h-4 mr-1.5" />
             Preview
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <section>
-            <SectionTitle>Your Business</SectionTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form sections */}
+        <div className="lg:col-span-2 space-y-5">
+          <Section icon={Building2} title="Your Business">
             <div className="grid grid-cols-2 gap-3">
+              {/* Logo upload */}
               <div>
                 <Label>Company Logo</Label>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                />
+                <input ref={logoInputRef} type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleLogoUpload} />
                 {logoUrl ? (
-                  <div className="relative border border-border rounded-lg p-4 flex items-center justify-center bg-card h-[100px]">
-                    <img src={logoUrl} alt="Company logo" className="object-contain max-h-16 max-w-full" />
+                  <div className="relative border border-border rounded-lg p-3 flex items-center justify-center bg-background h-[88px]">
+                    <img src={logoUrl} alt="Logo" className="object-contain max-h-14 max-w-full" />
                     {uploading && (
                       <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-lg">
-                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
                       </div>
                     )}
-                    <button
-                      type="button"
-                      onClick={handleRemoveLogo}
-                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
-                    >
+                    <button type="button" onClick={handleRemoveLogo} className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors">
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <div
-                    onClick={() => !uploading && logoInputRef.current?.click()}
-                    className="border border-dashed border-border rounded-lg h-[100px] flex flex-col items-center justify-center hover:border-muted-foreground/40 transition-colors cursor-pointer"
-                  >
-                    {uploading ? (
-                      <Loader2 className="w-4 h-4 mb-1 text-primary animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4 mb-1 text-muted-foreground" />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {uploading ? "Uploading..." : "Upload logo"}
-                    </p>
+                  <div onClick={() => !uploading && logoInputRef.current?.click()} className="border border-dashed border-border rounded-lg h-[88px] flex flex-col items-center justify-center hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer">
+                    {uploading ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : <Upload className="w-4 h-4 text-muted-foreground mb-1" />}
+                    <p className="text-[11px] text-muted-foreground">{uploading ? "Uploading..." : "Upload logo"}</p>
                   </div>
                 )}
-                {uploadError && <p className="mt-1 text-[11px] text-red-400/80">{uploadError}</p>}
+                {uploadError && <p className="mt-1 text-[10px] text-destructive">{uploadError}</p>}
               </div>
               <div>
                 <Label>Company Name</Label>
@@ -223,10 +216,9 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
                 <Input value={formData.city} onChange={(e) => set("city", e.target.value)} placeholder="City" />
               </div>
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <SectionTitle>Bill To</SectionTitle>
+          <Section icon={User} title="Bill To">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Client Name</Label>
@@ -245,11 +237,10 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
                 <Input value={formData.clientAddress} onChange={(e) => set("clientAddress", e.target.value)} placeholder="Client address" />
               </div>
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <SectionTitle>Invoice Details</SectionTitle>
-            <div className="grid grid-cols-3 gap-3">
+          <Section icon={FileText} title="Invoice Details">
+            <div className="grid grid-cols-3 gap-3 mb-5">
               <div>
                 <Label>Invoice #</Label>
                 <Input value={formData.invoiceNumber} onChange={(e) => set("invoiceNumber", e.target.value)} />
@@ -283,69 +274,71 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
                 <Input type="number" min={0} max={100} value={formData.discount || ""} onChange={(e) => set("discount", parseFloat(e.target.value) || 0)} />
               </div>
             </div>
-          </section>
 
-          <section>
-            <SectionTitle>Line Items</SectionTitle>
-            <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
+            {/* Line items */}
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="grid grid-cols-12 gap-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 bg-muted/50 border-b border-border">
                 <div className="col-span-5">Description</div>
                 <div className="col-span-2">Qty</div>
                 <div className="col-span-2">Rate</div>
                 <div className="col-span-2">Amount</div>
                 <div className="col-span-1" />
               </div>
-              {formData.lineItems.map((item) => (
-                <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-5">
-                    <Input value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} placeholder="Item description" />
+              <div className="divide-y divide-border">
+                {formData.lineItems.map((item) => (
+                  <div key={item.id} className="grid grid-cols-12 gap-2 items-center px-3 py-2">
+                    <div className="col-span-5">
+                      <Input value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} placeholder="Item description" className="h-8 text-xs" />
+                    </div>
+                    <div className="col-span-2">
+                      <Input type="number" min={1} value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)} className="h-8 text-xs" />
+                    </div>
+                    <div className="col-span-2">
+                      <Input type="number" min={0} step={0.01} value={item.rate || ""} onChange={(e) => updateItem(item.id, "rate", parseFloat(e.target.value) || 0)} className="h-8 text-xs" />
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-xs text-muted-foreground tabular-nums">{item.amount.toFixed(2)}</span>
+                    </div>
+                    <div className="col-span-1 flex justify-center">
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        disabled={formData.lineItems.length <= 1}
+                        className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-20"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="col-span-2">
-                    <Input type="number" min={1} value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)} />
-                  </div>
-                  <div className="col-span-2">
-                    <Input type="number" min={0} step={0.01} value={item.rate || ""} onChange={(e) => updateItem(item.id, "rate", parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="col-span-2">
-                    <Input value={item.amount.toFixed(2)} disabled className="text-muted-foreground" />
-                  </div>
-                  <div className="col-span-1 flex justify-center">
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      disabled={formData.lineItems.length <= 1}
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-30"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <button onClick={addItem} className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 w-full px-3 py-2.5 border-t border-border hover:bg-muted/30 transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+                Add line item
+              </button>
             </div>
-            <button onClick={addItem} className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground mt-3 transition-colors">
-              <Plus className="w-3.5 h-3.5" />
-              Add item
-            </button>
-          </section>
+          </Section>
 
-          <section>
-            <SectionTitle>Notes</SectionTitle>
+          <Section icon={StickyNote} title="Notes">
             <Textarea
               value={formData.notes}
               onChange={(e) => set("notes", e.target.value)}
-              placeholder="Payment terms, notes..."
-              rows={2}
+              placeholder="Payment terms, thank you note..."
+              rows={3}
+              className="text-sm"
             />
-          </section>
+          </Section>
         </div>
 
+        {/* Sidebar — sample + detected style */}
         <div className="space-y-5">
-          <div>
-            <SectionTitle>Sample Invoice</SectionTitle>
-            <img src={sampleImageUrl} alt="Sample" className="w-full rounded-lg border border-border" />
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Sample Invoice</h3>
+            <img src={sampleImageUrl} alt="Sample" className="w-full rounded-lg" />
           </div>
-          <div>
-            <SectionTitle>Detected Style</SectionTitle>
-            <div className="flex flex-wrap gap-1.5">
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Detected Style</h3>
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {[
                 analysis.layout.style,
                 analysis.typography.headingFont,
@@ -354,16 +347,16 @@ export function FormStep({ analysis, sampleImageUrl, onPreview, onBack }: FormSt
                 ...(analysis.tableStyle.hasAlternatingRows ? ["striped rows"] : []),
                 ...(analysis.specialFeatures.hasSignatureLine ? ["signature"] : []),
               ].map((tag) => (
-                <span key={tag} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs">
+                <span key={tag} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
                   {tag}
                 </span>
               ))}
             </div>
-            <div className="flex gap-1.5 mt-3">
+            <div className="flex gap-1.5">
               {Object.entries(analysis.layout.colorScheme).slice(0, 5).map(([key, color]) => (
                 <div
                   key={key}
-                  className="w-5 h-5 rounded border border-border"
+                  className="w-6 h-6 rounded-lg border border-border shadow-sm"
                   style={{ backgroundColor: color }}
                   title={`${key}: ${color}`}
                 />
