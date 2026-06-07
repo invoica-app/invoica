@@ -35,3 +35,11 @@ data class SaveAiTemplateRequest(
 
     val sampleImageUrl: String? = null
 )
+
+data class AiTemplateMappingResponse(
+    val templateId: String,
+    val primaryColor: String,
+    val fontFamily: String,
+    val confidence: Double,
+    val reasoning: String
+)

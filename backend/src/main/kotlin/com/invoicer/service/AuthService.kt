@@ -100,6 +100,7 @@ class AuthService(
         name = name,
         provider = provider,
         isGuest = isGuest,
-        isAdmin = isAdmin
+        isAdmin = isAdmin,
+        plan = plan.name
     )
 }

@@ -27,5 +27,6 @@ data class UserDto(
     val name: String,
     val provider: AuthProvider,
     val isGuest: Boolean,
-    val isAdmin: Boolean = false
+    val isAdmin: Boolean = false,
+    val plan: String = "FREE"
 )

@@ -1,6 +1,7 @@
 package com.invoicer.controller
 
 import com.invoicer.dto.AiAnalysisResponse
+import com.invoicer.dto.AiTemplateMappingResponse
 import com.invoicer.dto.AiTemplateResponse
 import com.invoicer.dto.AiUsageResponse
 import com.invoicer.dto.SaveAiTemplateRequest
@@ -50,5 +51,16 @@ class AiController(
         val userId = authentication.credentials as Long
         val templates = aiFeatureService.getTemplates(userId)
         return ResponseEntity.ok(templates)
+    }
+
+    @PostMapping("/map-template")
+    fun mapTemplate(
+        @RequestBody body: Map<String, String>,
+        authentication: Authentication
+    ): ResponseEntity<AiTemplateMappingResponse> {
+        val analysisJson = body["analysisJson"]
+            ?: return ResponseEntity.badRequest().build()
+        val result = aiFeatureService.mapTemplate(analysisJson)
+        return ResponseEntity.ok(result)
     }
 }

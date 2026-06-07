@@ -9,8 +9,11 @@ import com.invoicer.entity.AiFeatureUsage
 import com.invoicer.entity.AiGeneratedTemplate
 import com.invoicer.exception.AiAnalysisFailedException
 import com.invoicer.exception.AiUsageExhaustedException
+import com.invoicer.dto.AiTemplateMappingResponse
+import com.invoicer.entity.UserPlan
 import com.invoicer.repository.AiFeatureUsageRepository
 import com.invoicer.repository.AiGeneratedTemplateRepository
+import com.invoicer.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -21,7 +24,9 @@ class AiFeatureService(
     private val aiGeneratedTemplateRepository: AiGeneratedTemplateRepository,
     private val claudeVisionService: ClaudeVisionService,
     private val storageService: StorageService,
-    private val anthropicConfig: AnthropicConfig
+    private val anthropicConfig: AnthropicConfig,
+    private val userRepository: UserRepository,
+    private val templateMappingService: TemplateMappingService
 ) {
     private val logger = LoggerFactory.getLogger(AiFeatureService::class.java)
 
@@ -43,10 +48,13 @@ class AiFeatureService(
             throw IllegalArgumentException("File size must not exceed 5MB")
         }
 
-        // Check usage
-        val usageCount = aiFeatureUsageRepository.countByUserIdAndFeatureAndSuccessTrue(userId, FEATURE_NAME)
-        if (usageCount >= anthropicConfig.maxFreeUses) {
-            throw AiUsageExhaustedException("You have used all ${anthropicConfig.maxFreeUses} free AI analyses. Upgrade to continue.")
+        // Check usage — PRO users get unlimited
+        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+        if (user.plan != UserPlan.PRO) {
+            val usageCount = aiFeatureUsageRepository.countByUserIdAndFeatureAndSuccessTrue(userId, FEATURE_NAME)
+            if (usageCount >= anthropicConfig.maxFreeUses) {
+                throw AiUsageExhaustedException("You have used all ${anthropicConfig.maxFreeUses} free AI analyses. Upgrade to continue.")
+            }
         }
 
         // Upload sample image to Supabase
@@ -73,11 +81,11 @@ class AiFeatureService(
             usage.success = true
             aiFeatureUsageRepository.save(usage)
 
-            val newUsageCount = usageCount + 1
+            val totalUsage = aiFeatureUsageRepository.countByUserIdAndFeatureAndSuccessTrue(userId, FEATURE_NAME)
             return AiAnalysisResponse(
                 analysisJson = analysisJson,
                 sampleImageUrl = sampleImageUrl,
-                usageCount = newUsageCount,
+                usageCount = totalUsage,
                 maxFreeUses = anthropicConfig.maxFreeUses
             )
         } catch (ex: AiAnalysisFailedException) {
@@ -93,14 +101,16 @@ class AiFeatureService(
     }
 
     fun getUsage(userId: Long): AiUsageResponse {
+        val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
         val usageCount = aiFeatureUsageRepository.countByUserIdAndFeatureAndSuccessTrue(userId, FEATURE_NAME)
         val maxFreeUses = anthropicConfig.maxFreeUses
-        val remaining = (maxFreeUses - usageCount).coerceAtLeast(0)
+        val isPro = user.plan == UserPlan.PRO
+        val remaining = if (isPro) Long.MAX_VALUE else (maxFreeUses - usageCount).coerceAtLeast(0)
         return AiUsageResponse(
             usageCount = usageCount,
-            maxFreeUses = maxFreeUses,
+            maxFreeUses = if (isPro) Int.MAX_VALUE else maxFreeUses,
             remaining = remaining,
-            isExhausted = remaining <= 0
+            isExhausted = !isPro && remaining <= 0
         )
     }
 
@@ -118,6 +128,10 @@ class AiFeatureService(
     fun getTemplates(userId: Long): List<AiTemplateResponse> {
         return aiGeneratedTemplateRepository.findByUserIdOrderByCreatedAtDesc(userId)
             .map { toTemplateResponse(it) }
+    }
+
+    fun mapTemplate(analysisJson: String): AiTemplateMappingResponse {
+        return templateMappingService.mapTemplate(analysisJson)
     }
 
     private fun toTemplateResponse(template: AiGeneratedTemplate): AiTemplateResponse {

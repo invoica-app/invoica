@@ -33,5 +33,6 @@ export function useAuthenticatedApi() {
     saveAiTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
       aiApi.saveTemplate(data),
     getAiTemplates: () => aiApi.getTemplates(),
+    mapTemplate: (analysisJson: string) => aiApi.mapTemplate(analysisJson),
   }), []);
 }

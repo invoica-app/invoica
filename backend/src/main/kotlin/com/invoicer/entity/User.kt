@@ -29,6 +29,10 @@ class User(
     @Column(name = "is_disabled", nullable = false, columnDefinition = "boolean not null default false")
     var isDisabled: Boolean = false,
 
+    @Column(name = "plan", nullable = false)
+    @Enumerated(EnumType.STRING)
+    var plan: UserPlan = UserPlan.FREE,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
@@ -48,4 +52,9 @@ enum class AuthProvider {
     GOOGLE,
     MICROSOFT,
     GUEST
+}
+
+enum class UserPlan {
+    FREE,
+    PRO
 }

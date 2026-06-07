@@ -2,6 +2,7 @@
 
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'CANCELLED';
 export type TemplateId = 'modern' | 'classic' | 'enterprise' | 'freelancer' | 'corporate';
+export type UserPlan = 'FREE' | 'PRO';
 
 // Payment method types
 export type PaymentMethodType = 'momo' | 'bank';
@@ -301,6 +302,14 @@ export interface AiTemplateResponse {
   sampleImageUrl: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AiTemplateMappingResponse {
+  templateId: TemplateId;
+  primaryColor: string;
+  fontFamily: string;
+  confidence: number;
+  reasoning: string;
 }
 
 // Dashboard analytics

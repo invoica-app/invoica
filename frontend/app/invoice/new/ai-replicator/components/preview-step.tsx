@@ -3,7 +3,10 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Save, Pencil, RotateCcw, Check } from "lucide-react";
+import { Download, Save, Pencil, RotateCcw, Check, Wand2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useInvoiceStore } from "@/lib/store";
+import type { TemplateId } from "@/lib/types";
 import { AiDynamicTemplate } from "@/components/ai-dynamic-template";
 import type { AiInvoiceFormData } from "@/components/ai-dynamic-template";
 import type { AiInvoiceAnalysis } from "@/lib/types";
@@ -28,7 +31,10 @@ export function PreviewStep({
 }: PreviewStepProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const api = useAuthenticatedApi();
+  const router = useRouter();
+  const { setDesign } = useInvoiceStore();
   const [downloading, setDownloading] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [templateName, setTemplateName] = useState("");
@@ -92,6 +98,23 @@ export function PreviewStep({
     }
   };
 
+  const handleApplyTemplate = async () => {
+    setApplying(true);
+    try {
+      const mapping = await api.mapTemplate(analysisJson);
+      setDesign(
+        mapping.primaryColor,
+        mapping.fontFamily,
+        mapping.templateId as TemplateId
+      );
+      router.push("/invoice/new/design");
+    } catch (err) {
+      console.error("Template mapping failed:", err);
+    } finally {
+      setApplying(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -128,6 +151,10 @@ export function PreviewStep({
           <Button variant="ghost" size="sm" onClick={onStartOver}>
             <RotateCcw className="w-4 h-4 mr-1.5" />
             Start Over
+          </Button>
+          <Button size="sm" onClick={handleApplyTemplate} disabled={applying}>
+            <Wand2 className="w-4 h-4 mr-1.5" />
+            {applying ? "Applying..." : "Use This Template"}
           </Button>
         </div>
       </div>

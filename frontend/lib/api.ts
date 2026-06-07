@@ -8,6 +8,7 @@ import {
   AiAnalysisResponse,
   AiUsageResponse,
   AiTemplateResponse,
+  AiTemplateMappingResponse,
   UserDashboardStats,
   Page,
 } from './types';
@@ -223,6 +224,13 @@ class ApiClient {
     return this.request<AiTemplateResponse[]>('/ai/templates');
   }
 
+  async mapTemplate(analysisJson: string): Promise<AiTemplateMappingResponse> {
+    return this.request<AiTemplateMappingResponse>('/ai/map-template', {
+      method: 'POST',
+      body: JSON.stringify({ analysisJson }),
+    });
+  }
+
   async uploadLogo(file: File): Promise<FileUploadResponse> {
     const url = `${this.baseUrl}/upload/logo`;
     const formData = new FormData();
@@ -284,6 +292,7 @@ export const aiApi = {
   saveTemplate: (data: { name: string; analysisJson: string; sampleImageUrl?: string | null }) =>
     api.saveAiTemplate(data),
   getTemplates: () => api.getAiTemplates(),
+  mapTemplate: (analysisJson: string) => api.mapTemplate(analysisJson),
 };
 
 export const invoiceApi = {
