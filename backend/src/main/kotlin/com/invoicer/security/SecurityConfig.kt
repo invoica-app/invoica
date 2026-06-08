@@ -38,6 +38,7 @@ class SecurityConfig(
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/invoices/public/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/subscription/webhook").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/subscription/verify/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                     // Admin endpoints require ROLE_ADMIN

@@ -25,16 +25,9 @@ class SubscriptionController(
 
     @GetMapping("/verify/{reference}")
     fun verifyPayment(
-        @PathVariable reference: String,
-        authentication: Authentication
+        @PathVariable reference: String
     ): ResponseEntity<Map<String, Any>> {
-        val userId = authentication.credentials as Long
-        val result = paystackService.verifyTransaction(reference)
-
-        if (result["status"] == "success") {
-            paystackService.upgradeUser(userId)
-        }
-
+        val result = paystackService.verifyAndUpgrade(reference)
         return ResponseEntity.ok(result)
     }
 

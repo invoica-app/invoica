@@ -2,16 +2,16 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuthenticatedApi } from "@/lib/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 type Status = "verifying" | "success" | "failed";
 
 function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const api = useAuthenticatedApi();
   const [status, setStatus] = useState<Status>("verifying");
 
   useEffect(() => {
@@ -21,13 +21,13 @@ function VerifyContent() {
       return;
     }
 
-    api
-      .verifySubscription(reference)
+    fetch(`${API_BASE_URL}/subscription/verify/${reference}`)
+      .then((res) => res.json())
       .then((result) => {
         setStatus(result.status === "success" ? "success" : "failed");
       })
       .catch(() => setStatus("failed"));
-  }, [searchParams, api]);
+  }, [searchParams]);
 
   return (
     <div className="max-w-sm w-full text-center">

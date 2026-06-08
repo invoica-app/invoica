@@ -87,7 +87,24 @@ class PaystackService(
             "status" to status,
             "reference" to reference,
             "amount" to data.get("amount").asInt(),
-            "currency" to data.get("currency").asText()
+            "currency" to data.get("currency").asText(),
+            "metadata" to (data.get("metadata") ?: objectMapper.createObjectNode())
+        )
+    }
+
+    @Transactional
+    fun verifyAndUpgrade(reference: String): Map<String, Any> {
+        val result = verifyTransaction(reference)
+        if (result["status"] == "success") {
+            val metadata = objectMapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(result["metadata"])
+            val userId = metadata.get("user_id")?.asLong()
+            if (userId != null) {
+                upgradeUser(userId)
+            }
+        }
+        return mapOf(
+            "status" to (result["status"] ?: "failed"),
+            "reference" to reference
         )
     }
 
