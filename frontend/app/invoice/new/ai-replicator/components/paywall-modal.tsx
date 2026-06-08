@@ -46,7 +46,7 @@ export function PaywallModal({ open, onClose }: PaywallModalProps) {
   if (!open) return null;
 
   const formattedPrice = config
-    ? `${config.currency} ${(config.amount).toFixed(2)}`
+    ? `${config.currency} ${(config.amount / 100).toFixed(2)}`
     : "...";
 
   return (

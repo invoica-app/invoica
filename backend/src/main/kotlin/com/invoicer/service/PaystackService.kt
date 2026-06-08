@@ -32,7 +32,7 @@ class PaystackService(
 
         val body = mapOf(
             "email" to email,
-            "amount" to paystackConfig.proPlanAmount * 100,
+            "amount" to paystackConfig.proPlanAmount,
             "currency" to paystackConfig.currency,
             "callback_url" to paystackConfig.callbackUrl,
             "metadata" to mapOf(
