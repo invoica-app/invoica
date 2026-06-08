@@ -129,15 +129,15 @@ export default function AiReplicatorPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
-      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
-        <div className="flex items-center justify-between max-w-6xl mx-auto w-full">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center">
+      <div className="shrink-0 border-b border-border bg-card/50 px-3 sm:px-6 py-3">
+        <div className="flex items-center justify-between max-w-6xl mx-auto w-full gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shrink-0">
               <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="text-sm font-semibold leading-none">AI Replicator</h1>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Clone any invoice style</p>
+            <div className="min-w-0">
+              <h1 className="text-sm font-semibold leading-none truncate">AI Replicator</h1>
+              <p className="text-[11px] text-muted-foreground mt-0.5 hidden sm:block">Clone any invoice style</p>
             </div>
           </div>
           <StepIndicator current={step} />
@@ -146,7 +146,7 @@ export default function AiReplicatorPage() {
 
       {/* Error banner */}
       {error && (
-        <div className="shrink-0 px-6 pt-4">
+        <div className="shrink-0 px-3 sm:px-6 pt-4">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive">{error}</p>
@@ -163,7 +163,7 @@ export default function AiReplicatorPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-auto">
-        <div className="px-6 py-6 max-w-6xl mx-auto w-full">
+        <div className="px-3 sm:px-6 py-4 sm:py-6 max-w-6xl mx-auto w-full">
           {step === "upload" && (
             <UploadStep onAnalyze={handleAnalyze} isLoading={false} />
           )}

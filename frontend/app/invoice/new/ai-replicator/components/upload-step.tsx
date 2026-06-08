@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Sparkles, FileText, Image, FileUp } from "lucide-react";
+import { X, Sparkles, FileText, Image } from "lucide-react";
 import { UsageBadge } from "./usage-badge";
 
 interface UploadStepProps {
@@ -56,14 +56,14 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
   };
 
   return (
-    <div className="max-w-xl mx-auto pt-8">
+    <div className="max-w-xl mx-auto pt-4 sm:pt-8">
       {/* Hero */}
-      <div className="text-center mb-10">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
-          <Sparkles className="w-6 h-6 text-primary-foreground" />
+      <div className="text-center mb-6 sm:mb-10">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg shadow-primary/20">
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
         </div>
-        <h1 className="text-xl font-semibold mb-2">Upload a sample invoice</h1>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+        <h1 className="text-lg sm:text-xl font-semibold mb-2">Upload a sample invoice</h1>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed px-2">
           Our AI will analyze its visual design — colors, layout, typography — and replicate the style for your invoices.
         </p>
         <div className="mt-4">
@@ -147,10 +147,12 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-16 px-6 cursor-pointer">
-            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
-              <FileUp className="w-5 h-5 text-muted-foreground" />
-            </div>
+          <div className="flex flex-col items-center py-8 sm:py-12 px-4 sm:px-6 cursor-pointer">
+            <img
+              src="/images/upload.svg"
+              alt="Upload"
+              className="w-24 h-24 sm:w-32 sm:h-32 mb-4 opacity-90"
+            />
             <p className="text-sm font-medium mb-1">
               Drop your invoice here
             </p>

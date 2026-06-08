@@ -166,28 +166,30 @@ export function PreviewStep({
 
       {/* Save form */}
       {showSaveForm && (
-        <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-card border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-5 p-3 rounded-xl bg-card border border-border">
           <Input
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
             placeholder="Give your template a name"
-            className="max-w-xs"
+            className="sm:max-w-xs"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && handleSaveTemplate()}
           />
-          <Button size="sm" onClick={handleSaveTemplate} disabled={saving || !templateName.trim()}>
-            {saving ? "Saving..." : "Save"}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setShowSaveForm(false)}>
-            Cancel
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSaveTemplate} disabled={saving || !templateName.trim()} className="flex-1 sm:flex-initial">
+              {saving ? "Saving..." : "Save"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowSaveForm(false)} className="flex-1 sm:flex-initial">
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Comparison grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-border bg-muted/30">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Generated</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 font-medium">AI</span>
           </div>
@@ -199,7 +201,7 @@ export function PreviewStep({
         </div>
 
         <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-border bg-muted/30">
+          <div className="px-3 sm:px-4 py-2.5 border-b border-border bg-muted/30">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Original</span>
           </div>
           <div className="overflow-auto" style={{ maxHeight: "70vh" }}>
