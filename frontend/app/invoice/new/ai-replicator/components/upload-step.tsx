@@ -59,9 +59,11 @@ export function UploadStep({ onAnalyze, isLoading }: UploadStepProps) {
     <div className="max-w-xl mx-auto pt-4 sm:pt-8">
       {/* Hero */}
       <div className="text-center mb-6 sm:mb-10">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg shadow-primary/20">
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
-        </div>
+        <img
+          src="/images/replica.png"
+          alt="AI Replicator"
+          className="h-14 sm:h-16 mx-auto mb-3 sm:mb-4"
+        />
         <h1 className="text-lg sm:text-xl font-semibold mb-2">Upload a sample invoice</h1>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed px-2">
           Our AI will analyze its visual design — colors, layout, typography — and replicate the style for your invoices.
