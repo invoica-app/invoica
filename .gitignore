@@ -62,3 +62,6 @@ lerna-debug.log*
 .claude/
 skills/
 figma_screenshots/
+
+# Visual brainstorm companion
+.superpowers/
